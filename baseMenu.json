@@ -1,0 +1,105 @@
+[
+  {
+    "id": "charging-management",
+    "code": "charging-management",
+    "name": "收费管理",
+    "url": "/charging",
+    "owner": "app",
+    "sortIndex": 71,
+    "i18nMessages": {
+      "name": {
+        "zh_CN": "收费管理",
+        "en_US": "Charging management",
+        "en": "Charging management"
+      }
+    },
+    "permissions": [],
+    "buttons": [],
+    "children": [
+      {
+        "id": "charging-basic",
+        "code": "charging/basic",
+        "name": "基础资料",
+        "url": "/charging/basic",
+        "owner": "app",
+        "sortIndex": 1,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "基础资料",
+            "en_US": "Basic information",
+            "en": "Basic information"
+          }
+        },
+        "permissions": [],
+        "buttons": [],
+        "children": [
+          {
+            "id": "charging-OrganizationType",
+            "code": "charging/OrganizationType",
+            "name": "组织类型配置",
+            "url": "/charging/basic/organizations",
+            "owner": "app",
+            "sortIndex": 1,
+            "i18nMessages": {
+              "name": {
+                "zh_CN": "组织类型配置",
+                "en_US": "Organization types",
+                "en": "Organization types"
+              }
+            },
+            "permissions": [
+              {
+                "permission": "property-organization",
+                "actions": [
+                  "query"
+                ]
+              }
+            ],
+            "buttons": [
+              {
+                "id": "save",
+                "name": "标注类型",
+                "i18nMessages": {
+                  "zh_CN": "标注类型",
+                  "en_US": "Set type",
+                  "en": "Set type"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-organization",
+                    "actions": [
+                      "save"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "sync",
+                "name": "同步组织",
+                "i18nMessages": {
+                  "zh_CN": "同步组织",
+                  "en_US": "Sync organizations",
+                  "en": "Sync organizations"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-organization",
+                    "actions": [
+                      "sync"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "assetType": "organization",
+            "showPage": [
+              "property-organization"
+            ],
+            "icon": "ApartmentOutlined"
+          }
+        ]
+      }
+    ],
+    "icon": "icon-yingyongguanli"
+  }
+]
