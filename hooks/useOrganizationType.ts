@@ -3,9 +3,16 @@ import { useI18n } from 'vue-i18n'
 import { usePermission } from '@jetlinks-web/hooks'
 import { onlyMessage } from '@jetlinks-web/utils'
 import {
-  getOrganization, getOrganizationSyncStatus, getOrganizationTree, getOrganizationTypes,
-  setOrganizationType, synchronizeOrganizations,
-  type OrganizationSyncStatus, type OrganizationType, type OrganizationTypeValue, type PropertyOrganization
+  getOrganization,
+  getOrganizationSyncStatus,
+  getOrganizationTree,
+  getOrganizationTypes,
+  setOrganizationType,
+  synchronizeOrganizations,
+  type OrganizationSyncStatus,
+  type OrganizationType,
+  type OrganizationTypeValue,
+  type PropertyOrganization
 } from '../api/organization'
 import { filterOrganizationTree, flattenOrganizations, replaceOrganization } from '../utils/organizationTree'
 
@@ -36,11 +43,21 @@ export function useOrganizationType() {
   let statusTimer: ReturnType<typeof setTimeout> | undefined
   const organizations = computed(() => flattenOrganizations(tree.value))
   const visibleTree = computed(() => filterOrganizationTree(tree.value, keyword.value, unmarkedOnly.value))
-  const unmarkedCount = computed(() => organizations.value.filter(node => !node.organizationType).length)
-  const parentName = computed(() => organizations.value.find(node => node.id === detail.value?.parentId)?.name)
+  const unmarkedCount = computed(() => organizations.value.filter((node) => !node.organizationType).length)
+  const parentName = computed(() => organizations.value.find((node) => node.id === detail.value?.parentId)?.name)
   const syncRunning = computed(() => syncing.value || !!status.value?.running)
-  const editable = computed(() => canSave.value && !saving.value && !loading.value && !failed.value && !syncRunning.value && !detailLoading.value && !detailFailed.value && !!detail.value)
-  const dateText = (time?: number) => time ? new Date(time).toLocaleString() : t(key + 'never')
+  const editable = computed(
+    () =>
+      canSave.value &&
+      !saving.value &&
+      !loading.value &&
+      !failed.value &&
+      !syncRunning.value &&
+      !detailLoading.value &&
+      !detailFailed.value &&
+      !!detail.value
+  )
+  const dateText = (time?: number) => (time ? new Date(time).toLocaleString() : t(key + 'never'))
 
   async function select(id: string) {
     if (saving.value) return
@@ -74,10 +91,15 @@ export function useOrganizationType() {
         status.value = response.result
         statusFailed.value = false
         // 其他实例正在同步时仅轮询状态，结束后才刷新组织，避免一直锁住标注。
-        if (response.result.running) statusTimer = setTimeout(() => { void refreshStatus() }, 2000)
+        if (response.result.running)
+          statusTimer = setTimeout(() => {
+            void refreshStatus()
+          }, 2000)
         else if (wasRunning && !syncing.value) await reload()
       }
-    } catch { if (!disposed) statusFailed.value = true }
+    } catch {
+      if (!disposed) statusFailed.value = true
+    }
   }
 
   async function reload() {
@@ -90,15 +112,18 @@ export function useOrganizationType() {
       if (!response.success || !options.success) throw new Error('Organization tree rejected')
       tree.value = response.result
       types.value = options.result
-      const ids = new Set(organizations.value.map(node => node.id))
-      expandedKeys.value = expandedKeys.value.filter(id => ids.has(id))
-      if (!selectedId.value) expandedKeys.value = tree.value.map(node => node.id)
+      const ids = new Set(organizations.value.map((node) => node.id))
+      expandedKeys.value = expandedKeys.value.filter((id) => ids.has(id))
+      if (!selectedId.value) expandedKeys.value = tree.value.map((node) => node.id)
       if (selectedId.value && !ids.has(selectedId.value)) {
         onlyMessage(t(key + 'selectionGone'), 'warning')
         await select('')
       } else if (selectedId.value) await select(selectedId.value)
-    } catch { if (!disposed) failed.value = true }
-    finally { if (!disposed) loading.value = false }
+    } catch {
+      if (!disposed) failed.value = true
+    } finally {
+      if (!disposed) loading.value = false
+    }
   }
 
   async function save(type: OrganizationTypeValue | null) {
@@ -119,7 +144,9 @@ export function useOrganizationType() {
         saving.value = false
         await select(current.id)
       }
-    } finally { if (!disposed) saving.value = false }
+    } finally {
+      if (!disposed) saving.value = false
+    }
   }
 
   async function synchronize() {
@@ -131,16 +158,56 @@ export function useOrganizationType() {
       if (!response.success) throw new Error('Organization sync rejected')
       onlyMessage(t(key + 'syncSuccess', { ...response.result }), 'success')
       await reload()
-    } catch { if (!disposed) onlyMessage(t(key + 'syncFailed'), 'error') }
-    finally { if (!disposed) { syncing.value = false; await refreshStatus() } }
+    } catch {
+      if (!disposed) onlyMessage(t(key + 'syncFailed'), 'error')
+    } finally {
+      if (!disposed) {
+        syncing.value = false
+        await refreshStatus()
+      }
+    }
   }
 
   watch([keyword, unmarkedOnly], () => {
-    if (keyword.value.trim() || unmarkedOnly.value) expandedKeys.value = flattenOrganizations(visibleTree.value).map(node => node.id)
+    if (keyword.value.trim() || unmarkedOnly.value)
+      expandedKeys.value = flattenOrganizations(visibleTree.value).map((node) => node.id)
   })
-  onMounted(() => { void reload(); void refreshStatus() })
-  onScopeDispose(() => { disposed = true; generation++; if (statusTimer) clearTimeout(statusTimer) })
-  return { tree, types, status, keyword, unmarkedOnly, selectedId, expandedKeys, detail, loading, failed,
-    statusFailed, detailLoading, detailFailed, saving, syncing, organizations, visibleTree, unmarkedCount,
-    parentName, syncRunning, editable, dateText, select, refreshStatus, reload, save, synchronize }
+  onMounted(() => {
+    void reload()
+    void refreshStatus()
+  })
+  onScopeDispose(() => {
+    disposed = true
+    generation++
+    if (statusTimer) clearTimeout(statusTimer)
+  })
+  return {
+    tree,
+    types,
+    status,
+    keyword,
+    unmarkedOnly,
+    selectedId,
+    expandedKeys,
+    detail,
+    loading,
+    failed,
+    statusFailed,
+    detailLoading,
+    detailFailed,
+    saving,
+    syncing,
+    organizations,
+    visibleTree,
+    unmarkedCount,
+    parentName,
+    syncRunning,
+    editable,
+    dateText,
+    select,
+    refreshStatus,
+    reload,
+    save,
+    synchronize
+  }
 }

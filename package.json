@@ -8,9 +8,7 @@
   "scripts": {
     "dev": "pnpm --filter jetlinks-web-core dev -- -- --module-name charging-management-ui,authentication-manager-ui",
     "build": "pnpm --filter jetlinks-web-core build -- -- --module-name charging-management-ui",
-    "test": "node --test tests/organization.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "typecheck": "vue-tsc -p tsconfig.json --noEmit"
-  },
-  "dependencies": {},
-  "peerDependencies": {}
+  }
 }

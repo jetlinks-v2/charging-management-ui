@@ -7,11 +7,12 @@ type MenuItem = {
   [key: string]: unknown
 }
 
-const handleMenu = (items: MenuItem[]): MenuItem[] => items.map(item => ({
-  ...item,
-  children: item.children ? handleMenu(item.children) : undefined,
-  options: { appName: p.id || p.name, ...item.options },
-  runtime: true
-}))
+const handleMenu = (items: MenuItem[]): MenuItem[] =>
+  items.map((item) => ({
+    ...item,
+    children: item.children ? handleMenu(item.children) : undefined,
+    options: { appName: p.id || p.name, ...item.options },
+    runtime: true
+  }))
 
 export default () => handleMenu(baseMenu)

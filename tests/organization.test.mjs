@@ -8,19 +8,46 @@ import { createRenderer, defineComponent, h, nextTick, ref } from 'vue'
 const require = createRequire(import.meta.url)
 const load = async (entry, mockApi = false) => {
   const result = await build({
-    entryPoints: [fileURLToPath(new URL(entry, import.meta.url))], bundle: true, write: false,
-    platform: 'node', format: 'cjs', external: ['vue'],
-    plugins: mockApi ? [{ name: 'organization-dependencies', setup(builder) {
-      builder.onResolve({ filter: /api\/organization|@jetlinks-web|vue-i18n/ }, args => ({ path: args.path, namespace: 'mock' }))
-      builder.onLoad({ filter: /.*/, namespace: 'mock' }, args => ({ contents:
-        args.path.includes('api/organization')
-          ? ['getOrganization', 'getOrganizationTree', 'getOrganizationTypes', 'getOrganizationSyncStatus', 'setOrganizationType', 'synchronizeOrganizations']
-            .map(name => `export const ${name} = (...args) => globalThis.__organizationTestApi.${name}(...args)`).join('\n')
-          : args.path === 'vue-i18n' ? 'export const useI18n = () => ({t: (key) => key})'
-          : args.path.includes('hooks') ? "import {ref} from 'vue'; export const usePermission = () => ({hasPerm: ref(true)})"
-          : 'export const onlyMessage = () => {}'
-      }))
-    }}] : []
+    entryPoints: [fileURLToPath(new URL(entry, import.meta.url))],
+    bundle: true,
+    write: false,
+    platform: 'node',
+    format: 'cjs',
+    external: ['vue'],
+    plugins: mockApi
+      ? [
+          {
+            name: 'organization-dependencies',
+            setup(builder) {
+              builder.onResolve({ filter: /api\/organization|@jetlinks-web|vue-i18n/ }, (args) => ({
+                path: args.path,
+                namespace: 'mock'
+              }))
+              builder.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
+                contents: args.path.includes('api/organization')
+                  ? [
+                      'getOrganization',
+                      'getOrganizationTree',
+                      'getOrganizationTypes',
+                      'getOrganizationSyncStatus',
+                      'setOrganizationType',
+                      'synchronizeOrganizations'
+                    ]
+                      .map(
+                        (name) =>
+                          `export const ${name} = (...args) => globalThis.__organizationTestApi.${name}(...args)`
+                      )
+                      .join('\n')
+                  : args.path === 'vue-i18n'
+                    ? 'export const useI18n = () => ({t: (key) => key})'
+                    : args.path.includes('hooks')
+                      ? "import {ref} from 'vue'; export const usePermission = () => ({hasPerm: ref(true)})"
+                      : 'export const onlyMessage = () => {}'
+              }))
+            }
+          }
+        ]
+      : []
   })
   const module = { exports: {} }
   new Function('require', 'module', 'exports', result.outputFiles[0].text)(require, module, module.exports)
@@ -30,27 +57,52 @@ const treeUtils = await load('../utils/organizationTree.ts')
 const { useOrganizationType } = await load('../hooks/useOrganizationType.ts', true)
 const node = (id, type = null, children = []) => ({ id, name: id, version: 0, organizationType: type, children })
 const tree = [node('company', { value: 'external', text: '外协单位' }, [node('park')])]
-const success = result => ({ success: true, result })
-const settle = async () => { await new Promise(resolve => setImmediate(resolve)); await nextTick() }
+const success = (result) => ({ success: true, result })
+const settle = async () => {
+  await new Promise((resolve) => setImmediate(resolve))
+  await nextTick()
+}
 const deferred = () => {
   let resolve, reject
-  const promise = new Promise((yes, no) => { resolve = yes; reject = no })
+  const promise = new Promise((yes, no) => {
+    resolve = yes
+    reject = no
+  })
   return { promise, resolve, reject }
 }
 function mount(api = {}) {
   globalThis.__organizationTestApi = {
     getOrganizationTree: async () => success(structuredClone(tree)),
-    getOrganizationTypes: async () => success([{ value: 'project', text: '项目' }, { value: 'external', text: '外协单位' }]),
+    getOrganizationTypes: async () =>
+      success([
+        { value: 'project', text: '项目' },
+        { value: 'external', text: '外协单位' }
+      ]),
     getOrganizationSyncStatus: async () => success({ running: false }),
-    getOrganization: async id => success(node(id)),
+    getOrganization: async (id) => success(node(id)),
     ...api
   }
   const renderer = createRenderer({
-    createElement: () => ({}), createText: () => ({}), createComment: () => ({}),
-    insert() {}, remove() {}, setText() {}, setElementText() {}, patchProp() {}, parentNode: () => null, nextSibling: () => null
+    createElement: () => ({}),
+    createText: () => ({}),
+    createComment: () => ({}),
+    insert() {},
+    remove() {},
+    setText() {},
+    setElementText() {},
+    patchProp() {},
+    parentNode: () => null,
+    nextSibling: () => null
   })
   let state
-  const app = renderer.createApp(defineComponent({ setup() { state = useOrganizationType(); return () => h('div') } }))
+  const app = renderer.createApp(
+    defineComponent({
+      setup() {
+        state = useOrganizationType()
+        return () => h('div')
+      }
+    })
+  )
   app.mount({})
   return { state, unmount: () => app.unmount() }
 }
@@ -69,17 +121,25 @@ test('更新单个组织保留子树及其他组织的标注', () => {
 })
 test('切换组织时旧详情响应不能覆盖新选择', async () => {
   const old = deferred()
-  const { state, unmount } = mount({ getOrganization: id => id === 'old' ? old.promise : Promise.resolve(success(node(id))) })
+  const { state, unmount } = mount({
+    getOrganization: (id) => (id === 'old' ? old.promise : Promise.resolve(success(node(id))))
+  })
   await settle()
   const first = state.select('old')
   await state.select('park')
-  old.resolve(success(node('old'))); await first
+  old.resolve(success(node('old')))
+  await first
   assert.equal(state.detail.value.id, 'park')
   unmount()
 })
 test('保存失败保留已保存标签，刷新版本后由用户重新选择', async () => {
-  const { state, unmount } = mount({ setOrganizationType: async () => { throw new Error('409 conflict') } })
-  await settle(); await state.select('park')
+  const { state, unmount } = mount({
+    setOrganizationType: async () => {
+      throw new Error('409 conflict')
+    }
+  })
+  await settle()
+  await state.select('park')
   await state.save('project')
   assert.equal(state.detail.value.organizationType, null)
   assert.equal(state.tree.value[0].children[0].organizationType, null)
@@ -88,13 +148,20 @@ test('保存失败保留已保存标签，刷新版本后由用户重新选择',
 })
 test('保存成功刷新版本和树标签，清除时发送真实 null', async () => {
   const calls = []
-  const { state, unmount } = mount({ setOrganizationType: async (id, type, version) => {
-    calls.push({ id, type, version })
-    return success({ ...node(id, type ? { value: type, text: '项目' } : null), version: version + 1 })
-  } })
-  await settle(); await state.select('park')
-  await state.save('project'); await state.save(null)
-  assert.deepEqual(calls, [{ id: 'park', type: 'project', version: 0 }, { id: 'park', type: null, version: 1 }])
+  const { state, unmount } = mount({
+    setOrganizationType: async (id, type, version) => {
+      calls.push({ id, type, version })
+      return success({ ...node(id, type ? { value: type, text: '项目' } : null), version: version + 1 })
+    }
+  })
+  await settle()
+  await state.select('park')
+  await state.save('project')
+  await state.save(null)
+  assert.deepEqual(calls, [
+    { id: 'park', type: 'project', version: 0 },
+    { id: 'park', type: null, version: 1 }
+  ])
   assert.equal(state.detail.value.version, 2)
   assert.equal(state.tree.value[0].children[0].organizationType, null)
   unmount()
@@ -102,10 +169,16 @@ test('保存成功刷新版本和树标签，清除时发送真实 null', async 
 test('冲突恢复显示其他人已保存的新标签并更新未标注筛选', async () => {
   let changed = false
   const { state, unmount } = mount({
-    getOrganization: async id => success({ ...node(id, changed ? { value: 'external', text: '外协单位' } : null), version: changed ? 1 : 0 }),
-    setOrganizationType: async () => { changed = true; throw new Error('409 conflict') }
+    getOrganization: async (id) =>
+      success({ ...node(id, changed ? { value: 'external', text: '外协单位' } : null), version: changed ? 1 : 0 }),
+    setOrganizationType: async () => {
+      changed = true
+      throw new Error('409 conflict')
+    }
   })
-  await settle(); await state.select('park'); await state.save('project')
+  await settle()
+  await state.select('park')
+  await state.save('project')
   assert.equal(state.detail.value.organizationType.value, 'external')
   assert.equal(state.tree.value[0].children[0].organizationType?.value, 'external')
   assert.equal(state.unmarkedCount.value, 0)
@@ -114,9 +187,12 @@ test('冲突恢复显示其他人已保存的新标签并更新未标注筛选',
 test('同步失败保留原树和最近成功时间', async () => {
   const { state, unmount } = mount({
     getOrganizationSyncStatus: async () => success({ running: false, lastSuccessTime: 123 }),
-    synchronizeOrganizations: async () => { throw new Error('upstream unavailable') }
+    synchronizeOrganizations: async () => {
+      throw new Error('upstream unavailable')
+    }
   })
-  await settle(); await state.synchronize()
+  await settle()
+  await state.synchronize()
   assert.equal(state.tree.value[0].name, 'company')
   assert.equal(state.status.value.lastSuccessTime, 123)
   assert.equal(state.syncing.value, false)
@@ -124,7 +200,8 @@ test('同步失败保留原树和最近成功时间', async () => {
 })
 test('同步后选中组织失效时清空详情，阻止继续标注', async () => {
   const { state, unmount } = mount()
-  await settle(); await state.select('park')
+  await settle()
+  await state.select('park')
   globalThis.__organizationTestApi.getOrganizationTree = async () => success([])
   await state.reload()
   assert.equal(state.selectedId.value, '')
