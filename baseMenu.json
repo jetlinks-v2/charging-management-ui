@@ -33,9 +33,7 @@
         "permissions": [
           {
             "permission": "property-organization",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -50,9 +48,7 @@
             "permissions": [
               {
                 "permission": "property-organization",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -67,9 +63,7 @@
             "permissions": [
               {
                 "permission": "property-organization",
-                "actions": [
-                  "sync"
-                ]
+                "actions": ["sync"]
               }
             ]
           },
@@ -84,9 +78,7 @@
             "permissions": [
               {
                 "permission": "property-space",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -101,17 +93,13 @@
             "permissions": [
               {
                 "permission": "property-space",
-                "actions": [
-                  "sync"
-                ]
+                "actions": ["sync"]
               }
             ]
           }
         ],
         "assetType": "organization",
-        "showPage": [
-          "property-organization"
-        ],
+        "showPage": ["property-organization"],
         "icon": "ApartmentOutlined"
       },
       {
@@ -131,9 +119,7 @@
         "permissions": [
           {
             "permission": "property-user",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -148,9 +134,7 @@
             "permissions": [
               {
                 "permission": "property-user",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -165,17 +149,13 @@
             "permissions": [
               {
                 "permission": "property-user",
-                "actions": [
-                  "sync"
-                ]
+                "actions": ["sync"]
               }
             ]
           }
         ],
         "assetType": "user",
-        "showPage": [
-          "property-user"
-        ],
+        "showPage": ["property-user"],
         "icon": "TeamOutlined"
       },
       {
@@ -195,21 +175,15 @@
         "permissions": [
           {
             "permission": "property-house",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-space",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-dictionary",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -224,9 +198,7 @@
             "permissions": [
               {
                 "permission": "property-house",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -241,9 +213,7 @@
             "permissions": [
               {
                 "permission": "property-house",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           },
@@ -258,9 +228,7 @@
             "permissions": [
               {
                 "permission": "property-house",
-                "actions": [
-                  "import"
-                ]
+                "actions": ["import"]
               }
             ]
           },
@@ -275,9 +243,7 @@
             "permissions": [
               {
                 "permission": "property-house",
-                "actions": [
-                  "export"
-                ]
+                "actions": ["export"]
               }
             ]
           },
@@ -292,17 +258,13 @@
             "permissions": [
               {
                 "permission": "property-space",
-                "actions": [
-                  "sync"
-                ]
+                "actions": ["sync"]
               }
             ]
           }
         ],
         "assetType": "space",
-        "showPage": [
-          "property-house"
-        ],
+        "showPage": ["property-house"],
         "icon": "HomeOutlined"
       },
       {
@@ -322,27 +284,19 @@
         "permissions": [
           {
             "permission": "property-customer",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-space",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-dictionary",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-house",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -357,15 +311,11 @@
             "permissions": [
               {
                 "permission": "property-customer",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               },
               {
                 "permission": "property-user",
-                "actions": [
-                  "query"
-                ]
+                "actions": ["query"]
               }
             ]
           },
@@ -380,9 +330,7 @@
             "permissions": [
               {
                 "permission": "property-customer",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           },
@@ -397,9 +345,7 @@
             "permissions": [
               {
                 "permission": "property-customer",
-                "actions": [
-                  "import"
-                ]
+                "actions": ["import"]
               }
             ]
           },
@@ -414,17 +360,13 @@
             "permissions": [
               {
                 "permission": "property-customer",
-                "actions": [
-                  "export"
-                ]
+                "actions": ["export"]
               }
             ]
           }
         ],
         "assetType": "organization",
-        "showPage": [
-          "property-customer"
-        ],
+        "showPage": ["property-customer"],
         "icon": "TeamOutlined"
       },
       {
@@ -444,9 +386,7 @@
         "permissions": [
           {
             "permission": "property-dictionary",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -461,9 +401,7 @@
             "permissions": [
               {
                 "permission": "property-dictionary",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -478,17 +416,13 @@
             "permissions": [
               {
                 "permission": "property-dictionary",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           }
         ],
         "assetType": "organization",
-        "showPage": [
-          "property-dictionary"
-        ],
+        "showPage": ["property-dictionary"],
         "icon": "BookOutlined"
       }
     ],
@@ -530,9 +464,7 @@
         "permissions": [
           {
             "permission": "property-finance-company",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -547,9 +479,7 @@
             "permissions": [
               {
                 "permission": "property-finance-company",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -564,9 +494,7 @@
             "permissions": [
               {
                 "permission": "property-finance-company",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           }
@@ -590,9 +518,7 @@
         "permissions": [
           {
             "permission": "property-finance-project-company",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -607,9 +533,7 @@
             "permissions": [
               {
                 "permission": "property-finance-project-company",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           }
@@ -633,15 +557,11 @@
         "permissions": [
           {
             "permission": "property-finance-tax",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-finance-project-company",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -651,9 +571,7 @@
             "permissions": [
               {
                 "permission": "property-finance-tax",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -663,9 +581,7 @@
             "permissions": [
               {
                 "permission": "property-finance-tax",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           },
@@ -675,9 +591,7 @@
             "permissions": [
               {
                 "permission": "property-finance-tax",
-                "actions": [
-                  "import"
-                ]
+                "actions": ["import"]
               }
             ]
           }
@@ -701,15 +615,11 @@
         "permissions": [
           {
             "permission": "property-finance-recorded",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-finance-project-company",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -719,9 +629,7 @@
             "permissions": [
               {
                 "permission": "property-finance-recorded",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -731,9 +639,7 @@
             "permissions": [
               {
                 "permission": "property-finance-recorded",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           }
@@ -757,21 +663,15 @@
         "permissions": [
           {
             "permission": "property-finance-subject",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-finance-subject-category",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-finance-arrears",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -781,9 +681,7 @@
             "permissions": [
               {
                 "permission": "property-finance-subject",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -793,9 +691,7 @@
             "permissions": [
               {
                 "permission": "property-finance-subject",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           },
@@ -805,9 +701,7 @@
             "permissions": [
               {
                 "permission": "property-finance-subject",
-                "actions": [
-                  "issue"
-                ]
+                "actions": ["issue"]
               }
             ]
           },
@@ -817,9 +711,7 @@
             "permissions": [
               {
                 "permission": "property-finance-subject-category",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -829,9 +721,7 @@
             "permissions": [
               {
                 "permission": "property-finance-subject-category",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           },
@@ -841,9 +731,7 @@
             "permissions": [
               {
                 "permission": "property-finance-subject",
-                "actions": [
-                  "import"
-                ]
+                "actions": ["import"]
               }
             ]
           },
@@ -858,9 +746,7 @@
             "permissions": [
               {
                 "permission": "property-finance-subject",
-                "actions": [
-                  "imports"
-                ]
+                "actions": ["imports"]
               }
             ]
           }
@@ -884,33 +770,23 @@
         "permissions": [
           {
             "permission": "property-finance-project-subject",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-finance-subject-category",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-finance-subject",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-finance-arrears",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-project",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -920,9 +796,7 @@
             "permissions": [
               {
                 "permission": "property-finance-project-subject",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           }
@@ -946,9 +820,7 @@
         "permissions": [
           {
             "permission": "property-finance-arrears",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -958,9 +830,7 @@
             "permissions": [
               {
                 "permission": "property-finance-arrears",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -970,9 +840,7 @@
             "permissions": [
               {
                 "permission": "property-finance-arrears",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           }
@@ -996,15 +864,11 @@
         "permissions": [
           {
             "permission": "property-finance-standard",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           },
           {
             "permission": "property-project",
-            "actions": [
-              "query"
-            ]
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -1019,9 +883,7 @@
             "permissions": [
               {
                 "permission": "property-finance-standard",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -1036,9 +898,7 @@
             "permissions": [
               {
                 "permission": "property-finance-standard",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
               }
             ]
           },
@@ -1053,9 +913,7 @@
             "permissions": [
               {
                 "permission": "property-finance-standard",
-                "actions": [
-                  "export"
-                ]
+                "actions": ["export"]
               }
             ]
           },
@@ -1070,9 +928,7 @@
             "permissions": [
               {
                 "permission": "property-finance-standard",
-                "actions": [
-                  "query"
-                ]
+                "actions": ["query"]
               }
             ]
           },
@@ -1087,9 +943,7 @@
             "permissions": [
               {
                 "permission": "property-finance-standard",
-                "actions": [
-                  "save"
-                ]
+                "actions": ["save"]
               }
             ]
           },
@@ -1104,9 +958,84 @@
             "permissions": [
               {
                 "permission": "property-finance-standard",
-                "actions": [
-                  "delete"
-                ]
+                "actions": ["delete"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceSetting",
+        "code": "charging/FinanceSetting",
+        "name": "收费设置",
+        "url": "/charging/finance/house-settings",
+        "owner": "app",
+        "sortIndex": 9,
+        "icon": "HomeOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "收费设置",
+            "en_US": "Charge settings",
+            "en": "Charge settings"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-setting",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-project",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-space",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
+            "i18nMessages": {
+              "zh_CN": "保存",
+              "en_US": "Save",
+              "en": "Save"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-setting",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "i18nMessages": {
+              "zh_CN": "删除",
+              "en_US": "Delete",
+              "en": "Delete"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-setting",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "calculate",
+            "name": "生成应收",
+            "i18nMessages": {
+              "zh_CN": "生成应收",
+              "en_US": "Generate bills",
+              "en": "Generate bills"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-setting",
+                "actions": ["calculate"]
               }
             ]
           }
