@@ -69,11 +69,12 @@
 .archive-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
   margin: 16px 0;
 }
-.archive-actions > :first-child {
+.archive-actions > .archive-muted {
   margin-right: auto;
 }
 .archive-form {

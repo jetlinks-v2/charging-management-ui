@@ -58,7 +58,8 @@ const fields = computed(() => [
   }
 ])
 const columns = computed(() => [
-  { title: t(k + 'spaceName'), dataIndex: 'name', scopedSlots: true, width: 230 },
+  { title: t(k + 'spaceName'), dataIndex: 'name', scopedSlots: true, width: 120 },
+  { title: t(k + 'spacePath'), dataIndex: 'fullName', width: 320, ellipsis: true, columnEmpty: '—' },
   { title: t(k + 'completed'), dataIndex: 'completed', scopedSlots: true, width: 110 },
   { title: t(k + 'houseType'), dataIndex: 'houseType', scopedSlots: true, width: 110 },
   { title: t(k + 'houseState'), dataIndex: 'houseState', scopedSlots: true, width: 110 },
@@ -96,7 +97,6 @@ async function remove(record: House) {
     @change="change"
   />
   <div class="archive-actions">
-    <span class="archive-muted">{{ t(k + 'readonly') }}</span>
     <ExcelActions
       :project-name="projectName"
       kind="house"
@@ -115,15 +115,12 @@ async function remove(record: House) {
     :request="request"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: 900 }"
+    :scroll="{ x: columns.reduce((width, column) => width + column.width, 0) }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
   >
     <template #name="record">
-      <div class="archive-name">
-        <b>{{ record.name }}</b>
-        <small class="archive-muted">{{ record.fullName }}</small>
-      </div>
+      <b>{{ record.name }}</b>
     </template>
     <template #completed="record">
       <j-badge-status

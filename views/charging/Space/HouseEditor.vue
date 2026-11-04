@@ -71,7 +71,6 @@ const submit = async () => {
       </a-result>
       <template v-else-if="house">
         <SpaceLocation :space="house" />
-        <p class="archive-field-hint">{{ t(k + 'houseHint') }}</p>
         <template v-if="state.readOnly">
           <section class="archive-detail-group">
             <h3 class="archive-section-title">

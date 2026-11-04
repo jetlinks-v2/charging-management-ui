@@ -137,7 +137,6 @@ const refresh = () => {
                 </a-popconfirm>
               </div>
               <div class="archive-actions">
-                <span class="archive-muted">{{ t(k + 'dictionaryItems') }}</span>
                 <j-permission-button
                   hasPermission="charging/Dictionary:save"
                   :disabled="!selected.enabled"

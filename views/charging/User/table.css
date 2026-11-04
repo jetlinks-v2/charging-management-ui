@@ -22,40 +22,20 @@
   font-weight: 600;
 }
 .user-name-copy {
-  display: flex;
-  flex-direction: column;
   min-width: 0;
-  gap: 3px;
-}
-.user-name-copy b {
   font-size: 14px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.user-name-copy > span {
-  color: var(--ant-color-text-tertiary, #8c8c8c);
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .user-org-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  max-width: 260px;
   padding: 3px 0;
 }
 .user-org-cell > * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.user-org-cell small {
-  color: var(--ant-color-text-tertiary, #8c8c8c);
-  font-size: 12px;
 }
 .user-row-actions {
   display: flex;

@@ -41,14 +41,20 @@ const fields = computed(() => [
   }
 ])
 const columns = computed(() => [
-  { title: t(k + 'customer'), dataIndex: 'customer', scopedSlots: true, width: 170 },
+  { title: t(k + 'customerName'), dataIndex: 'customer', scopedSlots: true, width: 140 },
+  { title: t(k + 'customerType'), dataIndex: 'customerType', scopedSlots: true, width: 120 },
   { title: t(k + 'telephone'), dataIndex: 'telephone', scopedSlots: true, width: 145 },
-  { title: t(k + 'relationships'), dataIndex: 'relationships', scopedSlots: true, width: 280 },
+  { title: t(k + 'spacePath'), dataIndex: 'relationships', scopedSlots: true, width: 320, ellipsis: true },
+  { title: t(k + 'nature'), dataIndex: 'nature', scopedSlots: true, width: 120 },
+  { title: t(k + 'startTime'), dataIndex: 'startTime', scopedSlots: true, width: 180 },
+  ...(history.value ? [{ title: t(k + 'endTime'), dataIndex: 'endTime', scopedSlots: true, width: 180 }] : []),
   { title: t(k + 'actions'), dataIndex: 'actions', scopedSlots: true, width: history.value ? 100 : 240, fixed: 'right' }
 ])
 const customer = (record: Customer | Relationship) => ('customerId' in record ? record.customer : record)
-const relationships = (record: Customer | Relationship): Relationship[] =>
-  'customerId' in record ? [record] : record.relationships
+// 当前及历史列表均按一条空间客户记录展示，拆列后各字段取自同一条记录。
+const relationship = (record: Customer | Relationship): Relationship | undefined =>
+  'customerId' in record ? record : record.relationships[0]
+const dateText = (time?: number) => (time ? new Date(time).toLocaleString() : '—')
 const select = (record: Customer | Relationship) =>
   'customerId' in record
     ? detail.select(record.customerId, record, 'view', true)
@@ -121,35 +127,32 @@ const change = ({ filter }: ConditionFilterChangePayload) => {
     :request="request"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: 900 }"
+    :scroll="{ x: columns.reduce((width, column) => width + column.width, 0) }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
   >
     <template #customer="record">
-      <div class="archive-name">
-        <b>{{ customer(record)?.name || '—' }}</b>
-        <span>
-          <a-tag>{{ customer(record) ? t(k + customer(record)!.customerType) : '—' }}</a-tag>
-        </span>
-      </div>
+      <b>{{ customer(record)?.name || '—' }}</b>
+    </template>
+    <template #customerType="record">
+      <a-tag>{{ customer(record) ? t(k + customer(record)!.customerType) : '—' }}</a-tag>
     </template>
     <template #telephone="record">{{ customer(record)?.telephone || '—' }}</template>
     <template #relationships="record">
-      <div
-        v-for="relation in relationships(record)"
-        :key="relation.id"
-        class="archive-name"
-      >
-        <b>{{ relation.fullName || relation.spaceName }}</b>
-        <small class="archive-muted">
-          {{
-            customer(record)?.customerType === 'person'
-              ? dictionary.text('customer-nature', relation.nature) + ' · '
-              : ''
-          }}{{ new Date(relation.startTime).toLocaleString()
-          }}{{ relation.endTime ? ' ~ ' + new Date(relation.endTime).toLocaleString() : '' }}
-        </small>
-      </div>
+      {{ relationship(record)?.fullName || relationship(record)?.spaceName || '—' }}
+    </template>
+    <template #nature="record">
+      {{
+        customer(record)?.customerType === 'person'
+          ? dictionary.text('customer-nature', relationship(record)?.nature)
+          : '—'
+      }}
+    </template>
+    <template #startTime="record">
+      {{ dateText(relationship(record)?.startTime) }}
+    </template>
+    <template #endTime="record">
+      {{ dateText(relationship(record)?.endTime) }}
     </template>
     <template #actions="record">
       <div class="archive-row-actions">

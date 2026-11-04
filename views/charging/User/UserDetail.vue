@@ -132,7 +132,6 @@ const fields = computed(() => [
         <section class="user-detail-section">
           <h3>
             {{ t(k + 'sourceData') }}
-            <span class="user-readonly">{{ t(k + 'readonly') }}</span>
           </h3>
           <KvGrid
             :items="fields.map(([label, value]) => ({ label: label || '', value: value || t(k + 'notProvided') }))"

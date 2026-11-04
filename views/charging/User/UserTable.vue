@@ -17,9 +17,11 @@ const k = 'UserManagement.'
 const table = ref<{ reload: () => void }>()
 defineExpose({ reload: () => table.value?.reload() })
 const columns = computed(() => [
-  { title: t(k + 'user'), key: 'user', dataIndex: 'user', scopedSlots: true, width: 240 },
+  { title: t(k + 'name'), key: 'user', dataIndex: 'user', scopedSlots: true, width: 190 },
+  { title: t(k + 'username'), dataIndex: 'username', width: 200, ellipsis: true },
   { title: t(k + 'telephone'), dataIndex: 'telephone', width: 150, columnEmpty: t(k + 'notProvided') },
-  { title: t(k + 'organization'), dataIndex: 'organization', scopedSlots: true, width: 280 },
+  { title: t(k + 'organization'), dataIndex: 'organization', scopedSlots: true, width: 180 },
+  { title: t(k + 'organizationPath'), dataIndex: 'organizationPath', scopedSlots: true, width: 320, ellipsis: true },
   { title: t(k + 'identity'), dataIndex: 'identities', scopedSlots: true, width: 165 },
   { title: t(k + 'status'), dataIndex: 'status', scopedSlots: true, width: 110 },
   { title: t(k + 'actions'), dataIndex: 'actions', scopedSlots: true, width: 160, fixed: 'right' }
@@ -37,7 +39,7 @@ const columns = computed(() => [
     :request="request"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: 1105 }"
+    :scroll="{ x: columns.reduce((width, column) => width + column.width, 0) }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
   >
@@ -53,10 +55,7 @@ const columns = computed(() => [
         >
           {{ (record.name || record.username).slice(0, 1) }}
         </a-avatar>
-        <span class="user-name-copy">
-          <b>{{ record.name || record.username }}</b>
-          <span>{{ record.username }}</span>
-        </span>
+        <b class="user-name-copy">{{ record.name || record.username }}</b>
       </button>
     </template>
     <template #organization="record">
@@ -64,10 +63,25 @@ const columns = computed(() => [
         v-for="org in record.orgList"
         :key="org.orgId"
         class="user-org-cell"
-        :title="org.fullName"
+        :title="org.name || org.orgId"
       >
         <span>{{ org.name || org.orgId }}</span>
-        <small>{{ org.fullName || org.name || org.orgId }}</small>
+      </div>
+      <span
+        v-if="!record.orgList.length"
+        class="user-muted"
+      >
+        {{ t(k + 'noOrganization') }}
+      </span>
+    </template>
+    <template #organizationPath="record">
+      <div
+        v-for="org in record.orgList"
+        :key="org.orgId"
+        class="user-org-cell"
+        :title="org.fullName || org.name || org.orgId"
+      >
+        <span>{{ org.fullName || org.name || org.orgId }}</span>
       </div>
       <span
         v-if="!record.orgList.length"
