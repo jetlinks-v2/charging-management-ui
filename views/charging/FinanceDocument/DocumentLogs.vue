@@ -42,9 +42,11 @@ const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.fai
           t(
             row.action === 'ISSUE'
               ? 'Document.issued'
-              : document.documentType === 'INVOICE'
-                ? 'Document.reverse'
-                : 'Document.void'
+              : row.action === 'REOPEN'
+                ? 'Document.reopen'
+                : document.documentType === 'INVOICE'
+                  ? 'Document.reverse'
+                  : 'Document.void'
           )
         }}
       </template>

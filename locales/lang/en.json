@@ -1423,7 +1423,8 @@
     "step": {
       "sources": "Select sources",
       "fill": "Enter details",
-      "review": "Review"
+      "review": "Review",
+      "correction": "Correct buyer"
     },
     "method": {
       "FULL": "Full amount",
@@ -1467,6 +1468,16 @@
       "unlimited": "Unlimited",
       "maxHint": "0 disables reopening; leave blank for unlimited.",
       "daysInvalid": "Enter an integer from 1 to 36500 days."
-    }
+    },
+    "reopen": "Reverse and reissue",
+    "recoverReopen": "Recover reissue request",
+    "confirmReopen": "Confirm simulated reissue",
+    "originalInvoice": "Original invoice",
+    "reopenCount": "Reissue count",
+    "previousInvoice": "View previous invoice",
+    "replacementInvoice": "View replacement invoice",
+    "reopenReason": "Correction reason",
+    "reopenHint": "Confirmation simulates a reversal and issues a replacement for the same sources and amounts. Original and red invoices are retained.",
+    "reopenReversedHint": "The original was reversed. Reissue uses its sources and amounts without creating another red invoice."
   }
 }

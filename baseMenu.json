@@ -1788,6 +1788,21 @@
                 "actions": ["reverse"]
               }
             ]
+          },
+          {
+            "id": "reopen",
+            "name": "模拟红冲重开",
+            "i18nMessages": {
+              "zh_CN": "模拟红冲重开",
+              "en_US": "Simulate reissue",
+              "en": "Simulate reissue"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-invoices",
+                "actions": ["reopen"]
+              }
+            ]
           }
         ]
       },

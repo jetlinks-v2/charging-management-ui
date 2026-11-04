@@ -1424,7 +1424,8 @@
     "step": {
       "sources": "选择来源",
       "fill": "填写资料",
-      "review": "核对开具"
+      "review": "核对开具",
+      "correction": "更正购方"
     },
     "method": {
       "FULL": "全额征收",
@@ -1468,6 +1469,16 @@
       "unlimited": "不限次数",
       "maxHint": "填写 0 表示不允许重开；留空表示不限次数。",
       "daysInvalid": "请输入1至36500之间的整数天数。"
-    }
+    },
+    "reopen": "红冲重开",
+    "recoverReopen": "恢复重开请求",
+    "confirmReopen": "确认模拟重开",
+    "originalInvoice": "原发票",
+    "reopenCount": "累计重开次数",
+    "previousInvoice": "查看前一张发票",
+    "replacementInvoice": "查看重开发票",
+    "reopenReason": "更正原因",
+    "reopenHint": "确认后将模拟红冲原发票，并按原来源和金额开具新发票。原票及红票保留。",
+    "reopenReversedHint": "原发票已红冲，本次按原来源和金额继续重开，不再生成红票。"
   }
 }

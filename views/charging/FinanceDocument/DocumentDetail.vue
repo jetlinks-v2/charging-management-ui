@@ -5,7 +5,7 @@ import DocumentSnapshot from './DocumentSnapshot.vue'
 import DocumentLogs from './DocumentLogs.vue'
 const props = defineProps<{ state: ReturnType<typeof useDocumentWorkspace> }>()
 const { t } = useI18n()
-const { projectId, detail, loading, failed, closeDetail } = props.state
+const { projectId, detail, loading, failed, closeDetail, select } = props.state
 </script>
 <template>
   <JlDrawerShell
@@ -21,6 +21,23 @@ const { projectId, detail, loading, failed, closeDetail } = props.state
         class="document-editor"
       >
         <DocumentSnapshot :value="detail" />
+        <a-space
+          v-if="detail.document.previousDocumentId || detail.document.reopenDocumentId"
+          wrap
+        >
+          <a-button
+            v-if="detail.document.previousDocumentId"
+            @click="select(detail.document.previousDocumentId)"
+          >
+            {{ t('Document.previousInvoice') }}
+          </a-button>
+          <a-button
+            v-if="detail.document.reopenDocumentId"
+            @click="select(detail.document.reopenDocumentId)"
+          >
+            {{ t('Document.replacementInvoice') }}
+          </a-button>
+        </a-space>
         <DocumentLogs
           :key="detail.document.id"
           :project-id="projectId"

@@ -10,7 +10,9 @@ import {
   type DocumentInput,
   type DocumentPreview,
   type DocumentReverseInput,
-  type DocumentReversePreview
+  type DocumentReversePreview,
+  type DocumentReopenInput,
+  type DocumentReopenPreview
 } from '../../api/financeDocument'
 import type { Query } from '../../api/archive'
 import { requestErrorMessage } from '../../utils/requestError'
@@ -25,16 +27,20 @@ export function useDocumentWorkspace(type: DocumentType) {
     status = ref('ALL')
   const issueOpen = ref(false),
     detailOpen = ref(false),
-    reverseOpen = ref(false)
+    reverseOpen = ref(false),
+    reopenOpen = ref(false)
   const detail = ref<DocumentDetail>(),
-    reverseTarget = ref<DocumentRecord>()
+    reverseTarget = ref<DocumentRecord>(),
+    reopenTarget = ref<DocumentRecord>()
   const loading = ref(false),
     failed = ref(false),
     issuePending = ref(false),
     reversePending = ref(false),
+    reopenPending = ref(false),
     recoveryFailed = ref(false)
   const issueRecovery = useDocumentRecovery<DocumentInput, DocumentPreview>(projectId, type, 'issue')
   const reverseRecovery = useDocumentRecovery<DocumentReverseInput, DocumentReversePreview>(projectId, type, 'reverse')
+  const reopenRecovery = useDocumentRecovery<DocumentReopenInput, DocumentReopenPreview>(projectId, type, 'reopen')
   const permission = type === 'INVOICE' ? 'charging/FinanceInvoice' : 'charging/FinanceReceipt'
   const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.failed')), 'error')
   const params = computed(() => ({
@@ -46,7 +52,14 @@ export function useDocumentWorkspace(type: DocumentType) {
     sorts: [{ name: 'createTime', order: 'desc' }]
   }))
   const blocked = computed(
-    () => issueOpen.value || reverseOpen.value || issuePending.value || reversePending.value || recoveryFailed.value
+    () =>
+      issueOpen.value ||
+      reverseOpen.value ||
+      reopenOpen.value ||
+      issuePending.value ||
+      reversePending.value ||
+      reopenPending.value ||
+      recoveryFailed.value
   )
   let generation = 0,
     disposed = false
@@ -57,6 +70,7 @@ export function useDocumentWorkspace(type: DocumentType) {
     try {
       issuePending.value = !!issueRecovery.read()
       reversePending.value = !!reverseRecovery.read()
+      reopenPending.value = type === 'INVOICE' && !!reopenRecovery.read()
     } catch {
       recoveryFailed.value = true
       onlyMessage(t('Document.recoveryUnavailable'), 'error')
@@ -73,6 +87,25 @@ export function useDocumentWorkspace(type: DocumentType) {
     reverseOpen.value = false
     reverseTarget.value = undefined
     checkPending()
+  }
+  function closeReopen() {
+    reopenOpen.value = false
+    reopenTarget.value = undefined
+    checkPending()
+  }
+  function reopen(row: DocumentRecord) {
+    if (blocked.value || type !== 'INVOICE') return
+    reopenTarget.value = row
+    reopenOpen.value = true
+  }
+  function recoverReopen() {
+    try {
+      reopenTarget.value = reopenRecovery.read()?.preview.original
+      reopenOpen.value = !!reopenTarget.value
+    } catch {
+      recoveryFailed.value = true
+      onlyMessage(t('Document.recoveryUnavailable'), 'error')
+    }
   }
   function saved() {
     checkPending()
@@ -122,6 +155,8 @@ export function useDocumentWorkspace(type: DocumentType) {
       closeDetail()
       issueOpen.value = false
       reverseOpen.value = false
+      reopenOpen.value = false
+      reopenTarget.value = undefined
       terms.value = []
       status.value = 'ALL'
       checkPending()
@@ -151,6 +186,12 @@ export function useDocumentWorkspace(type: DocumentType) {
     failed,
     issuePending,
     reversePending,
+    reopenOpen,
+    reopenTarget,
+    reopenPending,
+    reopen,
+    closeReopen,
+    recoverReopen,
     recoveryFailed,
     blocked,
     start,

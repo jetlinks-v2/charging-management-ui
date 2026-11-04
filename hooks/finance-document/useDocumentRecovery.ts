@@ -9,7 +9,7 @@ import type { PaymentRecovery, PendingPayment } from '../../api/paymentConfirmat
 export function useDocumentRecovery<I, P extends { token: string }>(
   project: MaybeRefOrGetter<string>,
   type: DocumentType,
-  action: 'issue' | 'reverse'
+  action: 'issue' | 'reverse' | 'reopen'
 ): PaymentRecovery<I, P> {
   const user = useUserStore()
   const key = computed(
@@ -46,14 +46,22 @@ export function useDocumentRecovery<I, P extends { token: string }>(
       const preview = value.preview as P & {
         documentType?: string
         document?: { id?: string; version?: number; documentType?: string }
+        original?: { id?: string; version?: number; documentType?: string }
       }
       if (
         action === 'issue'
           ? input.documentType !== type || preview.documentType !== type || !input.items?.length
-          : preview.document?.documentType !== type ||
-            preview.document.id !== input.id ||
-            preview.document.version !== input.version ||
-            !input.reason?.trim()
+          : action === 'reopen'
+            ? type !== 'INVOICE' ||
+              preview.documentType !== type ||
+              preview.original?.documentType !== type ||
+              preview.original?.id !== input.id ||
+              preview.original?.version !== input.version ||
+              !input.reason?.trim()
+            : preview.document?.documentType !== type ||
+              preview.document.id !== input.id ||
+              preview.document.version !== input.version ||
+              !input.reason?.trim()
       )
         throw new Error('Invalid document scope')
       return value

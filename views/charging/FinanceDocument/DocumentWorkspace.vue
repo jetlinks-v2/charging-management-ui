@@ -9,6 +9,7 @@ import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import DocumentEditor from './DocumentEditor.vue'
 import DocumentDetail from './DocumentDetail.vue'
 import DocumentReverse from './DocumentReverse.vue'
+import DocumentReopen from './DocumentReopen.vue'
 import './document.css'
 const props = defineProps<{ type: DocumentType }>()
 const { t } = useI18n()
@@ -28,6 +29,12 @@ const {
   reverseTarget,
   issuePending,
   reversePending,
+  reopenOpen,
+  reopenTarget,
+  reopenPending,
+  reopen,
+  closeReopen,
+  recoverReopen,
   recoveryFailed,
   blocked,
   start,
@@ -55,7 +62,13 @@ const columns = computed(() => [
   { title: t('Document.seller'), dataIndex: 'companyName', width: 190 },
   { title: t('Document.total'), dataIndex: 'amount', width: 140, align: 'right', scopedSlots: true },
   { title: t('Document.issuedAt'), dataIndex: 'issuedAt', width: 180, scopedSlots: true },
-  { title: t('Finance.actions'), dataIndex: 'actions', width: 160, fixed: 'right', scopedSlots: true }
+  {
+    title: t('Finance.actions'),
+    dataIndex: 'actions',
+    width: props.type === 'INVOICE' ? 260 : 160,
+    fixed: 'right',
+    scopedSlots: true
+  }
 ])
 function filter({ filter }: ConditionFilterChangePayload) {
   terms.value = (filter.terms || []) as Query['terms']
@@ -99,7 +112,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
         </a-space>
       </div>
       <a-alert
-        v-if="issuePending || reversePending || recoveryFailed"
+        v-if="issuePending || reversePending || reopenPending || recoveryFailed"
         type="warning"
         show-icon
         :message="t(recoveryFailed ? 'Document.recoveryUnavailable' : 'Document.pending')"
@@ -111,6 +124,13 @@ function filter({ filter }: ConditionFilterChangePayload) {
             @click="issueOpen = true"
           >
             {{ t('Document.recoverIssue') }}
+          </j-permission-button>
+          <j-permission-button
+            v-if="reopenPending"
+            :hasPermission="permission + ':reopen'"
+            @click="recoverReopen"
+          >
+            {{ t('Document.recoverReopen') }}
           </j-permission-button>
           <j-permission-button
             v-if="reversePending"
@@ -176,6 +196,19 @@ function filter({ filter }: ConditionFilterChangePayload) {
           >
             {{ t(type === 'INVOICE' ? 'Document.reverse' : 'Document.void') }}
           </j-permission-button>
+          <j-permission-button
+            v-if="
+              type === 'INVOICE' &&
+              ['SIMULATED_ISSUED', 'SIMULATED_REVERSED'].includes(row.status) &&
+              !row.reopenDocumentId
+            "
+            type="link"
+            :hasPermission="permission + ':reopen'"
+            :disabled="blocked"
+            @click="reopen(row)"
+          >
+            {{ t('Document.reopen') }}
+          </j-permission-button>
         </template>
         <template #emptyText><CloudEmpty :description="t('Document.empty')" /></template>
       </j-pro-table>
@@ -200,6 +233,13 @@ function filter({ filter }: ConditionFilterChangePayload) {
       :project-id="projectId"
       :document="reverseTarget"
       @close="closeReverse"
+      @saved="saved"
+    />
+    <DocumentReopen
+      v-if="reopenOpen && reopenTarget"
+      :project-id="projectId"
+      :document="reopenTarget"
+      @close="closeReopen"
       @saved="saved"
     />
   </j-page-container>

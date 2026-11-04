@@ -58,6 +58,9 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
         { label: t('Setting.customer'), value: summary.customerName },
         { label: t('Document.sceneTitle'), value: t('Document.scene.' + summary.issueScene) },
         { label: t('Document.issuedAt'), value: record?.issuedAt.replace('T', ' ') || preview?.businessDate },
+        ...(record?.documentType === 'INVOICE'
+          ? [{ label: t('Document.reopenCount'), value: String(record.reopenCount || 0) }]
+          : []),
         {
           label: t('Document.invoiceType'),
           value: summary.invoiceType ? t('Document.invoiceType' + summary.invoiceType) : '—'

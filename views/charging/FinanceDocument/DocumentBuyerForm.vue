@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import type { useDocumentEditor } from '../../../hooks/finance-document/useDocumentEditor'
+import type { Ref } from 'vue'
 import type { DocumentType, DocumentBuyer } from '../../../api/financeDocument'
-const props = defineProps<{ state: ReturnType<typeof useDocumentEditor>; type: DocumentType }>()
+const props = defineProps<{
+  state: { buyer: DocumentBuyer; invoiceType: Ref<'1' | '2'>; remark: Ref<string> }
+  type: DocumentType
+}>()
 const { buyer, invoiceType, remark } = props.state
 const { t } = useI18n()
 const optionalFields: { key: keyof DocumentBuyer; max: number }[] = [

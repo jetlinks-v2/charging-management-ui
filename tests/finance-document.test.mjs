@@ -9,6 +9,7 @@ const bundle = await build({
   stdin: {
     contents: `export * from './hooks/finance-document/useDocumentEditor';
     export * from './hooks/finance-document/useDocumentReverse';
+    export * from './hooks/finance-document/useDocumentReopen';
     export * from './utils/documentSelection';`,
     resolveDir: fileURLToPath(new URL('..', import.meta.url)),
     loader: 'ts'
@@ -28,7 +29,14 @@ const bundle = await build({
         }))
         b.onLoad({ filter: /.*/, namespace: 'mock' }, (a) => ({
           contents: a.path.includes('financeDocument')
-            ? ['previewDocument', 'confirmDocument', 'reverseDocument']
+            ? [
+                'previewDocument',
+                'confirmDocument',
+                'reverseDocument',
+                'getDocument',
+                'previewDocumentReopen',
+                'confirmDocumentReopen'
+              ]
                 .map((n) => `export const ${n}=(...a)=>globalThis.__documentApi.${n}(...a)`)
                 .join('\n')
             : a.path.includes('useDocumentRecovery')
@@ -116,6 +124,31 @@ function mount(overrides = {}, recovery = memory(), reverse = false) {
     previewDocument: async (_p, input) => preview(input),
     confirmDocument: async () => ({ document, buyer: {}, rule: {}, lines: [] }),
     reverseDocument: async () => ({ document: { ...document, status: 'SIMULATED_RED', amount: '-100.01' }, lines: [] }),
+    getDocument: async () => ({
+      document,
+      buyer: { name: '原购方', taxNum: 'TAX' },
+      rule: {},
+      lines: [{ snapshot: { ...candidate(), amount: '100.01', collectionMethod: 'FULL', differenceAmount: '0.00' } }]
+    }),
+    previewDocumentReopen: async (_p, input) => ({
+      ...preview({
+        ...input,
+        documentType: 'INVOICE',
+        companyId: 'company',
+        items: [{ ...candidate(), amount: '100.01' }]
+      })
+    }),
+    confirmDocumentReopen: async () => ({
+      document: {
+        ...document,
+        id: 'replacement',
+        previousDocumentId: document.id,
+        rootDocumentId: document.id,
+        reopenCount: 1
+      },
+      buyer: {},
+      lines: []
+    }),
     ...overrides
   }
   let state,
@@ -136,9 +169,12 @@ function mount(overrides = {}, recovery = memory(), reverse = false) {
   const app = renderer.createApp(
     defineComponent({
       setup() {
-        state = reverse
-          ? api.useDocumentReverse(props, () => saved++, recovery)
-          : api.useDocumentEditor(props, () => saved++, recovery)
+        state =
+          reverse === 'reopen'
+            ? api.useDocumentReopen(props, () => saved++, recovery)
+            : reverse
+              ? api.useDocumentReverse(props, () => saved++, recovery)
+              : api.useDocumentEditor(props, () => saved++, recovery)
         return () => h('div')
       }
     })
@@ -408,5 +444,117 @@ test('红冲未知结果恢复同版本同原因，不能二次生成请求', as
   assert.equal(calls[0][2].input.reason, '重复开具')
   assert.equal(calls[0][2].input.version, 1)
   assert.equal(m.saved(), 1)
+  m.unmount()
+})
+
+test('重开先读取冻结资料，仅提交购方纠错而不由前端指定来源金额税率', async () => {
+  const calls = []
+  const m = mount(
+    {
+      previewDocumentReopen: async (project, input) => {
+        calls.push([project, structuredClone(input)])
+        return preview({ ...input, documentType: 'INVOICE', items: [{ ...candidate(), amount: '100.01' }] })
+      }
+    },
+    memory(),
+    'reopen'
+  )
+  await flush()
+  assert.equal(m.state.buyer.name, '原购方')
+  assert.equal(m.state.detail.value.document.id, 'blue')
+  m.state.buyer.name = '更正抬头'
+  m.state.invoiceType.value = '2'
+  m.state.reason.value = '抬头更正'
+  await m.state.calculate()
+  assert.equal(m.state.step.value, 1)
+  assert.equal(calls[0][1].buyer.name, '更正抬头')
+  assert.equal(calls[0][1].version, 1)
+  assert.equal(calls[0][1].id, 'blue')
+  assert.equal('items' in calls[0][1], false)
+  assert.equal('amount' in calls[0][1], false)
+  await m.state.submit()
+  assert.equal(m.state.result.value.document.id, 'replacement')
+  assert.equal(m.saved(), 1)
+  m.unmount()
+})
+
+test('重开错误使用消息提示且保留输入，修改购方废弃预览', async () => {
+  let fail = true
+  const m = mount(
+    {
+      previewDocumentReopen: async (_p, input) => {
+        if (fail) {
+          fail = false
+          throw { response: { status: 409, data: { message: '达到重开上限' } } }
+        }
+        return preview({ ...input, documentType: 'INVOICE', items: [{ ...candidate(), amount: '100.01' }] })
+      }
+    },
+    memory(),
+    'reopen'
+  )
+  await flush()
+  m.state.reason.value = '更正'
+  m.state.buyer.name = '纠错企业'
+  await m.state.calculate()
+  assert.equal(m.state.step.value, 0)
+  assert.equal(m.state.buyer.name, '纠错企业')
+  assert.ok(globalThis.__documentMessages.length)
+  await m.state.calculate()
+  assert.equal(m.state.step.value, 1)
+  m.state.buyer.name = '第二次纠错'
+  await flush()
+  assert.equal(m.state.preview.value, undefined)
+  assert.equal(m.state.step.value, 0)
+  m.unmount()
+})
+
+test('重开结果未知恢复原请求，不重查原票或重新预览，项目切换不能篡改重试载荷', async () => {
+  const recovery = memory(),
+    calls = []
+  let m = mount(
+    {
+      confirmDocumentReopen: async (project, input) => {
+        calls.push([project, structuredClone(input)])
+        throw Error('network')
+      }
+    },
+    recovery,
+    'reopen'
+  )
+  await flush()
+  m.state.reason.value = '更正企业抬头'
+  m.state.buyer.name = '更正企业'
+  await m.state.calculate()
+  await m.state.submit()
+  assert.equal(m.state.uncertain.value, true)
+  assert.equal(m.state.canClose.value, false)
+  m.unmount()
+  m = mount(
+    {
+      getDocument: async () => {
+        throw Error('should not reload')
+      },
+      previewDocumentReopen: async () => {
+        throw Error('should not preview')
+      },
+      confirmDocumentReopen: async (project, input) => {
+        calls.push([project, structuredClone(input)])
+        return { document: { ...document, id: 'replacement' } }
+      }
+    },
+    recovery,
+    'reopen'
+  )
+  await flush()
+  assert.equal(m.state.buyer.name, '更正企业')
+  assert.equal(m.state.step.value, 1)
+  m.props.projectId = 'different'
+  m.state.reason.value = '篡改'
+  m.state.buyer.name = '篡改'
+  await m.state.submit()
+  assert.deepEqual(calls[0], calls[1])
+  assert.equal(m.saved(), 1)
+  assert.equal(recovery.read(), undefined)
   m.unmount()
 })

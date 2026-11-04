@@ -128,6 +128,10 @@ export interface DocumentRecord {
   netAmount: string
   originalDocumentId?: string
   reverseDocumentId?: string
+  rootDocumentId?: string
+  previousDocumentId?: string
+  reopenDocumentId?: string
+  reopenCount?: number
   remark?: string
   modifierName?: string
 }
@@ -141,7 +145,7 @@ export interface DocumentOperation {
   id: string
   documentId: string
   resultDocumentId: string
-  action: 'ISSUE' | 'REVERSE'
+  action: 'ISSUE' | 'REVERSE' | 'REOPEN'
   beforeState?: DocumentRecord['status']
   afterState: DocumentRecord['status']
   reason?: string
@@ -156,6 +160,18 @@ export interface DocumentReverseInput {
 export interface DocumentReversePreview {
   token: string
   document: DocumentRecord
+}
+export interface DocumentReopenInput {
+  id: string
+  version: number
+  buyer: DocumentBuyer
+  invoiceType: '1' | '2'
+  remark?: string
+  reason: string
+}
+export interface DocumentReopenPreview extends DocumentPreview {
+  /** 本地恢复信封保存原票身份；只提交原请求，服务端不信任这份展示快照。 */
+  original: DocumentRecord
 }
 const base = (project: string, type: DocumentType) =>
   `/property/finance/projects/${encodeURIComponent(project)}/${type === 'INVOICE' ? 'invoices' : 'receipts'}`
@@ -227,6 +243,24 @@ export const reverseDocument = (
     .then(checked)
 }
 const rulePath = (project: string) => `/property/finance/projects/${encodeURIComponent(project)}/document-rule`
+export const previewDocumentReopen = (project: string, input: DocumentReopenInput) => {
+  const { id, ...correction } = input
+  return request
+    .post<DocumentPreview>(`${base(project, 'INVOICE')}/${encodeURIComponent(id)}/reopen/_preview`, correction, {
+      hiddenError: true
+    })
+    .then(checked)
+}
+export const confirmDocumentReopen = (project: string, input: PaymentRequest<DocumentReopenInput>) => {
+  const { id, ...correction } = input.input
+  return request
+    .post<DocumentDetail>(
+      `${base(project, 'INVOICE')}/${encodeURIComponent(id)}/reopen/_confirm`,
+      { requestId: input.requestId, token: input.token, input: correction },
+      { hiddenError: true }
+    )
+    .then(checked)
+}
 export const getDocumentRule = (project: string) =>
   request.get<DocumentRule>(rulePath(project), {}, { hiddenError: true }).then(checked)
 export const saveDocumentRule = (project: string, input: DocumentRule & { reason: string }) =>
