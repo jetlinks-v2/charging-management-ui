@@ -113,12 +113,6 @@ const refresh = () => {
               :placeholder="t(k + 'searchSpace')"
               :aria-label="t(k + 'searchSpace')"
             />
-            <a-button
-              type="link"
-              @click="selectedId = undefined"
-            >
-              {{ t(k + 'allSpaces') }}
-            </a-button>
             <a-spin :spinning="loading">
               <a-tree
                 v-if="visibleTree.length"
