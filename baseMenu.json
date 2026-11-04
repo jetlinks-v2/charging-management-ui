@@ -1718,5 +1718,170 @@
         ]
       }
     ]
+  },
+  {
+    "id": "charging-documents",
+    "code": "charging/documents",
+    "name": "票据管理",
+    "url": "/charging/documents",
+    "owner": "app",
+    "sortIndex": 77,
+    "i18nMessages": {
+      "name": {
+        "zh_CN": "票据管理",
+        "en_US": "Documents",
+        "en": "Documents"
+      }
+    },
+    "permissions": [],
+    "options": {
+      "icon": "FileTextOutlined"
+    },
+    "children": [
+      {
+        "id": "charging-FinanceInvoice",
+        "code": "charging/FinanceInvoice",
+        "name": "发票管理",
+        "url": "/charging/documents/FinanceInvoice",
+        "owner": "app",
+        "sortIndex": 1,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "发票管理",
+            "en_US": "Invoices",
+            "en": "Invoices"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-invoices",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "create",
+            "name": "模拟开票",
+            "i18nMessages": {
+              "zh_CN": "模拟开票",
+              "en_US": "Simulate invoice",
+              "en": "Simulate invoice"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-invoices",
+                "actions": ["create"]
+              }
+            ]
+          },
+          {
+            "id": "reverse",
+            "name": "模拟红冲",
+            "i18nMessages": {
+              "zh_CN": "模拟红冲",
+              "en_US": "Simulate reversal",
+              "en": "Simulate reversal"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-invoices",
+                "actions": ["reverse"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceReceipt",
+        "code": "charging/FinanceReceipt",
+        "name": "收据管理",
+        "url": "/charging/documents/FinanceReceipt",
+        "owner": "app",
+        "sortIndex": 2,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "收据管理",
+            "en_US": "Receipts",
+            "en": "Receipts"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-receipts",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "create",
+            "name": "开具收据",
+            "i18nMessages": {
+              "zh_CN": "开具收据",
+              "en_US": "Issue receipt",
+              "en": "Issue receipt"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receipts",
+                "actions": ["create"]
+              }
+            ]
+          },
+          {
+            "id": "void",
+            "name": "作废收据",
+            "i18nMessages": {
+              "zh_CN": "作废收据",
+              "en_US": "Void receipt",
+              "en": "Void receipt"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receipts",
+                "actions": ["void"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceDocumentRule",
+        "code": "charging/FinanceDocumentRule",
+        "name": "开票规则",
+        "url": "/charging/documents/FinanceDocumentRule",
+        "owner": "app",
+        "sortIndex": 3,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "开票规则",
+            "en_US": "Invoice rules",
+            "en": "Invoice rules"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-document-rule",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
+            "i18nMessages": {
+              "zh_CN": "保存",
+              "en_US": "Save",
+              "en": "Save"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-document-rule",
+                "actions": ["save"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
