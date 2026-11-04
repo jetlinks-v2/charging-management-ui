@@ -850,7 +850,8 @@
     "operation": {
       "FREEZE": "Freeze",
       "UNFREEZE": "Unfreeze",
-      "DELETE": "Delete"
+      "DELETE": "Delete",
+      "ADJUST": "Adjust"
     },
     "confirm": {
       "FREEZE": "Freezing pauses bill operations. Accrual and late fees continue under the original rules.",
@@ -877,5 +878,39 @@
     "calculatedAsOfDate": "Calculated through",
     "confirmAction": "Confirm",
     "export": "Export"
+  },
+  "Adjustment": {
+    "title": "Adjust",
+    "edit": "Adjustment details",
+    "confirmTitle": "Confirm amounts",
+    "method": "Adjustment method",
+    "direct": "Direct adjustment",
+    "formula": "Formula adjustment",
+    "direction": "Direction",
+    "increase": "Increase",
+    "decrease": "Decrease",
+    "directAmount": "Adjustment amount",
+    "extra": "Additional charges and reductions",
+    "dispatchCount": "Additional staff count",
+    "dispatchPrice": "Price per staff member",
+    "lateReason": "Late fee reduction reason",
+    "evidence": "Reason and evidence",
+    "attachments": "Attachments (up to 5, 20 MB each)",
+    "upload": "Upload evidence",
+    "preview": "Preview amounts",
+    "back": "Back to edit",
+    "confirm": "Confirm adjustment",
+    "saved": "Receivable adjusted successfully",
+    "todayBefore": "Actual receivable before (CNY)",
+    "todayAfter": "Actual receivable after (CNY)",
+    "confirmHint": "Amounts will be calculated and posted as of {date}. Review before confirming.",
+    "comparison": "Amount comparison",
+    "before": "Before",
+    "after": "After",
+    "delta": "Adjustment difference",
+    "formulaResult": "Formula calculation",
+    "reference": "Trial amounts as of {date}",
+    "formulaHint": "Calculate the difference using the original formula. Months are derived from dates. Original bill details and coverage remain on record.",
+    "dateRequired": "Select a date within the original coverage"
   }
 }

@@ -1072,6 +1072,21 @@
         ],
         "buttons": [
           {
+            "id": "adjust",
+            "name": "调整",
+            "i18nMessages": {
+              "zh_CN": "调整",
+              "en_US": "Adjust",
+              "en": "Adjust"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["adjust"]
+              }
+            ]
+          },
+          {
             "id": "freeze",
             "name": "冻结/解冻",
             "i18nMessages": {

@@ -850,7 +850,8 @@
     "operation": {
       "FREEZE": "冻结",
       "UNFREEZE": "解冻",
-      "DELETE": "删除"
+      "DELETE": "删除",
+      "ADJUST": "调整"
     },
     "confirm": {
       "FREEZE": "冻结后暂停账单业务操作，计提和逾期费用仍按原规则计算。",
@@ -877,5 +878,39 @@
     "calculatedAsOfDate": "计算截至日",
     "confirmAction": "确认",
     "export": "导出"
+  },
+  "Adjustment": {
+    "title": "调整",
+    "edit": "填写调整",
+    "confirmTitle": "确认金额",
+    "method": "调整方式",
+    "direct": "直接调整",
+    "formula": "按公式调整",
+    "direction": "调整方向",
+    "increase": "增加",
+    "decrease": "减少",
+    "directAmount": "本次调整金额",
+    "extra": "附加费用与减免",
+    "dispatchCount": "临时增派人数",
+    "dispatchPrice": "增派单价",
+    "lateReason": "逾期减免原因",
+    "evidence": "原因与凭证",
+    "attachments": "附件（最多5个，每个20MB）",
+    "upload": "上传凭证",
+    "preview": "预览金额",
+    "back": "返回修改",
+    "confirm": "确认入账",
+    "saved": "应收账单调整成功",
+    "todayBefore": "调整前实际应收（元）",
+    "todayAfter": "调整后实际应收（元）",
+    "confirmHint": "本次按 {date} 计算并入账，请核对金额后确认。",
+    "comparison": "调整前后金额对比",
+    "before": "调整前",
+    "after": "调整后",
+    "delta": "本次调整差额",
+    "formulaResult": "公式计算结果",
+    "reference": "截至 {date} 的试算结果",
+    "formulaHint": "按原账单公式计算本次差额；月数由起止日期自动计算，原账单资料和计费期间保留。",
+    "dateRequired": "请选择原计费期间内的日期"
   }
 }

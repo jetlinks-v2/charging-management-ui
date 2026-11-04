@@ -23,7 +23,7 @@ const columns = computed(() => [
     align: 'right',
     scopedSlots: true
   })),
-  { title: t('Finance.actions'), dataIndex: 'actions', width: 110, fixed: 'right', scopedSlots: true }
+  { title: t('Finance.actions'), dataIndex: 'actions', width: 160, fixed: 'right', scopedSlots: true }
 ])
 const fields = computed(() =>
   ['fullName', 'subjectName', 'customerName', 'standardName'].map((key) => ({
@@ -118,6 +118,15 @@ const actions = (row: Receivable) =>
         >
           {{ t('Finance.detail') }}
         </a-button>
+        <j-permission-button
+          v-if="row.allowedOperations.includes('ADJUST')"
+          type="link"
+          size="small"
+          :hasPermission="`${receivablePermission}:adjust`"
+          @click="select(row, true)"
+        >
+          {{ t('Adjustment.title') }}
+        </j-permission-button>
         <a-dropdown
           v-if="actions(row).length"
           :trigger="['click']"

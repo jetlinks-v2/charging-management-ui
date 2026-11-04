@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import type { Receivable } from '../../../api/financeReceivable'
 import { useReceivableLogs } from '../../../hooks/finance-receivable/useReceivableLogs'
+import ReceivableLogChange from './ReceivableLogChange.vue'
 const props = defineProps<{ projectId: string; detail?: Receivable; loading: boolean; failed: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
@@ -159,6 +160,7 @@ const variables = computed(
                   <time>{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</time>
                 </div>
                 <p class="receivable-log-reason">{{ row.reason }}</p>
+                <ReceivableLogChange :row="row" />
                 <span class="receivable-log-operator">
                   {{ row.operatorName }} ·
                   {{ t('Receivable.versionChange', { before: row.beforeVersion, after: row.afterVersion }) }}

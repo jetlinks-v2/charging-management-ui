@@ -14,6 +14,8 @@ export interface Receivable {
   customerName: string
   subjectName: string
   standardName: string
+  subjectId: string
+  standardId: string
   configVersion: number
   version: number
   periodStart: string
@@ -51,6 +53,7 @@ export interface ReceivableLog {
   afterVersion: number
   before: Partial<Receivable> & { deleted?: boolean }
   after: Partial<Receivable> & { deleted?: boolean }
+  detail?: { input?: Partial<AdjustmentInput>; preview?: { formula?: AdjustmentPreview['formula'] } }
 }
 const pageResponse = <T>(response: { success: boolean; result: T; message?: string }) => {
   checked(response)
@@ -74,3 +77,56 @@ export const changeReceivable = (project: string, row: Receivable, action: Recei
     .then(checked)
 export const exportReceivables = (project: string, query: Query) =>
   request.post<Blob>(`${base(project)}/_export`, query, { hiddenError: true, responseType: 'blob' }).then(excelResponse)
+
+export interface AdjustmentInput {
+  version: number
+  adjustmentMode: 'DIRECT' | 'FORMULA'
+  directDirection: 'INCREASE' | 'DECREASE'
+  directAmount?: string
+  formulaLine: {
+    subjectId: string
+    standardId: string
+    afterCalcStartDate: string
+    afterCalcEndDate: string
+    afterVariableValues: Record<string, string>
+  }
+  assessmentAmount?: string
+  temporaryDispatchCount: number
+  temporaryDispatchUnitPrice?: string
+  calculationAsOfDate: string
+  lateFeeReductionAmount?: string
+  lateFeeReductionReason?: string
+  feeReductionAmount?: string
+  reason: string
+  remark?: string
+  attachmentFileIds: string[]
+  attachmentNames: Record<string, string>
+}
+export interface AdjustmentPreview {
+  token: string
+  delta: string
+  referenceBefore: Receivable
+  referenceAfter: Receivable
+  effectiveBefore: Receivable
+  effectiveAfter: Receivable
+  calculationAsOfDate: string
+  businessDate: string
+  formula?: {
+    beforeVariables: Record<string, string>
+    afterVariables: Record<string, string>
+    beforeAmount: string
+    afterAmount: string
+    beforeStart: string
+    beforeEnd: string
+    afterStart: string
+    afterEnd: string
+  }
+}
+export const previewAdjustment = (project: string, key: string, input: AdjustmentInput) =>
+  request
+    .post<AdjustmentPreview>(`${base(project)}/${id(key)}/adjustment/_preview`, input, { hiddenError: true })
+    .then(checked)
+export const submitAdjustment = (project: string, key: string, input: AdjustmentInput, token: string) =>
+  request
+    .post<Receivable>(`${base(project)}/${id(key)}/adjustment`, { input, token }, { hiddenError: true })
+    .then(checked)

@@ -5,10 +5,24 @@ import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import ReceivableTable from './ReceivableTable.vue'
 import ReceivableDetail from './ReceivableDetail.vue'
 import ReceivableChange from './ReceivableChange.vue'
+import ReceivableAdjustment from './ReceivableAdjustment.vue'
 const { t } = useI18n()
 const state = useReceivableWorkspace()
-const { archive, tree, open, loading, failed, detail, actionTarget, saving, exporting, close, change, exportRows } =
-  state
+const {
+  archive,
+  tree,
+  open,
+  loading,
+  failed,
+  detail,
+  adjusting,
+  actionTarget,
+  saving,
+  exporting,
+  close,
+  change,
+  exportRows
+} = state
 const { projectId, keyword, selectedId, selected, loading: treeLoading, failed: treeFailed } = archive
 function refresh() {
   void archive.loadTree()
@@ -16,6 +30,10 @@ function refresh() {
 }
 function selectTree(keys: (string | number)[]) {
   selectedId.value = keys.length ? String(keys[0]) : undefined
+}
+function adjustmentSaved() {
+  close()
+  state.reload()
 }
 </script>
 <template>
@@ -89,12 +107,19 @@ function selectTree(keys: (string | number)[]) {
       </main>
     </div>
     <ReceivableDetail
-      v-if="open"
+      v-if="open && (!adjusting || loading || failed)"
       :project-id="projectId"
       :detail="detail"
       :loading="loading"
       :failed="failed"
       @close="close"
+    />
+    <ReceivableAdjustment
+      v-if="open && adjusting && detail && !loading && !failed"
+      :project-id="projectId"
+      :detail="detail"
+      @close="close"
+      @saved="adjustmentSaved"
     />
     <ReceivableChange
       v-if="actionTarget"

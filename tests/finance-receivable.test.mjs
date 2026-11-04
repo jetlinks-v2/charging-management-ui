@@ -5,7 +5,15 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRenderer, defineComponent, h, ref, computed, reactive, nextTick } from 'vue'
 const require = createRequire(import.meta.url)
-const names = ['getReceivable', 'queryReceivables', 'changeReceivable', 'exportReceivables', 'queryReceivableLogs']
+const names = [
+  'getReceivable',
+  'queryReceivables',
+  'changeReceivable',
+  'exportReceivables',
+  'queryReceivableLogs',
+  'previewAdjustment',
+  'submitAdjustment'
+]
 async function load(path) {
   const result = await build({
     entryPoints: [fileURLToPath(new URL(path, import.meta.url))],
@@ -46,6 +54,7 @@ async function load(path) {
 }
 const { useReceivableWorkspace } = await load('../hooks/finance-receivable/useReceivableWorkspace.ts')
 const { useReceivableLogs } = await load('../hooks/finance-receivable/useReceivableLogs.ts')
+const { useReceivableAdjustment } = await load('../hooks/finance-receivable/useReceivableAdjustment.ts')
 const row = (id) => ({ id, version: 3, allowedOperations: ['FREEZE'] })
 function mount(factory = useReceivableWorkspace, api = {}) {
   globalThis.__receivableApi = { getReceivable: async (_p, id) => row(id), ...api }
@@ -166,5 +175,82 @@ test('日志分页传后端，切账单丢弃旧日志，卸载后不回写', as
   await state.load(2)
   assert.equal(calls.at(-1)[2].pageIndex, 1)
   assert.equal(state.current.value, 2)
+  unmount()
+})
+
+test('调整必须预览；变更输入立即失效，迟到预览不能重新解锁提交', async () => {
+  const pending = deferred(),
+    calls = []
+  const props = reactive({
+    projectId: 'a',
+    detail: {
+      ...row('bill'),
+      subjectId: 's',
+      standardId: 't',
+      calcStartDate: '2024-02-10',
+      calcEndDate: '2024-02-29',
+      snapshot: { values: { BILLING_AREA: '100.25' }, standard: { variablesSnapshot: [] } }
+    }
+  })
+  const { state, unmount } = mount(() => useReceivableAdjustment(props, () => calls.push('done')), {
+    previewAdjustment: async (...args) => {
+      calls.push(args)
+      return pending.promise
+    },
+    submitAdjustment: async (...args) => calls.push(args)
+  })
+  state.form.value = { validate: async () => {} }
+  state.model.reason = '核对费用'
+  state.model.directAmount = '10.00'
+  await state.submit()
+  assert.equal(calls.length, 0)
+  const request = state.calculate()
+  await nextTick()
+  state.model.directAmount = '20.00'
+  pending.resolve({ token: 'old', delta: '10.00' })
+  await request
+  assert.equal(state.preview.value, undefined)
+  assert.equal(calls[0][2].directAmount, '10.00')
+  unmount()
+})
+
+test('确认提交使用预览的原始字符串、附件及版本；拒绝保留表单并要求重新预览', async () => {
+  const calls = []
+  let rejected = true,
+    done = 0
+  const props = reactive({
+    projectId: 'a',
+    detail: { ...row('bill'), subjectId: 's', standardId: 't', calcStartDate: '2024-02-10', calcEndDate: '2024-02-29' }
+  })
+  const { state, unmount } = mount(() => useReceivableAdjustment(props, () => done++), {
+    previewAdjustment: async () => ({ token: 'confirmed', delta: '90071992547409.91' }),
+    submitAdjustment: async (...args) => {
+      calls.push(args)
+      if (rejected) throw new Error('预览已过期')
+    }
+  })
+  state.form.value = { validate: async () => {} }
+  state.model.reason = '核对费用'
+  state.model.directAmount = '90071992547409.91'
+  state.filesChanged({ fileList: [{ uid: 'u', name: '凭证.pdf', status: 'uploading' }] })
+  await state.calculate()
+  assert.equal(state.preview.value, undefined)
+  state.filesChanged({
+    fileList: [{ uid: 'u', name: '凭证.pdf', status: 'done', response: { success: true, result: { id: 'file' } } }]
+  })
+  await state.calculate()
+  assert.ok(state.preview.value)
+  await state.submit()
+  assert.equal(done, 0)
+  assert.equal(state.preview.value, undefined)
+  assert.equal(state.model.reason, '核对费用')
+  assert.equal(calls[0][2].directAmount, '90071992547409.91')
+  assert.deepEqual(calls[0][2].attachmentFileIds, ['file'])
+  assert.equal(calls[0][2].version, 3)
+  assert.equal(calls[0][3], 'confirmed')
+  rejected = false
+  await state.calculate()
+  await state.submit()
+  assert.equal(done, 1)
   unmount()
 })
