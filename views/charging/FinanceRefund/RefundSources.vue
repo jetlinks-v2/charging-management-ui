@@ -4,7 +4,11 @@ import { useI18n } from 'vue-i18n'
 import type { PaymentRecord } from '../../../api/financeCashier'
 import type { RefundPreview } from '../../../api/financeRefund'
 import { refundableMoney } from '../../../utils/refundMoney'
-const props = defineProps<{ rows?: PaymentRecord[]; preview?: RefundPreview }>()
+const props = defineProps<{
+  rows?: PaymentRecord[]
+  preview?: Pick<RefundPreview, 'allocations'>
+  amountLabel?: string
+}>()
 const { t } = useI18n()
 const data = computed(
   () =>
@@ -23,7 +27,7 @@ const columns = computed<import('ant-design-vue').TableColumnsType>(() => [
   { title: t('Cashier.amount'), dataIndex: 'originalAmount', width: 130, align: 'right' },
   { title: t('Cashier.refunded'), dataIndex: 'refundedAmount', width: 130, align: 'right' },
   {
-    title: t(props.preview ? 'Refund.amount' : 'Refund.available'),
+    title: t(props.preview ? props.amountLabel || 'Refund.amount' : 'Refund.available'),
     dataIndex: props.preview ? 'amount' : 'available',
     width: 130,
     align: 'right'

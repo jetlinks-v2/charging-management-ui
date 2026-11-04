@@ -1323,6 +1323,21 @@
                 "actions": ["refund"]
               }
             ]
+          },
+          {
+            "id": "to-advance",
+            "name": "转预存",
+            "i18nMessages": {
+              "zh_CN": "转预存",
+              "en_US": "Convert to advance",
+              "en": "Convert to advance"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-payment",
+                "actions": ["to-advance"]
+              }
+            ]
           }
         ]
       },
@@ -1479,6 +1494,21 @@
               {
                 "permission": "property-finance-refund",
                 "actions": ["refund"]
+              }
+            ]
+          },
+          {
+            "id": "to-advance",
+            "name": "转预存",
+            "i18nMessages": {
+              "zh_CN": "转预存",
+              "en_US": "Convert to advance",
+              "en": "Convert to advance"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-payment",
+                "actions": ["to-advance"]
               }
             ]
           }

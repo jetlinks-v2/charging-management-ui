@@ -9,6 +9,8 @@ import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import PaymentSummary from '../FinanceCashier/PaymentSummary.vue'
 import PaymentRefundActions from './PaymentRefundActions.vue'
 import { useRefundFlow } from '../../../hooks/finance-cashier/useRefundFlow'
+import { usePaymentToAdvanceFlow } from '../../../hooks/finance-cashier/usePaymentToAdvanceFlow'
+import PaymentAdvanceEditor from './PaymentAdvanceEditor.vue'
 import { refundableMoney } from '../../../utils/refundMoney'
 import '../FinanceCashier/cashier.css'
 const props = defineProps<{ temporary?: boolean }>()
@@ -17,6 +19,14 @@ const refundPermission = props.temporary ? 'charging/FinanceTemporary:refund' : 
 const { projectId, table, terms, params, open, loading, failed, detail, request, select, close, notify } =
   usePaymentRecords(props.temporary)
 const refund = useRefundFlow(projectId, () => table.value?.reload())
+const advance = usePaymentToAdvanceFlow(projectId, () => {
+  refund.selected.value = []
+  table.value?.reload()
+})
+const advancePermission = props.temporary
+  ? 'charging/FinanceTemporary:to-advance'
+  : 'charging/FinancePayment:to-advance'
+const advanceBusy = computed(() => !!advance.rows.value || advance.pending.value || advance.failed.value)
 const paymentRequest: typeof request = (query, config) => {
   refund.selected.value = []
   return request(query, config)
@@ -65,7 +75,38 @@ function filter({ filter }: ConditionFilterChangePayload) {
         :project-id="projectId"
         :state="refund"
         :permission="refundPermission"
-      />
+        :disabled="advanceBusy"
+      >
+        <j-permission-button
+          :hasPermission="advancePermission"
+          :disabled="
+            advanceBusy ||
+            refund.pending.value ||
+            refund.failed.value ||
+            !!refund.rows.value ||
+            refund.selected.value.length > 100
+          "
+          @click="advance.start(refund.selected.value)"
+        >
+          <AIcon type="SwapOutlined" />
+          {{ t('PaymentAdvance.title') }}
+        </j-permission-button>
+      </PaymentRefundActions>
+      <a-alert
+        v-if="advance.pending.value"
+        type="warning"
+        show-icon
+        :message="t('PaymentAdvance.pending')"
+      >
+        <template #action>
+          <j-permission-button
+            :hasPermission="advancePermission"
+            @click="advance.recover"
+          >
+            {{ t('Cashier.retry') }}
+          </j-permission-button>
+        </template>
+      </a-alert>
       <ConditionFilter
         :fields="fields"
         @change="filter"
@@ -122,7 +163,9 @@ function filter({ filter }: ConditionFilterChangePayload) {
           <j-permission-button
             type="link"
             :hasPermission="refundPermission"
-            :disabled="refund.pending.value || refund.failed.value || refundableMoney(row.line) === '0.00'"
+            :disabled="
+              advanceBusy || refund.pending.value || refund.failed.value || refundableMoney(row.line) === '0.00'
+            "
             @click="refund.start([row])"
           >
             {{ t('Refund.start') }}
@@ -135,6 +178,13 @@ function filter({ filter }: ConditionFilterChangePayload) {
         :description="t('ProjectContext.choose')"
       />
     </section>
+    <PaymentAdvanceEditor
+      v-if="advance.rows.value"
+      :project-id="projectId"
+      :rows="advance.rows.value"
+      @close="advance.close"
+      @saved="advance.saved"
+    />
     <JlDrawerShell
       v-if="open"
       :open="true"
