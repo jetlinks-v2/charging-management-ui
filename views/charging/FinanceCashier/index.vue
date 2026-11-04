@@ -11,6 +11,9 @@ import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import ReceivableTable from '../FinanceReceivable/ReceivableTable.vue'
 import ReceivableDetail from '../FinanceReceivable/ReceivableDetail.vue'
 import CashierEditor from './CashierEditor.vue'
+import CashierTools from './CashierTools.vue'
+import PrepayEditor from './prepay/PrepayEditor.vue'
+import { usePrepayFlow } from '../../../hooks/finance-prepay/usePrepayFlow'
 import './cashier.css'
 import FundEditor from '../FinanceFunds/FundEditor.vue'
 import { useFundFlow } from '../../../hooks/finance-funds/useFundFlow'
@@ -27,6 +30,14 @@ const {
   failed: temporaryFailed,
   initialSpace: temporarySpace
 } = temporary
+const prepay = usePrepayFlow(projectId)
+const {
+  open: prepayOpen,
+  pending: prepayPending,
+  failed: prepayFailed,
+  spaceId: prepaySpace,
+  spaceName: prepayName
+} = prepay
 const funds = useFundFlow(projectId)
 const { draft: fundDraft, pending: fundPending, failed: fundFailed } = funds
 const selection = state.batch.selected
@@ -37,6 +48,9 @@ const recoveryFailed = ref(false)
 const busy = computed(
   () =>
     !!collecting.value ||
+    prepayOpen.value ||
+    prepayPending.value ||
+    prepayFailed.value ||
     !!fundDraft.value ||
     temporaryOpen.value ||
     fundPending.value ||
@@ -101,6 +115,7 @@ function fundSaved() {
           block
           :type="selectedId ? 'text' : 'primary'"
           :ghost="!selectedId"
+          :disabled="busy"
           class="cashier-all"
           @click="selectedId = undefined"
         >
@@ -110,6 +125,7 @@ function fundSaved() {
           <a-tree
             v-if="tree.length"
             :tree-data="tree"
+            :disabled="busy"
             :selected-keys="selectedId ? [selectedId] : []"
             default-expand-all
             block-node
@@ -127,44 +143,29 @@ function fundSaved() {
             <h2>{{ t('Cashier.title') }}</h2>
             <span class="subject-caption">{{ selected?.spaceLocation || t('Cashier.scopeHint') }}</span>
           </div>
-          <a-space wrap>
-            <j-permission-button
-              hasPermission="charging/FinanceCashier:temporary"
-              :disabled="!projectId || busy"
-              @click="temporary.start(selected?.leaf ? selectedId : undefined)"
-            >
-              <AIcon type="AccountBookOutlined" />
-              {{ t('Temporary.collect') }}
-            </j-permission-button>
-            <j-permission-button
-              hasPermission="charging/FinanceCashier:topup"
-              :disabled="!projectId || busy"
-              @click="
-                funds.start({ action: 'TOPUP', type: 'ADVANCE', initialSpace: selected?.leaf ? selectedId : undefined })
-              "
-            >
-              <AIcon type="WalletOutlined" />
-              {{ t('Funds.collectAdvance') }}
-            </j-permission-button>
-            <j-permission-button
-              hasPermission="charging/FinanceCashier:topup"
-              :disabled="!projectId || busy"
-              @click="
-                funds.start({ action: 'TOPUP', type: 'DEPOSIT', initialSpace: selected?.leaf ? selectedId : undefined })
-              "
-            >
-              <AIcon type="SafetyCertificateOutlined" />
-              {{ t('Funds.collectDeposit') }}
-            </j-permission-button>
-            <a-button
-              :disabled="!projectId"
-              :aria-label="t('Finance.refresh')"
-              @click="refresh"
-            >
-              <AIcon type="ReloadOutlined" />
-            </a-button>
-          </a-space>
+          <CashierTools
+            :project-id="projectId"
+            :busy="busy"
+            :leaf="!!selected?.leaf"
+            @temporary="temporary.start(selected?.leaf ? selectedId : undefined)"
+            @topup="
+              (type) => funds.start({ action: 'TOPUP', type, initialSpace: selected?.leaf ? selectedId : undefined })
+            "
+            @prepay="prepay.start(selectedId || '', selected?.spaceLocation || selected?.name || '')"
+            @refresh="refresh"
+          />
         </div>
+        <a-alert
+          v-if="prepayPending"
+          type="warning"
+          show-icon
+          :message="t('Prepay.pending')"
+          class="cashier-pending"
+        >
+          <template #action>
+            <a-button @click="prepay.recover">{{ t('Cashier.retry') }}</a-button>
+          </template>
+        </a-alert>
         <a-alert
           v-if="temporaryPending"
           type="warning"
@@ -239,6 +240,19 @@ function fundSaved() {
       :failed="failed"
       @close="close"
       @source="(id) => state.select({ id })"
+    />
+    <PrepayEditor
+      v-if="prepayOpen"
+      :project-id="projectId"
+      :space-id="prepaySpace"
+      :space-name="prepayName"
+      @close="prepay.close"
+      @saved="
+        () => {
+          prepay.saved()
+          state.reload()
+        }
+      "
     />
     <CashierEditor
       v-if="collecting"

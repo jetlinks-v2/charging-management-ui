@@ -1305,5 +1305,27 @@
     "deleteConfirm": "Delete this activity? Operation history will remain.",
     "changed": "Activity updated",
     "empty": "No activities yet. Create an activity to begin."
+  },
+  "Prepay": {
+    "title": "Prepay charges",
+    "selection": "Select prepayment",
+    "setting": "Charge setting",
+    "chooseSetting": "Select a subject and standard",
+    "activity": "Promotion",
+    "ordinary": "Regular prepayment",
+    "tier": "Promotion tier",
+    "chooseTier": "Select a tier",
+    "tierLabel": "Pay {paidMonths} months, receive {giftMonths} months",
+    "confirm": "Review and collect",
+    "quote": "Period breakdown",
+    "period": "Billing period",
+    "original": "Original amount",
+    "discount": "Discount",
+    "pay": "Amount to collect",
+    "calculate": "Get quote",
+    "selectionInvalid": "Select a charge setting, payer and valid months or promotion tier.",
+    "expired": "The quote expired. Please request a new quote.",
+    "empty": "No eligible monthly or quarterly setting. Check this house’s charge settings and selected payers.",
+    "pending": "A prepayment result is pending. Recover the original payment before continuing."
   }
 }

@@ -1306,5 +1306,27 @@
     "deleteConfirm": "确认删除此活动？操作记录将保留。",
     "changed": "活动已更新",
     "empty": "暂无活动，可先新增活动设置。"
+  },
+  "Prepay": {
+    "title": "预缴收费",
+    "selection": "选择预缴方案",
+    "setting": "收费设置",
+    "chooseSetting": "请选择收费科目和标准",
+    "activity": "优惠活动",
+    "ordinary": "普通预缴（不参加活动）",
+    "tier": "充值档位",
+    "chooseTier": "请选择充值档位",
+    "tierLabel": "充 {paidMonths} 个月，赠 {giftMonths} 个月",
+    "confirm": "核对报价并收款",
+    "quote": "逐期报价",
+    "period": "计费期间",
+    "original": "原应收金额",
+    "discount": "优惠金额",
+    "pay": "本次实收",
+    "calculate": "获取预缴报价",
+    "selectionInvalid": "请选择收费设置、缴款客户和有效月数或活动档位。",
+    "expired": "报价已过期，请重新获取报价。",
+    "empty": "暂无可预缴的收费设置，请核对房屋的月度或季度收费设置及缴款客户。",
+    "pending": "本项目有一笔预缴收款结果待确认，请先核对原收款结果。"
   }
 }
