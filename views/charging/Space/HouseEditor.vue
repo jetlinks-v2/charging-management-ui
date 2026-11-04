@@ -9,6 +9,7 @@ import type { House, HouseInput } from '../../../api/archive'
 import { useDictionaries } from '../../../hooks/archive/useDictionaries'
 import KvGrid from '@jetlinks-web-core/components/KvGrid/index.vue'
 import SpaceLocation from '../components/SpaceLocation.vue'
+import SpaceInformation from '../components/SpaceInformation.vue'
 import DictionaryNotice from '../components/DictionaryNotice.vue'
 const props = defineProps<{
   open: boolean
@@ -75,8 +76,9 @@ const submit = async () => {
           <section class="archive-detail-group">
             <h3 class="archive-section-title">
               <AIcon type="HomeOutlined" />
-              {{ t(k + 'houseInformation') }}
+              {{ t(k + 'spaceInformation') }}
             </h3>
+            <SpaceInformation :space="house" />
             <KvGrid
               :items="[
                 { label: t(k + 'houseType'), value: dictionary.text('house-type', house.houseType) },
@@ -124,7 +126,7 @@ const submit = async () => {
         >
           <h3 class="wide archive-section-title">
             <AIcon type="HomeOutlined" />
-            {{ t(k + 'houseInformation') }}
+            {{ t(k + 'spaceInformation') }}
           </h3>
           <a-form-item
             :label="t(k + 'houseType')"

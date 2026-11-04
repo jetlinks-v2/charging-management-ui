@@ -18,7 +18,7 @@ async function load(entry, apiNames = []) {
           {
             name: 'archive-api',
             setup(builder) {
-              builder.onResolve({ filter: /api\/(archive|user)|@jetlinks-web|vue-i18n/ }, (args) => ({
+              builder.onResolve({ filter: /api\/(archive|user)|@jetlinks-web|@vueuse\/core|vue-i18n/ }, (args) => ({
                 path: args.path,
                 namespace: 'mock'
               }))
@@ -27,6 +27,8 @@ async function load(entry, apiNames = []) {
                   ? apiNames
                       .map((name) => `export const ${name} = (...args) => globalThis.__archiveApi.${name}(...args)`)
                       .join('\n')
+                  : args.path === '@vueuse/core'
+                  ? 'export const useDebounceFn = fn => fn'
                   : args.path === 'vue-i18n'
                   ? 'export const useI18n = () => ({t: key => key, tm: () => ({spaceId: "空间标识", houseType: "房屋类型", houseState: "房态", billingArea: "计费面积"})})'
                   : 'export const onlyMessage = (message, type) => globalThis.__archiveMessages?.push({message, type}); export const downloadFileByUrl = (...args) => globalThis.__archiveDownloads?.push(args)'
@@ -61,14 +63,14 @@ const houseModule = await load('../hooks/archive/useHouseEditor.ts', ['getHouse'
 const customerDetailModule = await load('../hooks/archive/useCustomerDetail.ts', [
   'getCustomer',
   'saveCustomer',
-  'deleteCustomer',
-  'deleteRelationship',
-  'endRelationship'
+  'deleteRelationship'
 ])
-const customerLinkModule = await load('../hooks/archive/useCustomerLink.ts', [
-  'getSpaceTree',
-  'getHouse',
-  'addRelationship'
+const customerCreateModule = await load('../hooks/archive/useCustomerCreate.ts', [
+  'addRelationship',
+  'checked',
+  'createCustomer',
+  'queryCustomerProfiles',
+  'queryPropertyUsers'
 ])
 const excelModule = await load('../hooks/archive/useArchiveExcel.ts', [
   'getArchiveTemplate',
@@ -135,7 +137,14 @@ test('客户请求展示业务响应，HTTP或网络异常无业务提示时使�
 
 test('客户列表编辑读取最新资料，业务错误显示后端中文，关闭后旧响应不重开编辑', async () => {
   const late = deferred()
-  const row = { id: 'client', customerType: 'person', name: '姓名', telephone: '123', version: 2, relationships: [] }
+  const row = {
+    id: 'client',
+    customerType: 'person',
+    name: '姓名',
+    telephone: '123',
+    version: 2,
+    relationships: [{ id: 'record', nature: 'owner', version: 0 }]
+  }
   const { state, unmount } = mount(() => customerDetailModule.useCustomerDetail({ projectId: 'project' }, () => {}), {
     getCustomer: async (_scope, id) => (id === 'late' ? late.promise : row),
     saveCustomer: async () => {
@@ -159,247 +168,152 @@ test('客户列表编辑读取最新资料，业务错误显示后端中文，�
   unmount()
 })
 
-test('客户列表删除携带版本并刷新，有效关联和历史客户不发删除请求', async () => {
-  const deleted = []
+test('客户编辑失败重试保留选中的空间记录及模式', async () => {
+  let fail = true
+  const first = { id: 'first', nature: 'owner', version: 1 }
+  const second = { id: 'second', nature: 'tenant', version: 2 }
+  const { state, unmount } = mount(() => customerDetailModule.useCustomerDetail({ projectId: 'project' }, () => {}), {
+    getCustomer: async () => {
+      if (fail) throw new Error('网络失败')
+      return {
+        id: 'client',
+        customerType: 'person',
+        name: '姓名',
+        telephone: '123',
+        version: 1,
+        relationships: [first, second]
+      }
+    }
+  })
+  await state.select('client', second, 'edit')
+  assert.equal(state.failed.value, true)
+  fail = false
+  await state.retry()
+  assert.equal(state.editing.value, true)
+  assert.equal(state.record.value.id, 'second')
+  assert.equal(state.relation.nature, 'tenant')
+  unmount()
+})
+
+test('删除按当前空间记录提交版本，其他空间不受影响，历史详情只读', async () => {
+  const removed = []
   let reloads = 0
-  const row = { id: 'client', customerType: 'person', name: '姓名', telephone: '123', version: 2, relationships: [] }
+  const selected = { id: '101-client', spaceId: '101', nature: 'owner', version: 3 }
+  const row = {
+    id: 'client',
+    customerType: 'person',
+    name: '张三',
+    telephone: '123',
+    version: 2,
+    relationships: [selected, { id: '102-client', spaceId: '102', nature: 'tenant', version: 1 }]
+  }
   const { state, unmount } = mount(
     () => customerDetailModule.useCustomerDetail({ projectId: 'project' }, () => reloads++),
     {
       getCustomer: async () => row,
-      deleteCustomer: async (scope, value) => deleted.push({ scope, value })
+      deleteRelationship: async (scope, value) => removed.push({ scope, value })
     }
   )
-  await state.removeCustomer({ ...row, relationships: [{ id: 'active' }] })
-  assert.equal(deleted.length, 0)
-  await state.removeCustomer(row)
-  assert.equal(deleted.length, 1)
-  assert.equal(deleted[0].value.version, 2)
-  assert.equal(deleted[0].scope.projectId, 'project')
+  await state.select('client', selected)
+  assert.equal(state.record.value.id, '101-client')
+  await state.removeRelation(selected)
+  assert.deepEqual(removed[0].value, selected)
   assert.equal(reloads, 1)
-  await state.select('client', { id: 'history', customer: row })
-  state.edit()
-  await state.removeCustomer(row)
+  await state.select('client', { ...selected, customer: row, endTime: 100 }, 'view', true)
+  await state.removeRelation(selected)
+  await state.save()
+  assert.equal(removed.length, 1)
   assert.equal(state.editing.value, false)
-  assert.equal(deleted.length, 1)
   unmount()
 })
 
-test('结束关联后的客户可在编辑中新增关联，保留未保存的资料，详情与历史只读', async (t) => {
-  const row = {
-    id: 'client',
-    projectId: 'project',
-    customerType: 'person',
-    name: '姓名',
-    telephone: '123',
-    version: 2,
-    relationships: []
-  }
-  let reloads = 0
-  const { state, unmount } = mount(
-    () => customerDetailModule.useCustomerDetail({ projectId: 'project' }, () => reloads++),
-    {
-      getCustomer: async () => row
-    }
-  )
-  t.after(unmount)
-  await state.select('client')
-  state.beginLink()
-  assert.equal(state.linking.value, false)
-  await state.select('client', undefined, 'edit')
-  state.profile.name = '尚未保存的姓名'
-  state.beginLink()
-  assert.equal(state.linking.value, true)
-  const relation = { id: 'new-relation', projectId: 'project', customerId: 'client', spaceId: '101', startTime: 5000 }
-  state.linked(relation)
-  assert.equal(state.customer.value.relationships[0].id, 'new-relation')
-  assert.equal(state.profile.name, '尚未保存的姓名')
-  assert.equal(state.linking.value, false)
-  assert.equal(reloads, 1)
-  await state.select('client', { id: 'old', customer: row })
-  state.beginLink()
-  state.linked(relation)
-  assert.equal(state.linking.value, false)
-  assert.equal(reloads, 1)
-})
-
-test('重新关联复用客户主档，加入家庭只提交新关系，失败保留输入且防止重复保存', async (t) => {
-  const submissions = []
-  const done = []
-  let reject = true
-  const pending = deferred()
-  const customer = { id: 'client', customerType: 'person', name: '原客户', relationships: [{ spaceId: '102' }] }
-  const { state, unmount } = mount(
-    () =>
-      customerLinkModule.useCustomerLink({ projectId: 'project', spaceId: '101' }, customer, (value) =>
-        done.push(value)
-      ),
-    {
-      getSpaceTree: async () => [
-        {
-          id: 'building',
-          leaf: false,
-          children: [
-            { id: '101', leaf: true, name: '101' },
-            { id: '102', leaf: true, name: '102' }
-          ]
-        }
-      ],
-      getHouse: async () => ({ completed: true }),
-      addRelationship: async (...args) => {
-        submissions.push(args)
-        if (reject) throw { response: { data: { message: '该家庭已结束，请重新选择' } } }
-        return pending.promise
-      }
-    }
-  )
-  t.after(unmount)
-  await settle()
-  assert.deepEqual(
-    state.spaces.value.map((item) => item.id),
-    ['101']
-  )
-  assert.equal(state.ready.value, true)
-  Object.assign(state.relation, {
-    nature: 'tenant',
-    familyMode: 'existing',
-    familyId: 'active-family',
-    startTime: 5000
-  })
-  await state.save()
-  assert.equal(state.relation.familyId, 'active-family')
-  assert.equal(done.length, 0)
-  assert.deepEqual(globalThis.__archiveMessages.at(-1), { message: '该家庭已结束，请重新选择', type: 'error' })
-  reject = false
-  const saving = state.save()
-  await state.save()
-  assert.equal(submissions.length, 2)
-  pending.resolve({ id: 'new-relation' })
-  await saving
-  assert.equal(done[0].id, 'new-relation')
-  assert.deepEqual(submissions[1], [
-    { projectId: 'project', spaceId: '101' },
-    'client',
-    {
-      spaceId: '101',
-      nature: 'tenant',
-      familyMode: 'existing',
-      familyId: 'active-family',
-      startTime: 5000
-    }
-  ])
-})
-
-test('切换房屋清空家庭，忽略旧房屋响应，未完善房屋不能提交关联', async (t) => {
-  const oldHouse = deferred()
-  let posts = 0
-  const { state, unmount } = mount(
-    () =>
-      customerLinkModule.useCustomerLink(
-        { projectId: 'project' },
-        { id: 'client', customerType: 'person', relationships: [] },
-        () => {}
-      ),
-    {
-      getSpaceTree: async () => [
-        { id: '101', leaf: true },
-        { id: '102', leaf: true }
-      ],
-      getHouse: async (_scope, id) => (id === '101' ? oldHouse.promise : { completed: false }),
-      addRelationship: async () => posts++
-    }
-  )
-  t.after(unmount)
-  await settle()
-  const first = state.selectSpace('101')
-  Object.assign(state.relation, { familyId: 'old-family', familyName: '旧家庭', familyMode: 'existing' })
-  await state.selectSpace('102')
-  oldHouse.resolve({ completed: true })
-  await first
-  assert.equal(state.relation.spaceId, '102')
-  assert.equal(state.relation.familyId, undefined)
-  assert.equal(state.relation.familyName, undefined)
-  assert.equal(state.relation.familyMode, 'new')
-  assert.equal(state.ready.value, false)
-  await state.save()
-  assert.equal(posts, 0)
-  assert.deepEqual(globalThis.__archiveMessages.at(-1), { message: 'Archive.completeFirst', type: 'error' })
-})
-
-test('只读客户详情不能结束或删除关联，编辑中结束失败保留弹窗并用消息提示', async () => {
-  const relation = { id: 'relation', version: 3, startTime: 1000 }
-  const row = {
-    id: 'client',
-    customerType: 'person',
-    name: '姓名',
-    telephone: '123',
-    version: 2,
-    relationships: [relation]
-  }
+test('编辑提交资料版本及选中空间性质，详情只读不保存', async () => {
   const calls = []
-  let rejected = true
+  const selected = { id: '101-client', spaceId: '101', nature: 'owner', version: 3 }
+  const row = {
+    id: 'client',
+    customerType: 'person',
+    name: '张三',
+    telephone: '123',
+    version: 2,
+    relationships: [selected]
+  }
   const { state, unmount } = mount(() => customerDetailModule.useCustomerDetail({ projectId: 'project' }, () => {}), {
     getCustomer: async () => row,
-    saveCustomer: async () => calls.push('saved'),
-    deleteRelationship: async () => calls.push('deleted'),
-    endRelationship: async (...args) => {
-      calls.push(args)
-      if (rejected) throw { response: { data: { message: '关联已变化，请重试' } } }
-    }
+    saveCustomer: async (...args) => calls.push(args)
   })
-  await state.select('client')
+  await state.select('client', selected)
   await state.save()
-  state.beginEnd(relation)
-  await state.removeRelation(relation)
-  assert.equal(state.ending.value, undefined)
   assert.equal(calls.length, 0)
-  await state.select('client', undefined, 'edit')
-  state.beginEnd(relation)
-  state.endTime.value = 2000
-  state.endReason.value = ' 搬离 '
-  await state.end()
-  assert.equal(state.ending.value.id, 'relation')
-  assert.deepEqual(globalThis.__archiveMessages.at(-1), { message: '关联已变化，请重试', type: 'error' })
-  rejected = false
-  await state.end()
-  assert.equal(state.ending.value, undefined)
-  assert.equal(state.editing.value, true)
-  assert.equal(calls[1][2], 2000)
-  assert.equal(calls[1][3], '搬离')
+  await state.select('client', selected, 'edit')
+  state.relation.nature = 'tenant'
   await state.save()
-  assert.equal(calls[2], 'saved')
+  assert.equal(calls[0][2].relationshipId, '101-client')
+  assert.equal(calls[0][2].relationshipVersion, 3)
+  assert.equal(calls[0][2].version, 2)
+  assert.equal(calls[0][2].nature, 'tenant')
   assert.equal(state.open.value, false)
   unmount()
 })
 
-test('企业档案剔除切换类型前残留的个人证件、性质与家庭', () => {
-  const result = customer.createPayload(
-    '00001',
-    'company',
+test('新建选择用户前字段禁用，来源有值锁定，缺失允许补充，已有客户仍可新增', async () => {
+  const calls = []
+  const existing = { id: 'existing', customerType: 'person', name: '已保存姓名', telephone: '138', relationships: [] }
+  const { state, unmount } = mount(
+    () => customerCreateModule.useCustomerCreate({ projectId: 'project', spaceId: '101' }, () => {}),
     {
-      name: ' Test ',
-      telephone: ' 00123 ',
-      certificateType: 'id',
-      certificateNumber: '123',
-      legalRepresentative: 'Alice'
-    },
-    { spaceId: '00002', nature: 'owner', familyMode: 'new', familyName: 'Hidden', startTime: 12 }
+      checked: (value) => value.result,
+      queryPropertyUsers: async () => ({
+        result: { data: [{ id: 'user', name: '张三', telephone: '', email: 'source@example.com' }], total: 1 }
+      }),
+      queryCustomerProfiles: async () => ({ result: { data: [existing], total: 1 } }),
+      addRelationship: async (...args) => calls.push(args),
+      createCustomer: async (...args) => calls.push(args)
+    }
   )
-  assert.equal(result.userId, '00001')
-  assert.equal(result.name, 'Test')
-  assert.equal(result.legalRepresentative, 'Alice')
-  assert.equal('certificateType' in result, false)
-  assert.equal('nature' in result, false)
-  assert.equal('familyMode' in result, false)
+  assert.deepEqual(state.lockedFields.value, { name: true, telephone: true, email: true })
+  await settle()
+  state.userId.value = 'user'
+  await settle()
+  assert.equal(state.profile.name, '张三')
+  assert.deepEqual(state.lockedFields.value, { name: true, telephone: false, email: true })
+  state.users.value = []
+  assert.deepEqual(state.lockedFields.value, { name: true, telephone: false, email: true })
+  state.profile.telephone = '138'
+  state.relation.nature = 'owner'
+  await state.save()
+  assert.equal(calls[0][1].telephone, '138')
+  assert.equal('startTime' in calls[0][1], false)
+  state.mode.value = 'existing'
+  await settle()
+  state.customerId.value = 'existing'
+  state.relation.nature = 'tenant'
+  await settle()
+  await state.save()
+  assert.deepEqual(calls[1], [
+    { projectId: 'project', spaceId: '101' },
+    'existing',
+    { spaceId: '101', nature: 'tenant' }
+  ])
+  unmount()
 })
-test('选择已有家庭时不携带上一次新建家庭的名称', () => {
-  const result = customer.relationshipPayload(
-    { spaceId: 'house', nature: 'family', familyMode: 'existing', familyName: 'Old', familyId: '001', startTime: 4 },
-    'person'
+
+test('个人企业请求均不提交家庭或手工时间，企业不提交个人字段', () => {
+  const data = customer.createPayload(
+    'user',
+    'company',
+    { name: ' 企业 ', telephone: ' 001 ', certificateType: 'id' },
+    { spaceId: '101', nature: 'owner', familyName: 'unused', startTime: 12 }
   )
-  assert.equal(result.familyId, '001')
-  assert.equal('familyName' in result, false)
+  assert.equal(data.name, '企业')
+  assert.equal(data.telephone, '001')
+  for (const field of ['certificateType', 'nature', 'familyName', 'startTime']) assert.equal(field in data, false)
+  assert.deepEqual(
+    customer.relationshipPayload({ spaceId: '102', nature: 'tenant', startTime: 12, familyId: 'unused' }, 'person'),
+    { spaceId: '102', nature: 'tenant' }
+  )
 })
+
 test('历史筛选递归映射主档字段但保留关系性质与逻辑，排序使用同一契约', () => {
   const query = {
     terms: [

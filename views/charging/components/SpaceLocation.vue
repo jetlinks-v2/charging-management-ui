@@ -17,7 +17,7 @@ const { t } = useI18n()
           {{ space.spaceTypeName }}
         </a-tag>
       </strong>
-      <p>{{ space.spaceLocation || space.fullName || space.name }}</p>
+      <p>{{ space.fullName || space.name }}</p>
     </div>
     <AIcon
       type="LockOutlined"

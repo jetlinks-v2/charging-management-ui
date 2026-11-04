@@ -31,6 +31,7 @@ const {
   profile,
   relation,
   selectedCustomer,
+  lockedFields,
   load,
   search,
   save
@@ -41,8 +42,8 @@ const effectiveType = computed(() =>
 const dictionary = useDictionaries()
 const model = computed(() => ({ ...profile, ...relation, userId: userId.value, customerId: customerId.value }))
 // Select 的 change 早于组合表单模型更新；有效选择落定后清除上一帧的必填提示。
-watch([userId, customerId, () => relation.familyId, () => relation.nature], async (values, previous) => {
-  const fields = ['userId', 'customerId', 'familyId', 'nature'].filter(
+watch([userId, customerId, () => relation.nature], async (values, previous) => {
+  const fields = ['userId', 'customerId', 'nature'].filter(
     (_, index) => values[index] && values[index] !== previous[index]
   )
   await nextTick()
@@ -126,6 +127,7 @@ const submit = async () => {
         <p class="wide archive-field-hint">{{ t(k + 'customerHint') }}</p>
         <CustomerProfileFields
           :model="profile"
+          :locked="lockedFields"
           :type="type"
           :dictionary="dictionary"
         />
@@ -159,9 +161,12 @@ const submit = async () => {
       >
         {{ t(k + 'refineSearch') }}
       </p>
-      <h3 class="wide archive-section-title">
+      <h3
+        v-if="effectiveType === 'person'"
+        class="wide archive-section-title"
+      >
         <AIcon type="TeamOutlined" />
-        {{ t(k + 'relationInformation') }}
+        {{ t(k + 'nature') }}
       </h3>
       <RelationshipFields
         :key="effectiveType"

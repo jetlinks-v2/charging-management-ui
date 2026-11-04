@@ -10,8 +10,7 @@ import type { useCustomerDetail } from '../../../hooks/archive/useCustomerDetail
 import { useDictionaries } from '../../../hooks/archive/useDictionaries'
 import CustomerProfileFields from './CustomerProfileFields.vue'
 import CustomerRelations from './CustomerRelations.vue'
-import CustomerEndDialog from './CustomerEndDialog.vue'
-import CustomerLinkDialog from './CustomerLinkDialog.vue'
+import SpaceLocation from '../components/SpaceLocation.vue'
 const props = defineProps<{ state: ReturnType<typeof useCustomerDetail> }>()
 const { t } = useI18n()
 const k = 'Archive.'
@@ -23,6 +22,7 @@ const fields = computed(() => {
   const current = customer.value
   if (!current) return []
   const keys = [
+    current.customerType === 'company' ? 'companyName' : 'name',
     'telephone',
     'email',
     'address',
@@ -31,7 +31,7 @@ const fields = computed(() => {
       : ['creditCode', 'legalRepresentative', 'registeredAddress'])
   ] as const
   return keys.flatMap((key) => {
-    const value = current[key as keyof typeof current]
+    const value = current[(key === 'companyName' ? 'name' : key) as keyof typeof current]
     return [
       {
         label: t(k + key),
@@ -43,6 +43,7 @@ const fields = computed(() => {
     ]
   })
 })
+const model = computed(() => ({ ...props.state.profile, ...props.state.relation }))
 const save = async () => {
   await form.value?.validate()
   await props.state.save()
@@ -65,7 +66,7 @@ const save = async () => {
         :title="t(k + 'detailFailed')"
       >
         <template #extra>
-          <a-button @click="state.select(state.selectedId.value)">{{ t(k + 'retry') }}</a-button>
+          <a-button @click="state.retry">{{ t(k + 'retry') }}</a-button>
         </template>
       </a-result>
       <div
@@ -83,68 +84,75 @@ const save = async () => {
             <a-tag v-if="historical">{{ t(k + 'history') }}</a-tag>
           </div>
         </div>
-        <CustomerRelations
-          :relationships="historical ? [historical] : customer.relationships"
-          :person="customer.customerType === 'person'"
-          :historical="!!historical"
-          :read-only="!state.editing.value"
-          :busy="state.busy.value"
-          :dictionary="dictionary"
-          @end="state.beginEnd"
-          @remove="state.removeRelation"
-          @add="state.beginLink"
+
+        <SpaceLocation
+          v-if="state.editing.value && state.record.value"
+          :space="{ ...state.record.value, name: state.record.value.spaceName }"
         />
+        <a-form
+          v-if="state.editing.value"
+          ref="form"
+          :model="model"
+          layout="vertical"
+          :disabled="state.busy.value"
+          class="archive-stack"
+        >
+          <SectionCard
+            icon="IdcardOutlined"
+            :title="t(k + 'profile')"
+          >
+            <div class="archive-form">
+              <CustomerProfileFields
+                :model="state.profile"
+                :type="customer.customerType"
+                :dictionary="dictionary"
+              />
+            </div>
+          </SectionCard>
+          <SectionCard
+            v-if="customer.customerType === 'person'"
+            icon="TeamOutlined"
+            :title="t(k + 'nature')"
+          >
+            <a-form-item
+              :label="t(k + 'nature')"
+              name="nature"
+              :rules="[{ required: true, message: t(k + 'required') }]"
+            >
+              <a-select
+                v-model:value="state.relation.nature"
+                :options="dictionary.options('customer-nature', state.relation.nature)"
+              />
+            </a-form-item>
+          </SectionCard>
+        </a-form>
         <SectionCard
+          v-else
           icon="IdcardOutlined"
           :title="t(k + 'profile')"
         >
-          <a-form
-            v-if="state.editing.value"
-            ref="form"
-            :model="state.profile"
-            layout="vertical"
-            class="archive-form"
-            :disabled="state.busy.value"
-          >
-            <CustomerProfileFields
-              :model="state.profile"
-              :type="customer.customerType"
-              :dictionary="dictionary"
-            />
-            <div class="wide archive-row-actions">
-              <a-button
-                :disabled="state.busy.value"
-                @click="state.close"
-              >
-                {{ t(k + 'cancel') }}
-              </a-button>
-              <j-permission-button
-                hasPermission="charging/Customer:save"
-                type="primary"
-                :loading="state.busy.value"
-                @click="save"
-              >
-                {{ t(k + 'save') }}
-              </j-permission-button>
-            </div>
-          </a-form>
-          <KvGrid
-            v-else
-            :items="fields"
-          />
+          <KvGrid :items="fields" />
         </SectionCard>
+        <CustomerRelations
+          :relationships="state.record.value ? [state.record.value] : []"
+          :person="customer.customerType === 'person'"
+          :historical="!!historical"
+          :editing="state.editing.value"
+          :dictionary="dictionary"
+        />
       </div>
     </a-spin>
     <template #foot>
-      <a-button @click="state.close">{{ t(k + 'close') }}</a-button>
+      <a-button @click="state.close">{{ t(k + (state.editing.value ? 'cancel' : 'close')) }}</a-button>
+      <j-permission-button
+        v-if="state.editing.value"
+        hasPermission="charging/Customer:save"
+        type="primary"
+        :loading="state.busy.value"
+        @click="save"
+      >
+        {{ t(k + 'save') }}
+      </j-permission-button>
     </template>
   </JlDrawerShell>
-  <CustomerEndDialog :state="state" />
-  <CustomerLinkDialog
-    v-if="state.linking.value && state.editing.value && customer && !historical"
-    :scope="state.scope"
-    :customer="customer"
-    @close="state.linking.value = false"
-    @saved="state.linked"
-  />
 </template>

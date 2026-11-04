@@ -1,5 +1,5 @@
 import type { CustomerCreate, CustomerProfile, RelationInput } from '../api/archive'
-/** 企业请求彻底剔除个人证件与家庭字段，切换类型时不泄漏隐藏表单值。 */
+/** 企业请求剔除个人证件与客户性质，切换类型时不泄漏隐藏表单值。 */
 export function profilePayload(model: CustomerProfile, type: 'person' | 'company'): CustomerProfile {
   const common = {
     name: model.name.trim(),
@@ -21,15 +21,7 @@ export function profilePayload(model: CustomerProfile, type: 'person' | 'company
       }
 }
 export function relationshipPayload(model: RelationInput, type: 'person' | 'company'): RelationInput {
-  const common = { spaceId: model.spaceId, startTime: Number(model.startTime) }
-  return type === 'company'
-    ? common
-    : {
-        ...common,
-        nature: model.nature,
-        familyMode: model.familyMode,
-        ...(model.familyMode === 'new' ? { familyName: model.familyName?.trim() } : { familyId: model.familyId })
-      }
+  return type === 'company' ? { spaceId: model.spaceId } : { spaceId: model.spaceId, nature: model.nature }
 }
 export function createPayload(
   userId: string,
