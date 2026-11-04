@@ -12,6 +12,8 @@ export interface Receivable {
   spaceId: string
   fullName: string
   customerRelationshipId: string
+  customerId: string
+  customerIds: string[]
   sourceReceivableId?: string
   sourceType?: string
   importId?: string

@@ -1234,6 +1234,10 @@
           {
             "permission": "property-finance-receivable",
             "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-funds",
+            "actions": ["query"]
           }
         ],
         "buttons": [
@@ -1249,6 +1253,21 @@
               {
                 "permission": "property-finance-cashier",
                 "actions": ["collect"]
+              }
+            ]
+          },
+          {
+            "id": "topup",
+            "name": "收取预收/押金",
+            "i18nMessages": {
+              "zh_CN": "收取预收/押金",
+              "en_US": "Collect advance / deposit",
+              "en": "Collect advance / deposit"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["topup"]
               }
             ]
           }
@@ -1313,6 +1332,89 @@
           }
         ],
         "buttons": []
+      },
+      {
+        "id": "charging-FinanceFunds",
+        "code": "charging/FinanceFunds",
+        "name": "预收与押金",
+        "url": "/charging/payment/FinanceFunds",
+        "owner": "app",
+        "sortIndex": 4,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "预收与押金",
+            "en_US": "Advances and deposits",
+            "en": "Advances and deposits"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-funds",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "refund",
+            "name": "退还",
+            "i18nMessages": {
+              "zh_CN": "退还",
+              "en_US": "Refund",
+              "en": "Refund"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["refund"]
+              }
+            ]
+          },
+          {
+            "id": "transfer",
+            "name": "划转",
+            "i18nMessages": {
+              "zh_CN": "划转",
+              "en_US": "Transfer",
+              "en": "Transfer"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["transfer"]
+              }
+            ]
+          },
+          {
+            "id": "deduct",
+            "name": "扣除",
+            "i18nMessages": {
+              "zh_CN": "扣除",
+              "en_US": "Deduct",
+              "en": "Deduct"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["deduct"]
+              }
+            ]
+          },
+          {
+            "id": "offset",
+            "name": "冲抵账单",
+            "i18nMessages": {
+              "zh_CN": "冲抵账单",
+              "en_US": "Offset bills",
+              "en": "Offset bills"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["offset"]
+              }
+            ]
+          }
+        ]
       }
     ]
   }

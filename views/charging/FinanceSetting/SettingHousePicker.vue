@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { querySettingHouses, type HouseInfo } from '../../../api/financeSetting'
 import { requestErrorMessage } from '../../../utils/requestError'
-const props = defineProps<{ projectId: string; busy: boolean }>()
+const props = defineProps<{ projectId: string; busy: boolean; request?: typeof querySettingHouses }>()
 const emit = defineEmits<{ close: []; pick: [string] }>()
 const { t } = useI18n()
 const keyword = ref(''),
@@ -18,7 +18,11 @@ async function load(page = 0) {
   pageIndex.value = page
   loading.value = true
   try {
-    const result = await querySettingHouses(props.projectId, { keyword: keyword.value, pageIndex: page, pageSize: 8 })
+    const result = await (props.request || querySettingHouses)(props.projectId, {
+      keyword: keyword.value,
+      pageIndex: page,
+      pageSize: 8
+    })
     if (generation === token) {
       rows.value = result.data
       total.value = result.total

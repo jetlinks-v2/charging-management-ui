@@ -12,10 +12,14 @@ import ReceivableTable from '../FinanceReceivable/ReceivableTable.vue'
 import ReceivableDetail from '../FinanceReceivable/ReceivableDetail.vue'
 import CashierEditor from './CashierEditor.vue'
 import './cashier.css'
+import FundEditor from '../FinanceFunds/FundEditor.vue'
+import { useFundFlow } from '../../../hooks/finance-funds/useFundFlow'
 const { t } = useI18n()
 const state = useReceivableWorkspace()
 const { archive, tree, open, detail, loading, failed, close } = state
 const { projectId, keyword, selectedId, selected, loading: treeLoading } = archive
+const funds = useFundFlow(projectId)
+const { draft: fundDraft, pending: fundPending, failed: fundFailed } = funds
 const selection = state.batch.selected
 const collecting = ref<Receivable[]>()
 const recovery = useCollectionRecovery(projectId)
@@ -47,6 +51,10 @@ function start() {
 function collected() {
   pendingRows.value = undefined
   state.batch.clear()
+  state.reload()
+}
+function fundSaved() {
+  funds.saved()
   state.reload()
 }
 </script>
@@ -94,14 +102,47 @@ function collected() {
             <h2>{{ t('Cashier.title') }}</h2>
             <span class="subject-caption">{{ selected?.spaceLocation || t('Cashier.scopeHint') }}</span>
           </div>
-          <a-button
-            :disabled="!projectId"
-            :aria-label="t('Finance.refresh')"
-            @click="refresh"
-          >
-            <AIcon type="ReloadOutlined" />
-          </a-button>
+          <a-space wrap>
+            <j-permission-button
+              hasPermission="charging/FinanceCashier:topup"
+              :disabled="!projectId || !!collecting || fundPending || fundFailed || !!pendingRows || recoveryFailed"
+              @click="
+                funds.start({ action: 'TOPUP', type: 'ADVANCE', initialSpace: selected?.leaf ? selectedId : undefined })
+              "
+            >
+              <AIcon type="WalletOutlined" />
+              {{ t('Funds.collectAdvance') }}
+            </j-permission-button>
+            <j-permission-button
+              hasPermission="charging/FinanceCashier:topup"
+              :disabled="!projectId || !!collecting || fundPending || fundFailed || !!pendingRows || recoveryFailed"
+              @click="
+                funds.start({ action: 'TOPUP', type: 'DEPOSIT', initialSpace: selected?.leaf ? selectedId : undefined })
+              "
+            >
+              <AIcon type="SafetyCertificateOutlined" />
+              {{ t('Funds.collectDeposit') }}
+            </j-permission-button>
+            <a-button
+              :disabled="!projectId"
+              :aria-label="t('Finance.refresh')"
+              @click="refresh"
+            >
+              <AIcon type="ReloadOutlined" />
+            </a-button>
+          </a-space>
         </div>
+        <a-alert
+          v-if="fundPending"
+          type="warning"
+          show-icon
+          :message="t('Funds.pending')"
+          class="cashier-pending"
+        >
+          <template #action>
+            <a-button @click="funds.recover">{{ t('Cashier.retry') }}</a-button>
+          </template>
+        </a-alert>
         <a-alert
           v-if="pendingRows"
           type="warning"
@@ -128,7 +169,7 @@ function collected() {
             <j-permission-button
               type="primary"
               hasPermission="charging/FinanceCashier:collect"
-              :disabled="selection.length > 100 || !!pendingRows || recoveryFailed"
+              :disabled="selection.length > 100 || !!pendingRows || recoveryFailed || fundPending || fundFailed"
               @click="start"
             >
               <AIcon type="WalletOutlined" />
@@ -161,6 +202,13 @@ function collected() {
       :rows="collecting"
       @close="closeEditor"
       @saved="collected"
+    />
+    <FundEditor
+      v-if="fundDraft"
+      :project-id="projectId"
+      :draft="fundDraft"
+      @close="funds.close"
+      @saved="fundSaved"
     />
   </j-page-container>
 </template>
