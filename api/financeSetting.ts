@@ -110,3 +110,22 @@ export const generateSetting = (project: string, key: string) =>
   request
     .post<{ generated: number; retained: number }>(`${base(project)}/${id(key)}/_generate`, {}, { hiddenError: true })
     .then(checked)
+
+export interface BillingTask {
+  id: string
+  fullName: string
+  kind: 'GENERATE' | 'ACCRUE' | 'CLOSE' | 'LATE_FEE'
+  businessDate: string
+  status: 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'SKIPPED'
+  attempts: number
+  generated?: number
+  retained?: number
+  errorMessage?: string
+}
+const tasksBase = (project: string) => `/property/finance/projects/${id(project)}/billing-tasks`
+export const queryBillingTasks = (project: string, query: Query, signal?: AbortSignal) =>
+  request
+    .post<Page<BillingTask>>(`${tasksBase(project)}/_query`, query, { hiddenError: true, signal })
+    .then(pageResponse)
+export const retryBillingTask = (project: string, key: string) =>
+  request.post(`${tasksBase(project)}/${id(key)}/_retry`, {}, { hiddenError: true }).then(checked)

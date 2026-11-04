@@ -796,6 +796,28 @@
       "ACTIVE": "Active",
       "STOPPED": "Ended",
       "SUPERSEDED": "Superseded"
+    },
+    "tasks": "Billing tasks",
+    "taskKind": "Task type",
+    "businessDate": "Business date",
+    "taskResult": "Result",
+    "attempts": "Attempts",
+    "retryTask": "Retry",
+    "taskRetryQueued": "Queued for retry. Refresh shortly to view the result.",
+    "allTasks": "All tasks",
+    "noTasks": "No billing tasks",
+    "taskKindValue": {
+      "GENERATE": "Generate bills",
+      "ACCRUE": "Accrue",
+      "CLOSE": "Close periods",
+      "LATE_FEE": "Late fees"
+    },
+    "taskStatus": {
+      "PENDING": "Pending",
+      "RUNNING": "Running",
+      "SUCCEEDED": "Succeeded",
+      "FAILED": "Failed",
+      "SKIPPED": "Skipped"
     }
   }
 }

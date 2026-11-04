@@ -796,6 +796,28 @@
       "ACTIVE": "有效",
       "STOPPED": "已结束",
       "SUPERSEDED": "已接续"
+    },
+    "tasks": "算费任务",
+    "taskKind": "任务类型",
+    "businessDate": "业务日期",
+    "taskResult": "执行结果",
+    "attempts": "执行次数",
+    "retryTask": "重试",
+    "taskRetryQueued": "已加入重试队列，请稍后刷新查看结果",
+    "allTasks": "全部任务",
+    "noTasks": "暂无算费任务",
+    "taskKindValue": {
+      "GENERATE": "生成应收",
+      "ACCRUE": "每日计提",
+      "CLOSE": "账期关闭",
+      "LATE_FEE": "逾期计算"
+    },
+    "taskStatus": {
+      "PENDING": "等待执行",
+      "RUNNING": "执行中",
+      "SUCCEEDED": "执行成功",
+      "FAILED": "执行失败",
+      "SKIPPED": "已跳过"
     }
   }
 }

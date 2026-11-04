@@ -14,7 +14,9 @@ const names = [
   'deleteSetting',
   'stopSetting',
   'generateSetting',
-  'getSettingHouse'
+  'getSettingHouse',
+  'queryBillingTasks',
+  'retryBillingTask'
 ]
 async function load(path) {
   const result = await build({
@@ -56,6 +58,7 @@ async function load(path) {
 }
 const { useSettingWorkspace } = await load('../hooks/finance-setting/useSettingWorkspace.ts')
 const { useSettingForm } = await load('../hooks/finance-setting/useSettingForm.ts')
+const { useBillingTasks } = await load('../hooks/finance-setting/useBillingTasks.ts')
 const context = (space = 'room', count = 1) => ({
   house: { spaceId: space, fullName: space, billingArea: '100.25' },
   customers: Array.from({ length: count }, (_, i) => ({ relationshipId: space + '-' + i, name: '客户' + i }))
@@ -237,5 +240,29 @@ test('更换项目使迟到房屋来源失效，详情不加载可编辑来源',
   props.detail = row('view')
   await nextTick()
   assert.equal(calls, 1)
+  unmount()
+})
+
+test('任务重试失败不误报成功，重试沿用项目和原任务身份，完成后刷新', async () => {
+  let calls = 0,
+    reloads = 0
+  const { state, unmount } = mount(() => useBillingTasks('fixed-project'), {
+    retryBillingTask: async (project, id) => {
+      assert.equal(project, 'fixed-project')
+      assert.equal(id, 'task')
+      if (!calls++) throw new Error('版本已变')
+    }
+  })
+  state.table.value = { reload: () => reloads++ }
+  assert.equal(globalThis.__settingGuards[0](), false)
+  await state.retry({ id: 'task', status: 'SUCCEEDED' })
+  assert.equal(calls, 0)
+  await state.retry({ id: 'task', status: 'FAILED' })
+  assert.equal(reloads, 0)
+  assert.equal(globalThis.__settingMessages.at(-1)[1], 'error')
+  await state.retry({ id: 'task', status: 'FAILED' })
+  assert.equal(reloads, 1)
+  assert.equal(globalThis.__settingMessages.at(-1)[0], 'Setting.taskRetryQueued')
+  assert.equal(state.retrying.value, '')
   unmount()
 })

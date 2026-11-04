@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { ref } from 'vue'
 import { useSettingWorkspace, settingPermission } from '../../../hooks/finance-setting/useSettingWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import SettingTable from './SettingTable.vue'
 import SettingDrawer from './SettingDrawer.vue'
 import SettingStop from './SettingStop.vue'
+import SettingTasks from './SettingTasks.vue'
 const { t } = useI18n()
 const state = useSettingWorkspace()
+const tasksOpen = ref(false)
 const {
   archive,
   tree,
@@ -85,6 +88,12 @@ function selectTree(keys: (string | number)[]) {
           <a-space wrap>
             <a-button
               :disabled="!projectId"
+              @click="tasksOpen = true"
+            >
+              {{ t('Setting.tasks') }}
+            </a-button>
+            <a-button
+              :disabled="!projectId"
               :aria-label="t('Finance.refresh')"
               @click="refresh"
             >
@@ -135,6 +144,11 @@ function selectTree(keys: (string | number)[]) {
       :saving="saving"
       @close="stopTarget = undefined"
       @save="stop"
+    />
+    <SettingTasks
+      v-if="tasksOpen"
+      :project-id="projectId"
+      @close="tasksOpen = false"
     />
   </j-page-container>
 </template>
