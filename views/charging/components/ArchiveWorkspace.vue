@@ -138,7 +138,7 @@ const refresh = () => {
           <main class="archive-main">
             <div class="archive-path">
               <strong>{{ selected?.name || projects.find((item) => item.id === projectId)?.name }}</strong>
-              <span class="archive-muted">{{ selected?.spaceLocation || selected?.fullName }}</span>
+              <span class="archive-muted">{{ selected?.fullName }}</span>
             </div>
             <slot
               v-if="!loading && !failed"

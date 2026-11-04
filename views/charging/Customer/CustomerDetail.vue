@@ -10,7 +10,6 @@ import type { useCustomerDetail } from '../../../hooks/archive/useCustomerDetail
 import { useDictionaries } from '../../../hooks/archive/useDictionaries'
 import CustomerProfileFields from './CustomerProfileFields.vue'
 import CustomerRelations from './CustomerRelations.vue'
-import SpaceLocation from '../components/SpaceLocation.vue'
 const props = defineProps<{ state: ReturnType<typeof useCustomerDetail> }>()
 const { t } = useI18n()
 const k = 'Archive.'
@@ -51,7 +50,7 @@ const save = async () => {
 </script>
 <template>
   <JlDrawerShell
-    class="charging-drawer"
+    class="charging-drawer customer-detail-drawer"
     :open="state.open.value"
     :width="740"
     :content-wrapper-style="{ maxWidth: 'calc(100vw - 32px)' }"
@@ -85,10 +84,6 @@ const save = async () => {
           </div>
         </div>
 
-        <SpaceLocation
-          v-if="state.editing.value && state.record.value"
-          :space="{ ...state.record.value, name: state.record.value.spaceName }"
-        />
         <a-form
           v-if="state.editing.value"
           ref="form"
@@ -134,6 +129,7 @@ const save = async () => {
           <KvGrid :items="fields" />
         </SectionCard>
         <CustomerRelations
+          v-if="!state.editing.value"
           :relationships="state.record.value ? [state.record.value] : []"
           :person="customer.customerType === 'person'"
           :historical="!!historical"
@@ -156,3 +152,32 @@ const save = async () => {
     </template>
   </JlDrawerShell>
 </template>
+<style>
+.customer-detail-drawer {
+  --panel-gap: 12px;
+  --panel-padding: 16px;
+}
+.customer-detail-drawer .archive-stack {
+  gap: 16px;
+}
+/* 分区间距只由容器控制，避免摘要、卡片外边距与 gap 叠加。 */
+.customer-detail-drawer .archive-summary,
+.customer-detail-drawer .section {
+  margin-bottom: 0;
+}
+.customer-detail-drawer .archive-summary {
+  padding-bottom: 16px;
+}
+.customer-detail-drawer .archive-form {
+  gap: 16px 24px;
+}
+.customer-detail-drawer .ant-form-item,
+.customer-detail-drawer .archive-form .ant-form-item {
+  margin-bottom: 0;
+}
+@media (max-width: 680px) {
+  .customer-detail-drawer .archive-form {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
