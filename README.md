@@ -18,7 +18,7 @@
 | `locales/lang/zh.json`、`en.json`           | 模块国际化文案                               |
 | `views/`                                    | 后续收费业务页面及其局部逻辑                 |
 
-菜单以“收费管理”为一级入口，下设“系统管理”，系统管理包含组织配置、用户管理、空间管理、客户管理和字典配置。空间与客户使用同一套项目及只读空间树，详情抽屉只读，资料通过列表编辑入口维护，不新增来源空间节点。
+菜单直接以“系统管理”为一级入口，不再设置外层“收费管理”。系统管理包含组织配置、用户管理、空间管理、客户管理和字典配置。空间与客户使用同一套项目及只读空间树，详情抽屉只读，资料通过列表编辑入口维护，不新增来源空间节点。
 
 空状态统一复用宿主全局注册的 `CloudEmpty`，使用平台插图及描述样式；保留各页面已有的国际化提示、条件和操作按钮，不单独使用 `a-empty`。
 
@@ -77,7 +77,7 @@ Vue、宿主组件和构建工具由 `runtime-ui` workspace 提供，不能脱�
 
 ## 用户管理
 
-菜单为“收费管理 → 系统管理 → 用户管理”，页面 `views/charging/User/`；API 在 `api/user.ts`，列表、详情标注、同步状态分别在 `hooks/useUserList.ts`、`useUserDetail.ts`、`useUserSync.ts`。页面复用宿主面包屑、ConditionFilter、ProTable、JlDrawerShell，账号资料只读，不添加重复页面大标题。
+菜单为“系统管理 → 用户管理”，页面 `views/charging/User/`；API 在 `api/user.ts`，列表、详情标注、同步状态分别在 `hooks/useUserList.ts`、`useUserDetail.ts`、`useUserSync.ts`。页面复用宿主面包屑、ConditionFilter、ProTable、JlDrawerShell，账号资料只读，不添加重复页面大标题。
 
 用户来自物业基础模块的 SaaS 镜像，身份可同时为客户和员工（稳定编码仍为 `owner`、`employee`），取消所有选项发送 `[]` 清空；同步不覆盖身份。标注使用 version CAS，失败读取最新详情供操作者确认，不自动重试写入。停用账号保留展示，不能修改身份。身份不自动绑定房屋或授予缴费权限。
 
