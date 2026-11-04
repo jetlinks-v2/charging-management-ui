@@ -14,6 +14,8 @@ import { useArchiveScope, flattenSpaces } from '../archive/useArchiveScope'
 import { useProjectSwitchGuard } from '../project/useProjectContext'
 import { requestErrorMessage } from '../../utils/requestError'
 import { excelErrorMessage } from '../../utils/archiveFiles'
+import { useReceivableBatch } from './useReceivableBatch'
+import { sumMoney } from '../../utils/receivableTotals'
 
 export const receivablePermission = 'charging/FinanceReceivable'
 export function useReceivableWorkspace() {
@@ -28,6 +30,7 @@ export function useReceivableWorkspace() {
     saving = ref(false),
     exporting = ref(false)
   const detail = ref<Receivable>()
+  const pageRows = ref<Receivable[]>([])
   const adjusting = ref(false)
   const splitting = ref(false)
   const actionTarget = ref<{ row: Receivable; action: ReceivableAction }>()
@@ -56,9 +59,32 @@ export function useReceivableWorkspace() {
       sorts: [{ name: 'createTime', order: 'desc' }]
     }
   })
+  const batch = useReceivableBatch(archive.projectId, params, reload)
+  const totals = computed(() =>
+    Object.fromEntries(
+      ['actualReceivableAmount', 'paidAmount', 'arrears'].map((key) => [
+        key,
+        sumMoney(pageRows.value.map((row) => String(row[key as keyof Receivable] ?? '0')))
+      ])
+    )
+  )
+  let listToken = 0
+  watch(
+    params,
+    () => {
+      ++listToken
+      pageRows.value = []
+    },
+    { flush: 'sync' }
+  )
   async function request(query: Query, config?: { signal: AbortSignal }) {
     if (!archive.projectId.value) return { success: true, result: { data: [], total: 0, pageIndex: 0, pageSize: 12 } }
-    return queryReceivables(archive.projectId.value, query, config?.signal)
+    const token = ++listToken
+    pageRows.value = []
+    batch.clear()
+    const response = await queryReceivables(archive.projectId.value, query, config?.signal)
+    if (!disposed && token === listToken) pageRows.value = response.result.data
+    return response
   }
   async function select(row: Pick<Receivable, 'id'>, forAdjustment: boolean | 'SPLIT' = false) {
     const project = archive.projectId.value,
@@ -155,6 +181,9 @@ export function useReceivableWorkspace() {
     change,
     reload,
     notify,
-    exportRows
+    exportRows,
+    batch,
+    totals,
+    pageRows
   }
 }

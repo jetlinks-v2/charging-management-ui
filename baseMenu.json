@@ -1175,6 +1175,21 @@
                 "actions": ["imports"]
               }
             ]
+          },
+          {
+            "id": "print",
+            "name": "催缴打印",
+            "i18nMessages": {
+              "zh_CN": "催缴打印",
+              "en_US": "Print reminder",
+              "en": "Print reminder"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["print"]
+              }
+            ]
           }
         ]
       }

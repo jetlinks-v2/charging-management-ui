@@ -8,35 +8,28 @@ import {
   receivablePermission,
   type useReceivableWorkspace
 } from '../../../hooks/finance-receivable/useReceivableWorkspace'
+import ReceivableBatchActions from './ReceivableBatchActions.vue'
+import ReceivableColumnSettings from './ReceivableColumnSettings.vue'
+import { useReceivableColumns } from '../../../hooks/finance-receivable/useReceivableColumns'
+import { receivableFields } from '../../../utils/receivableFields'
 const props = defineProps<{ state: ReturnType<typeof useReceivableWorkspace> }>()
 const { t } = useI18n()
 const { archive, table, terms, params, status, request, select, actionTarget, notify } = props.state
-const columns = computed(() => [
-  { title: t('Setting.house'), dataIndex: 'fullName', width: 210, scopedSlots: true },
-  { title: t('Setting.state'), dataIndex: 'state', width: 110, scopedSlots: true },
-  { title: t('Setting.subject'), dataIndex: 'subjectName', width: 150, scopedSlots: true },
-  { title: t('Receivable.coverage'), dataIndex: 'coverage', width: 140, scopedSlots: true },
-  ...['actualReceivableAmount', 'paidAmount', 'arrears'].map((key) => ({
-    title: t('Receivable.' + key),
-    dataIndex: key,
-    width: 115,
-    align: 'right',
-    scopedSlots: true
-  })),
-  { title: t('Finance.actions'), dataIndex: 'actions', width: 160, fixed: 'right', scopedSlots: true }
-])
-const fields = computed(() =>
-  ['fullName', 'subjectName', 'customerName', 'standardName'].map((key) => ({
-    title: t('Receivable.' + key),
-    dataIndex: key,
-    search: { type: 'string' }
-  }))
-)
+const columnState = useReceivableColumns()
+const { columns, scrollWidth } = columnState
+const fields = computed(() => receivableFields(t))
 const filter = ({ filter }: ConditionFilterChangePayload) => {
   terms.value = (filter.terms || []) as Query['terms']
 }
 const actions = (row: Receivable) =>
   (['FREEZE', 'UNFREEZE', 'DELETE'] as ReceivableAction[]).filter((action) => row.allowedOperations.includes(action))
+const selection = computed(() => ({
+  selectedRowKeys: props.state.batch.selected.value.map((row) => row.id),
+  onChange: (_keys: string[], rows: Receivable[]) => {
+    props.state.batch.selected.value = rows
+  },
+  preserveSelectedRowKeys: false
+}))
 </script>
 <template>
   <a-radio-group
@@ -52,10 +45,14 @@ const actions = (row: Receivable) =>
       {{ t('Receivable.status.' + key) }}
     </a-radio-button>
   </a-radio-group>
-  <ConditionFilter
-    :columns="fields"
-    @change="filter"
-  />
+  <div class="receivable-filterbar">
+    <ConditionFilter
+      :fields="fields"
+      @change="filter"
+    />
+    <ReceivableColumnSettings :state="columnState" />
+  </div>
+  <ReceivableBatchActions :state="state.batch" />
   <j-pro-table
     v-if="archive.projectId.value"
     ref="table"
@@ -69,7 +66,8 @@ const actions = (row: Receivable) =>
     :pagination="{ pageSize: 12 }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 1065 }"
+    :scroll="{ x: scrollWidth }"
+    :row-selection="selection"
     @request-error="notify"
   >
     <template #fullName="row">
@@ -172,10 +170,46 @@ const actions = (row: Receivable) =>
     </template>
     <template #emptyText><CloudEmpty :description="t('Receivable.empty')" /></template>
   </j-pro-table>
+  <div
+    v-if="state.pageRows.value.length"
+    class="receivable-totals"
+  >
+    <strong>{{ t('Receivable.pageTotal') }}</strong>
+    <span
+      v-for="key in ['actualReceivableAmount', 'paidAmount', 'arrears']"
+      :key="key"
+    >
+      {{ t('Receivable.' + key) }}
+      <b>{{ state.totals.value[key] }}</b>
+    </span>
+  </div>
 </template>
 <style scoped>
 .receivable-status {
   margin-bottom: 16px;
+}
+.receivable-filterbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.receivable-filterbar > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.receivable-totals {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  padding: 14px 8px;
+  font-size: 13px;
+}
+.receivable-totals b {
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
 }
 .receivable-house {
   padding: 0;

@@ -18,7 +18,9 @@ const names = [
   'submitSplit',
   'historicalTemplate',
   'importHistorical',
-  'queryHistoricalImports'
+  'queryHistoricalImports',
+  'deleteReceivableBatch',
+  'previewPaymentNotice'
 ]
 async function load(path) {
   const result = await build({
@@ -107,7 +109,12 @@ const deferred = () => {
 
 test('空间选择持续选中，状态条件叠加，查询保留项目及分页', async () => {
   const calls = []
-  const { state, unmount } = mount(undefined, { queryReceivables: async (...args) => calls.push(args) })
+  const { state, unmount } = mount(undefined, {
+    queryReceivables: async (...args) => {
+      calls.push(args)
+      return { success: true, result: { data: [], total: 0 } }
+    }
+  })
   state.archive.selectedId.value = 'building'
   state.status.value = 'FROZEN'
   assert.deepEqual(state.params.value.terms, [
@@ -128,7 +135,10 @@ test('详情和项目切换隔离迟到响应，打开时阻止切项目', async
   })
   const old = state.select(row('old'))
   await state.select(row('new'))
-  assert.equal(globalThis.__receivableGuards[0](), false)
+  assert.equal(
+    globalThis.__receivableGuards.every((guard) => guard()),
+    false
+  )
   pending.resolve(row('old'))
   await old
   assert.equal(state.detail.value.id, 'new')
@@ -360,4 +370,82 @@ test('历史导入锁定项目，切换项目或卸载后丢弃迟到结果，�
   assert.equal(calls[0][0], 'b')
   assert.deepEqual(calls[0][1], { terms: [], pageIndex: 2, pageSize: 12 })
   unmount()
+})
+
+const { useReceivableBatch } = await load('../hooks/finance-receivable/useReceivableBatch.ts')
+test('批量删除失败保留勾选原因，成功才清理；通知迟到不能覆盖新范围', async () => {
+  const project = ref('a'),
+    params = ref({ spaceId: 'room' }),
+    pending = deferred(),
+    calls = []
+  let succeed = false,
+    refreshed = 0
+  const { state, unmount } = mount(() => useReceivableBatch(project, params, () => refreshed++), {
+    deleteReceivableBatch: async (...a) => {
+      calls.push(a)
+      if (!succeed) throw Error('已冻结')
+    },
+    previewPaymentNotice: async () => pending.promise
+  })
+  state.selected.value = [{ ...row('bill'), allowedOperations: ['DELETE'] }]
+  state.startDelete()
+  state.reason.value = '误出账'
+  await state.remove()
+  assert.equal(state.selected.value.length, 1)
+  assert.equal(state.reason.value, '误出账')
+  assert.equal(state.deleting.value, true)
+  assert.equal(refreshed, 0)
+  succeed = true
+  await state.remove()
+  assert.equal(refreshed, 1)
+  assert.equal(state.selected.value.length, 0)
+  assert.deepEqual(calls[1], ['a', [{ id: 'bill', version: 3 }], '误出账'])
+  state.selected.value = [row('bill')]
+  const request = state.preview()
+  params.value = { spaceId: 'other' }
+  await nextTick()
+  pending.resolve({ total: '100.00' })
+  await request
+  assert.equal(state.notice.value, undefined)
+  assert.equal(state.selected.value.length, 0)
+  unmount()
+})
+
+const { sumMoney } = await load('../utils/receivableTotals.ts')
+test('本页合计以分保留大额尾数，不能将非法金额静默算为零', () => {
+  assert.equal(sumMoney(['900719925474099.91', '0.09']), '900719925474100.00')
+  assert.equal(sumMoney(['100.00', '-100.01']), '-0.01')
+  assert.equal(sumMoney([]), '0.00')
+  assert.throws(() => sumMoney(['not money']))
+})
+
+const { receivableDateValue, receivableFields } = await load('../utils/receivableFields.ts')
+test('业务日期筛选使用本地日历日期，区间和清空不以时间戳查询字符串列', () => {
+  const from = new Date(2024, 1, 29, 0, 0).getTime()
+  const to = new Date(2024, 2, 1, 23, 59).getTime()
+  assert.equal(receivableDateValue(from), '2024-02-29')
+  assert.deepEqual(receivableDateValue([from, to]), ['2024-02-29', '2024-03-01'])
+  assert.equal(receivableDateValue(undefined), undefined)
+  assert.throws(() => receivableDateValue('invalid'))
+  const fields = receivableFields((key) => key)
+  assert.ok(fields.some((field) => field.dataIndex === 'contractCode'))
+  assert.equal(fields.find((field) => field.dataIndex === 'dueDate').search.handleValue(to), '2024-03-01')
+})
+
+const { normalizeReceivableColumns } = await load('../utils/receivableColumns.ts')
+test('列偏好保留已知列、限制宽度，并保证房屋身份和操作列可见', () => {
+  const options = [
+    { key: 'house', width: 200, locked: true },
+    { key: 'amount', width: 130 },
+    { key: 'remark', width: 180, hidden: true }
+  ]
+  const saved = normalizeReceivableColumns(options, {
+    house: { hidden: true, width: 9999 },
+    amount: { hidden: true, width: 2 },
+    unknown: { width: 100 }
+  })
+  assert.deepEqual(saved.house, { hidden: false, width: 600 })
+  assert.deepEqual(saved.amount, { hidden: true, width: 90 })
+  assert.equal(saved.unknown, undefined)
+  assert.deepEqual(normalizeReceivableColumns(options, null).remark, { hidden: true, width: 180 })
 })

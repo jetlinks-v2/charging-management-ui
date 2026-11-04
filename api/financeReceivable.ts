@@ -193,3 +193,31 @@ export const queryHistoricalImports = (project: string, query: Query, signal?: A
   request
     .post<Page<HistoricalImportRecord>>(`${base(project)}/imports/_query`, query, { hiddenError: true, signal })
     .then(pageResponse)
+
+export interface BillSelection {
+  id: string
+  version: number
+}
+export interface PaymentNotice {
+  projectName: string
+  fullName: string
+  customers: string[]
+  rows: {
+    id: string
+    customerName: string
+    subjectName: string
+    start: string
+    end: string
+    months: number
+    quantity: string
+    price: string
+    amount: string
+  }[]
+  total: string
+  totalUppercase: string
+  printedOn: string
+}
+export const deleteReceivableBatch = (project: string, items: BillSelection[], reason: string) =>
+  request.post(`${base(project)}/_batch-delete`, { items, reason }, { hiddenError: true }).then(checked)
+export const previewPaymentNotice = (project: string, items: BillSelection[]) =>
+  request.post<PaymentNotice>(`${base(project)}/notice/_preview`, { items }, { hiddenError: true }).then(checked)

@@ -880,7 +880,19 @@
     "calculatedAsOfDate": "Calculated through",
     "confirmAction": "Confirm",
     "export": "Export",
-    "accountPeriod": "Account period"
+    "accountPeriod": "Account period",
+    "selectedCount": "{count} selected",
+    "batchDelete": "Delete selected",
+    "clearSelection": "Clear selection",
+    "batchBlocked": "Some selected bills cannot be deleted. Update your selection.",
+    "batchConfirm": "Logically delete {count} bills and preserve their history. If any bill is ineligible, the entire batch is cancelled.",
+    "pageTotal": "Page total",
+    "resetColumns": "Reset",
+    "columns": "Columns",
+    "columnsUnavailable": "Column preferences could not be read or saved; changes apply to this page only",
+    "columnWidth": "Width",
+    "columnHint": "Choose visible columns and widths in pixels",
+    "contractCode": "Contract number"
   },
   "Adjustment": {
     "title": "Adjust",
@@ -953,5 +965,23 @@
     "result": "Import result",
     "source": "Historical receivable",
     "contractCode": "Contract number"
+  },
+  "Notice": {
+    "title": "Payment reminder",
+    "date": "Prepared on",
+    "subject": "Charge subject",
+    "customer": "Customer",
+    "start": "Start date",
+    "end": "End date",
+    "months": "Months",
+    "quantity": "Area / quantity",
+    "price": "Unit price (CNY)",
+    "amount": "Outstanding (CNY)",
+    "total": "Total (CNY)",
+    "uppercase": "Amount in Chinese words",
+    "serviceCenter": " property service center",
+    "print": "Print reminder",
+    "printFailed": "Unable to print. Please try again.",
+    "hint": "Generated from current bill amounts. Generate again after receiving payments."
   }
 }
