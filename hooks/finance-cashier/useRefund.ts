@@ -201,6 +201,7 @@ export function useRefund(
             version: pending.request.input.items.find((item) => item.id === line.sourceLineId)?.version || 0,
             paymentId: line.paymentId,
             receivableId: line.receivableId,
+            sourceType: line.sourceType,
             fullName: line.fullName,
             customerName: line.customerName,
             subjectName: line.subjectName,

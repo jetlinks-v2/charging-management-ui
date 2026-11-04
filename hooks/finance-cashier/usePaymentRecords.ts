@@ -3,9 +3,10 @@ import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { useProjectContext, useProjectSwitchGuard } from '../project/useProjectContext'
 import { queryPayments, getPayment, type PaymentDetail } from '../../api/financeCashier'
+import { queryTemporaryPayments, getTemporaryPayment } from '../../api/financeTemporary'
 import type { Query } from '../../api/archive'
 import { requestErrorMessage } from '../../utils/requestError'
-export function usePaymentRecords() {
+export function usePaymentRecords(temporary = false) {
   const { t } = useI18n()
   const context = useProjectContext()
   const projectId = context.projectId
@@ -25,7 +26,7 @@ export function usePaymentRecords() {
   const notify = (error: unknown) => onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
   const request = (query: Query, config?: { signal: AbortSignal }) =>
     projectId.value
-      ? queryPayments(projectId.value, query, config?.signal)
+      ? (temporary ? queryTemporaryPayments : queryPayments)(projectId.value, query, config?.signal)
       : Promise.resolve({ success: true, result: { data: [], total: 0, pageIndex: 0, pageSize: 12 } })
   function close() {
     ++generation
@@ -41,7 +42,7 @@ export function usePaymentRecords() {
     failed.value = false
     detail.value = undefined
     try {
-      const value = await getPayment(project, id)
+      const value = await (temporary ? getTemporaryPayment : getPayment)(project, id)
       if (!disposed && token === generation) detail.value = value
     } catch (error) {
       if (!disposed && token === generation) {

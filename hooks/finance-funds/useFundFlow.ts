@@ -27,7 +27,7 @@ export function useFundFlow(project: Ref<string>) {
     },
     { immediate: true }
   )
-  useProjectSwitchGuard(() => !draft.value)
+  useProjectSwitchGuard(() => !draft.value && !pending.value && !failed.value)
   function start(value: FundDraft) {
     if (project.value && !pending.value && !failed.value) draft.value = value
   }

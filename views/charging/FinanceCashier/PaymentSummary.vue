@@ -7,6 +7,10 @@ import type { PaymentDetail } from '../../../api/financeCashier'
 const props = defineProps<{ detail: PaymentDetail }>()
 const { t } = useI18n()
 const items = computed(() => [
+  {
+    label: t('Temporary.sourceLabel'),
+    value: t(props.detail.payment.sourceType === 'TEMPORARY' ? 'Temporary.source' : 'Temporary.receivable')
+  },
   { label: t('Cashier.company'), value: props.detail.payment.companyName },
   { label: t('Cashier.payer'), value: props.detail.payment.payerName },
   { label: t('Cashier.paidAt'), value: props.detail.payment.paidAt.replace('T', ' ') },
@@ -54,8 +58,27 @@ const files = computed(() =>
     />
   </SectionCard>
   <SectionCard
+    v-if="detail.payment.sourceType === 'TEMPORARY' && detail.snapshot"
+    icon="HomeOutlined"
+    :title="t('Temporary.basis')"
+  >
+    <KvGrid
+      :cols="2"
+      :items="[
+        { label: t('Setting.house'), value: detail.snapshot.house?.fullName },
+        { label: t('Setting.customer'), value: detail.snapshot.customer?.name },
+        { label: t('Setting.subject'), value: detail.snapshot.standard?.subjectName },
+        { label: t('Setting.standard'), value: detail.snapshot.standard?.standardName },
+        { label: t('Temporary.startDate'), value: detail.snapshot.startDate },
+        { label: t('Temporary.endDate'), value: detail.snapshot.endDate },
+        { label: t('Temporary.accountPeriod'), value: detail.snapshot.accountPeriod },
+        { label: t('Funds.quantity'), value: detail.snapshot.quantity || '—' }
+      ]"
+    />
+  </SectionCard>
+  <SectionCard
     icon="UnorderedListOutlined"
-    :title="t('Cashier.allocationDetails')"
+    :title="t(detail.payment.sourceType === 'TEMPORARY' ? 'Temporary.fundingDetails' : 'Cashier.allocationDetails')"
   >
     <a-table
       :data-source="detail.lines"

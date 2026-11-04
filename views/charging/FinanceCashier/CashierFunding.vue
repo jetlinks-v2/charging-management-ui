@@ -2,7 +2,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { useCashier } from '../../../hooks/finance-cashier/useCashier'
-const props = defineProps<{ state: ReturnType<typeof useCashier> }>()
+const props = defineProps<{
+  state: Pick<ReturnType<typeof useCashier>, 'funding' | 'total' | 'tenderTotal' | 'balanced' | 'addTender'> & {
+    model: { tenders: { optionId: string; amount: string }[] }
+  }
+}>()
 const { model, funding, total, tenderTotal, balanced, addTender } = props.state
 const { t } = useI18n()
 const options = computed(() =>

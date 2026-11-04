@@ -1082,5 +1082,22 @@
     "offsetAmount": "本次冲抵（元）",
     "attachmentPending": "请等待凭证上传完成，或移除上传失败的文件。",
     "TRANSFER_OUT": "划出"
+  },
+  "Temporary": {
+    "title": "临时收款",
+    "collect": "临时收款",
+    "source": "临时收款",
+    "sourceLabel": "收款来源",
+    "receivable": "应收收款",
+    "basis": "临时收款业务资料",
+    "hint": "选择房屋及客户，填写本次收费信息后收款。",
+    "recordsHint": "查询临时收款记录、业务资料及可退金额。",
+    "houseHint": "选择本项目已完善资料的房屋",
+    "startDate": "费用开始日期",
+    "endDate": "费用结束日期",
+    "accountPeriod": "所属账期",
+    "amount": "本次收款金额（元）",
+    "pending": "本项目有一笔临时收款结果待确认，请先核对原收款结果。",
+    "fundingDetails": "收款明细"
   }
 }

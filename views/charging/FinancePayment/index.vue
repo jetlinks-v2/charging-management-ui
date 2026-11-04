@@ -11,9 +11,11 @@ import PaymentRefundActions from './PaymentRefundActions.vue'
 import { useRefundFlow } from '../../../hooks/finance-cashier/useRefundFlow'
 import { refundableMoney } from '../../../utils/refundMoney'
 import '../FinanceCashier/cashier.css'
+const props = defineProps<{ temporary?: boolean }>()
 const { t } = useI18n()
+const refundPermission = props.temporary ? 'charging/FinanceTemporary:refund' : 'charging/FinancePayment:refund'
 const { projectId, table, terms, params, open, loading, failed, detail, request, select, close, notify } =
-  usePaymentRecords()
+  usePaymentRecords(props.temporary)
 const refund = useRefundFlow(projectId, () => table.value?.reload())
 const paymentRequest: typeof request = (query, config) => {
   refund.selected.value = []
@@ -48,8 +50,8 @@ function filter({ filter }: ConditionFilterChangePayload) {
     <section class="payment-workspace">
       <div class="payment-heading">
         <div>
-          <h2>{{ t('Cashier.records') }}</h2>
-          <span>{{ t('Cashier.recordsHint') }}</span>
+          <h2>{{ t(temporary ? 'Temporary.title' : 'Cashier.records') }}</h2>
+          <span>{{ t(temporary ? 'Temporary.recordsHint' : 'Cashier.recordsHint') }}</span>
         </div>
         <a-button
           :disabled="!projectId"
@@ -62,6 +64,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
       <PaymentRefundActions
         :project-id="projectId"
         :state="refund"
+        :permission="refundPermission"
       />
       <ConditionFilter
         :fields="fields"
@@ -95,6 +98,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
         </template>
         <template #subject="row">
           {{ row.line.subjectName }}
+          <a-tag v-if="!temporary && row.line.sourceType === 'TEMPORARY'">{{ t('Temporary.source') }}</a-tag>
           <small>{{ row.line.customerName }}</small>
         </template>
         <template #method="row">
@@ -117,7 +121,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
           </a-button>
           <j-permission-button
             type="link"
-            hasPermission="charging/FinancePayment:refund"
+            :hasPermission="refundPermission"
             :disabled="refund.pending.value || refund.failed.value || refundableMoney(row.line) === '0.00'"
             @click="refund.start([row])"
           >

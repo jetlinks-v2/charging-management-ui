@@ -50,7 +50,8 @@ export interface PaymentLine {
   id: string
   version: number
   paymentId: string
-  receivableId: string
+  receivableId?: string | null
+  sourceType: 'RECEIVABLE' | 'TEMPORARY'
   fullName: string
   customerName: string
   subjectName: string
@@ -68,6 +69,7 @@ export interface PaymentDetail {
   payment: {
     id: string
     companyId: string
+    sourceType: 'RECEIVABLE' | 'TEMPORARY'
     amount: string
     companyName: string
     payerName: string
@@ -79,6 +81,15 @@ export interface PaymentDetail {
     attachmentName?: string
   }
   lines: PaymentLine[]
+  snapshot: {
+    house?: { fullName: string }
+    customer?: { name: string }
+    standard?: { standardName: string; subjectName: string; standardCode: string; price?: string }
+    startDate?: string
+    endDate?: string
+    accountPeriod?: string
+    quantity?: string
+  }
 }
 export interface PaymentRecord {
   line: PaymentLine

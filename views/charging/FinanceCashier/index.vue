@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReceivableWorkspace } from '../../../hooks/finance-receivable/useReceivableWorkspace'
 import { useProjectSwitchGuard } from '../../../hooks/project/useProjectContext'
@@ -14,10 +14,19 @@ import CashierEditor from './CashierEditor.vue'
 import './cashier.css'
 import FundEditor from '../FinanceFunds/FundEditor.vue'
 import { useFundFlow } from '../../../hooks/finance-funds/useFundFlow'
+import { useTemporaryFlow } from '../../../hooks/finance-temporary/useTemporaryFlow'
+import TemporaryEditor from '../FinanceTemporary/TemporaryEditor.vue'
 const { t } = useI18n()
 const state = useReceivableWorkspace()
 const { archive, tree, open, detail, loading, failed, close } = state
 const { projectId, keyword, selectedId, selected, loading: treeLoading } = archive
+const temporary = useTemporaryFlow(projectId)
+const {
+  open: temporaryOpen,
+  pending: temporaryPending,
+  failed: temporaryFailed,
+  initialSpace: temporarySpace
+} = temporary
 const funds = useFundFlow(projectId)
 const { draft: fundDraft, pending: fundPending, failed: fundFailed } = funds
 const selection = state.batch.selected
@@ -25,6 +34,18 @@ const collecting = ref<Receivable[]>()
 const recovery = useCollectionRecovery(projectId)
 const pendingRows = ref<Receivable[]>()
 const recoveryFailed = ref(false)
+const busy = computed(
+  () =>
+    !!collecting.value ||
+    !!fundDraft.value ||
+    temporaryOpen.value ||
+    fundPending.value ||
+    fundFailed.value ||
+    temporaryPending.value ||
+    temporaryFailed.value ||
+    !!pendingRows.value ||
+    recoveryFailed.value
+)
 function readPending() {
   recoveryFailed.value = false
   try {
@@ -39,18 +60,22 @@ function closeEditor() {
   collecting.value = undefined
   readPending()
 }
-useProjectSwitchGuard(() => !collecting.value)
+useProjectSwitchGuard(() => !collecting.value && !pendingRows.value && !recoveryFailed.value)
 function refresh() {
   void archive.loadTree()
   state.reload()
 }
 function start() {
-  if (selection.value.length && selection.value.length <= 100)
+  if (!busy.value && selection.value.length && selection.value.length <= 100)
     collecting.value = selection.value.map((row) => ({ ...row }))
 }
 function collected() {
   pendingRows.value = undefined
   state.batch.clear()
+  state.reload()
+}
+function temporarySaved() {
+  temporary.saved()
   state.reload()
 }
 function fundSaved() {
@@ -104,8 +129,16 @@ function fundSaved() {
           </div>
           <a-space wrap>
             <j-permission-button
+              hasPermission="charging/FinanceCashier:temporary"
+              :disabled="!projectId || busy"
+              @click="temporary.start(selected?.leaf ? selectedId : undefined)"
+            >
+              <AIcon type="AccountBookOutlined" />
+              {{ t('Temporary.collect') }}
+            </j-permission-button>
+            <j-permission-button
               hasPermission="charging/FinanceCashier:topup"
-              :disabled="!projectId || !!collecting || fundPending || fundFailed || !!pendingRows || recoveryFailed"
+              :disabled="!projectId || busy"
               @click="
                 funds.start({ action: 'TOPUP', type: 'ADVANCE', initialSpace: selected?.leaf ? selectedId : undefined })
               "
@@ -115,7 +148,7 @@ function fundSaved() {
             </j-permission-button>
             <j-permission-button
               hasPermission="charging/FinanceCashier:topup"
-              :disabled="!projectId || !!collecting || fundPending || fundFailed || !!pendingRows || recoveryFailed"
+              :disabled="!projectId || busy"
               @click="
                 funds.start({ action: 'TOPUP', type: 'DEPOSIT', initialSpace: selected?.leaf ? selectedId : undefined })
               "
@@ -132,6 +165,17 @@ function fundSaved() {
             </a-button>
           </a-space>
         </div>
+        <a-alert
+          v-if="temporaryPending"
+          type="warning"
+          show-icon
+          :message="t('Temporary.pending')"
+          class="cashier-pending"
+        >
+          <template #action>
+            <a-button @click="temporary.recover">{{ t('Cashier.retry') }}</a-button>
+          </template>
+        </a-alert>
         <a-alert
           v-if="fundPending"
           type="warning"
@@ -169,7 +213,7 @@ function fundSaved() {
             <j-permission-button
               type="primary"
               hasPermission="charging/FinanceCashier:collect"
-              :disabled="selection.length > 100 || !!pendingRows || recoveryFailed || fundPending || fundFailed"
+              :disabled="selection.length > 100 || busy"
               @click="start"
             >
               <AIcon type="WalletOutlined" />
@@ -202,6 +246,13 @@ function fundSaved() {
       :rows="collecting"
       @close="closeEditor"
       @saved="collected"
+    />
+    <TemporaryEditor
+      v-if="temporaryOpen"
+      :project-id="projectId"
+      :initial-space="temporarySpace"
+      @close="temporary.close"
+      @saved="temporarySaved"
     />
     <FundEditor
       v-if="fundDraft"

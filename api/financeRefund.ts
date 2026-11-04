@@ -18,7 +18,8 @@ export interface RefundInput {
 export interface RefundAllocation {
   sourceLineId: string
   paymentId: string
-  receivableId: string
+  receivableId?: string | null
+  sourceType: 'RECEIVABLE' | 'TEMPORARY'
   fullName: string
   customerName: string
   subjectName: string

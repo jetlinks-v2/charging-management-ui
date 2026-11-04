@@ -1270,6 +1270,21 @@
                 "actions": ["topup"]
               }
             ]
+          },
+          {
+            "id": "temporary",
+            "name": "临时收款",
+            "i18nMessages": {
+              "zh_CN": "临时收款",
+              "en_US": "Temporary collection",
+              "en": "Temporary collection"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-temporary",
+                "actions": ["collect"]
+              }
+            ]
           }
         ]
       },
@@ -1411,6 +1426,44 @@
               {
                 "permission": "property-finance-funds",
                 "actions": ["offset"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceTemporary",
+        "code": "charging/FinanceTemporary",
+        "name": "临时收款",
+        "url": "/charging/payment/FinanceTemporary",
+        "owner": "app",
+        "sortIndex": 5,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "临时收款",
+            "en_US": "Temporary collections",
+            "en": "Temporary collections"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-temporary",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "refund",
+            "name": "退款",
+            "i18nMessages": {
+              "zh_CN": "退款",
+              "en_US": "Refund",
+              "en": "Refund"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-refund",
+                "actions": ["refund"]
               }
             ]
           }

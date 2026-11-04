@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import type { useRefundFlow } from '../../../hooks/finance-cashier/useRefundFlow'
 import RefundEditor from '../FinanceRefund/RefundEditor.vue'
-const props = defineProps<{ projectId: string; state: ReturnType<typeof useRefundFlow> }>()
+const props = defineProps<{ projectId: string; state: ReturnType<typeof useRefundFlow>; permission?: string }>()
 const { selected, rows, pending, failed, start, close, saved } = props.state
 const { t } = useI18n()
 </script>
@@ -16,7 +16,7 @@ const { t } = useI18n()
   >
     <template #action>
       <j-permission-button
-        hasPermission="charging/FinancePayment:refund"
+        :hasPermission="permission || 'charging/FinancePayment:refund'"
         @click="rows = []"
       >
         {{ t('Cashier.retry') }}
@@ -36,7 +36,7 @@ const { t } = useI18n()
         {{ t('Receivable.clearSelection') }}
       </a-button>
       <j-permission-button
-        hasPermission="charging/FinancePayment:refund"
+        :hasPermission="permission || 'charging/FinancePayment:refund'"
         :disabled="pending || failed || selected.length > 100"
         @click="start(selected)"
       >

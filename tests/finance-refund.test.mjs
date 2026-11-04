@@ -217,3 +217,20 @@ test('刷新恢复原退款请求，存储不可用不发送，输入变化使�
   assert.equal(denied.state.preview.value, undefined)
   denied.unmount()
 })
+
+test('恢复临时款退款保留无应收来源，不伪造账单编号', async () => {
+  const original = {
+    request: { requestId: 'temporary-refund', token: 'token', input: { items: [{id:'source',version:4}], amount:'1.00', companyId:'company', method:'1', refundedAt:'2026-11-04T12:00:00', receiverName:'龚超', reason:'退临时款' } },
+    preview: {token:'token',total:'1.00',companyName:'物业公司',allocations:[{sourceLineId:'source',paymentId:'payment',sourceType:'TEMPORARY',receivableId:null,fullName:'园区/101',customerName:'龚超',subjectName:'临时保洁',originalAmount:'10.01',refundedAmount:'0.00',amount:'1.00'}]}
+  }
+  let sent
+  const {state,unmount}=mount({confirmRefund: async (_p,request)=>{sent=request;return {refund:{id:'refund'},lines:[]}}},
+    {read:()=>structuredClone(original),write() {},clear() {}})
+  await flush()
+  assert.equal(state.sourceRows.value[0].line.sourceType,'TEMPORARY')
+  assert.equal(state.sourceRows.value[0].line.receivableId,null)
+  await state.submit()
+  assert.deepEqual(sent,original.request)
+  assert.equal(state.result.value.refund.id,'refund')
+  unmount()
+})

@@ -1081,5 +1081,22 @@
     "offsetAmount": "Offset amount (CNY)",
     "attachmentPending": "Wait for the attachment upload to finish or remove failed files.",
     "TRANSFER_OUT": "Transfer out"
+  },
+  "Temporary": {
+    "title": "Temporary collections",
+    "collect": "Temporary collection",
+    "source": "Temporary collection",
+    "sourceLabel": "Payment source",
+    "receivable": "Receivable collection",
+    "basis": "Collection details",
+    "hint": "Choose a property and customer, then enter the charge details.",
+    "recordsHint": "Review temporary collections, charge details and refundable amounts.",
+    "houseHint": "Choose a property with completed details in this project",
+    "startDate": "Charge start date",
+    "endDate": "Charge end date",
+    "accountPeriod": "Accounting period",
+    "amount": "Collection amount (CNY)",
+    "pending": "A temporary collection is awaiting confirmation. Check the original result first.",
+    "fundingDetails": "Payment details"
   }
 }
