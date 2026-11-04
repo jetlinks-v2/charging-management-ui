@@ -1612,6 +1612,104 @@
             ]
           }
         ]
+      },
+      {
+        "id": "charging-FinanceHandover",
+        "code": "charging/FinanceHandover",
+        "name": "交账管理",
+        "url": "/charging/payment/FinanceHandover",
+        "owner": "app",
+        "sortIndex": 10,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "交账管理",
+            "en_US": "Handovers",
+            "en": "Handovers"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-handovers",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "create",
+            "name": "交账",
+            "i18nMessages": {
+              "zh_CN": "交账",
+              "en_US": "Handover",
+              "en": "Handover"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-handovers",
+                "actions": ["create"]
+              }
+            ]
+          },
+          {
+            "id": "approve",
+            "name": "审核",
+            "i18nMessages": {
+              "zh_CN": "审核",
+              "en_US": "Approve",
+              "en": "Approve"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-handovers",
+                "actions": ["approve"]
+              }
+            ]
+          },
+          {
+            "id": "reject",
+            "name": "驳回",
+            "i18nMessages": {
+              "zh_CN": "驳回",
+              "en_US": "Reject",
+              "en": "Reject"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-handovers",
+                "actions": ["reject"]
+              }
+            ]
+          },
+          {
+            "id": "unapprove",
+            "name": "反审核",
+            "i18nMessages": {
+              "zh_CN": "反审核",
+              "en_US": "Undo approval",
+              "en": "Undo approval"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-handovers",
+                "actions": ["unapprove"]
+              }
+            ]
+          },
+          {
+            "id": "cancel",
+            "name": "反交账",
+            "i18nMessages": {
+              "zh_CN": "反交账",
+              "en_US": "Cancel handover",
+              "en": "Cancel handover"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-handovers",
+                "actions": ["cancel"]
+              }
+            ]
+          }
+        ]
       }
     ]
   },
