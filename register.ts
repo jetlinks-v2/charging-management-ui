@@ -3,6 +3,7 @@ import * as financeCashier from './api/financeCashier'
 import * as financeTemporary from './api/financeTemporary'
 import * as financeFunds from './api/financeFunds'
 import * as financeCarry from './api/financeCarry'
+import * as financeActivity from './api/financeActivity'
 import * as financeSetting from './api/financeSetting'
 import * as financeStandard from './api/financeStandard'
 import * as financeSubject from './api/financeSubject'
@@ -40,6 +41,7 @@ export default {
     ...financeCashier,
     ...financeFunds,
     ...financeCarry,
+    ...financeActivity,
     ...financeTemporary,
     ...financeTax,
     ...financeRecorded,

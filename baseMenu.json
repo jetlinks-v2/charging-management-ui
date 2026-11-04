@@ -1614,5 +1614,109 @@
         ]
       }
     ]
+  },
+  {
+    "id": "charging-activity",
+    "code": "charging/activity",
+    "name": "活动管理",
+    "url": "/charging/activity",
+    "owner": "app",
+    "sortIndex": 76,
+    "i18nMessages": {
+      "name": {
+        "zh_CN": "活动管理",
+        "en_US": "Activities",
+        "en": "Activities"
+      }
+    },
+    "permissions": [],
+    "options": {
+      "icon": "GiftOutlined"
+    },
+    "children": [
+      {
+        "id": "charging-FinanceActivity",
+        "code": "charging/FinanceActivity",
+        "name": "活动设置",
+        "url": "/charging/activity/FinanceActivity",
+        "owner": "app",
+        "sortIndex": 1,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "活动设置",
+            "en_US": "Activity settings",
+            "en": "Activity settings"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-activity",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
+            "i18nMessages": {
+              "zh_CN": "保存",
+              "en_US": "Save",
+              "en": "Save"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-activity",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "state",
+            "name": "启用停用",
+            "i18nMessages": {
+              "zh_CN": "启用停用",
+              "en_US": "Enable or disable",
+              "en": "Enable or disable"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-activity",
+                "actions": ["state"]
+              }
+            ]
+          },
+          {
+            "id": "date",
+            "name": "调整活动时间",
+            "i18nMessages": {
+              "zh_CN": "调整活动时间",
+              "en_US": "Change activity dates",
+              "en": "Change activity dates"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-activity",
+                "actions": ["date"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "i18nMessages": {
+              "zh_CN": "删除",
+              "en_US": "Delete",
+              "en": "Delete"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-activity",
+                "actions": ["delete"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
