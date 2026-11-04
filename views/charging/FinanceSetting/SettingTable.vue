@@ -11,7 +11,7 @@ const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'fullName', width: 240, scopedSlots: true },
   { title: t('Setting.subject'), dataIndex: 'subjectName', width: 140 },
   { title: t('Setting.standard'), dataIndex: 'standardName', width: 190, scopedSlots: true },
-  { title: t('Setting.customer'), dataIndex: 'customerName', width: 120 },
+  { title: t('Setting.customer'), dataIndex: 'customerName', width: 180, scopedSlots: true },
   { title: t('Setting.validity'), dataIndex: 'validity', width: 210, scopedSlots: true },
   { title: t('Setting.version'), dataIndex: 'configVersion', width: 80 },
   { title: t('Setting.state'), dataIndex: 'status', width: 130, scopedSlots: true },
@@ -65,6 +65,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
       <span>{{ row.standardName }}</span>
       <small class="setting-secondary">{{ row.standardCode }}</small>
     </template>
+    <template #customerName="row">{{ row.customerNames?.join('、') || row.customerName }}</template>
     <template #validity="row">
       {{ row.effectiveStartDate }} ～ {{ row.effectiveEndDate || t('Setting.unlimited') }}
     </template>

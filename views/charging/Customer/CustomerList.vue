@@ -50,7 +50,9 @@ const customer = (record: Customer | Relationship) => ('customerId' in record ? 
 const relationships = (record: Customer | Relationship): Relationship[] =>
   'customerId' in record ? [record] : record.relationships
 const select = (record: Customer | Relationship) =>
-  'customerId' in record ? detail.select(record.customerId, record) : detail.select(record.id)
+  'customerId' in record
+    ? detail.select(record.customerId, record, 'view', true)
+    : detail.select(record.id, record.relationships[0])
 const change = ({ filter }: ConditionFilterChangePayload) => {
   params.value = { terms: filter.terms as Query['terms'] }
 }
@@ -111,7 +113,7 @@ const change = ({ filter }: ConditionFilterChangePayload) => {
   <j-pro-table
     :key="String(history)"
     ref="table"
-    row-key="id"
+    :row-key="history ? 'id' : 'recordId'"
     mode="TABLE"
     type="PAGE"
     :columns="columns"
@@ -138,12 +140,11 @@ const change = ({ filter }: ConditionFilterChangePayload) => {
         :key="relation.id"
         class="archive-name"
       >
-        <b>{{ relation.spaceLocation || relation.fullName || relation.spaceName }}</b>
+        <b>{{ relation.fullName || relation.spaceName }}</b>
         <small class="archive-muted">
           {{
             customer(record)?.customerType === 'person'
-              ? [dictionary.text('customer-nature', relation.nature), relation.familyName].filter(Boolean).join(' · ') +
-                ' · '
+              ? dictionary.text('customer-nature', relation.nature) + ' · '
               : ''
           }}{{ new Date(relation.startTime).toLocaleString()
           }}{{ relation.endTime ? ' ~ ' + new Date(relation.endTime).toLocaleString() : '' }}
@@ -163,28 +164,24 @@ const change = ({ filter }: ConditionFilterChangePayload) => {
             hasPermission="charging/Customer:save"
             type="link"
             :disabled="detail.busy.value"
-            @click="detail.select(record.id, undefined, 'edit')"
+            @click="detail.select(record.id, record.relationships[0], 'edit')"
           >
             {{ t(k + 'edit') }}
           </j-permission-button>
-          <a-tooltip :title="record.relationships.length ? t(k + 'customerHasRelations') : undefined">
-            <span>
-              <a-popconfirm
-                :title="t(k + 'deleteCustomerConfirm')"
-                :disabled="!!record.relationships.length || detail.busy.value"
-                @confirm="detail.removeCustomer(record)"
-              >
-                <j-permission-button
-                  hasPermission="charging/Customer:delete"
-                  type="link"
-                  danger
-                  :disabled="!!record.relationships.length || detail.busy.value"
-                >
-                  {{ t(k + 'delete') }}
-                </j-permission-button>
-              </a-popconfirm>
-            </span>
-          </a-tooltip>
+          <a-popconfirm
+            :title="t(k + 'deleteCustomerConfirm')"
+            :disabled="detail.busy.value"
+            @confirm="detail.removeRelation(record.relationships[0])"
+          >
+            <j-permission-button
+              hasPermission="charging/Customer:delete"
+              type="link"
+              danger
+              :disabled="detail.busy.value"
+            >
+              {{ t(k + 'delete') }}
+            </j-permission-button>
+          </a-popconfirm>
         </template>
       </div>
     </template>

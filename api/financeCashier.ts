@@ -18,7 +18,6 @@ export interface CashierCompany {
 export interface CashierPayer {
   relationshipId: string
   name: string
-  familyName?: string
 }
 export interface CashierInput {
   companyId: string
@@ -49,6 +48,7 @@ export interface CollectionPreview {
 }
 export interface PaymentLine {
   id: string
+  version: number
   paymentId: string
   receivableId: string
   fullName: string
@@ -67,6 +67,7 @@ export interface PaymentLine {
 export interface PaymentDetail {
   payment: {
     id: string
+    companyId: string
     amount: string
     companyName: string
     payerName: string

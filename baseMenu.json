@@ -1274,6 +1274,44 @@
             "actions": ["query"]
           }
         ],
+        "buttons": [
+          {
+            "id": "refund",
+            "name": "退款",
+            "i18nMessages": {
+              "zh_CN": "退款",
+              "en_US": "Refund",
+              "en": "Refund"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-refund",
+                "actions": ["refund"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceRefund",
+        "code": "charging/FinanceRefund",
+        "name": "退款管理",
+        "url": "/charging/payment/FinanceRefund",
+        "owner": "app",
+        "sortIndex": 3,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "退款管理",
+            "en_US": "Refunds",
+            "en": "Refunds"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-refund",
+            "actions": ["query"]
+          }
+        ],
         "buttons": []
       }
     ]

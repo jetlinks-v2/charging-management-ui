@@ -25,12 +25,12 @@ export function useSettingForm(
   const form = ref<FormInstance>(),
     pickerOpen = ref(false),
     loadingHouse = ref(false)
-  const targets = ref<{ context: HouseContext; relationshipId: string }[]>([])
+  const targets = ref<{ context: HouseContext; relationshipIds: string[] }[]>([])
   const defaults = (): SettingInput => ({
     spaceId: '',
     projectSubjectId: '',
     standardId: '',
-    customerRelationshipId: '',
+    customerRelationshipIds: [],
     effectiveStartDate: '',
     effectiveEndDate: null,
     variableValues: {},
@@ -65,14 +65,15 @@ export function useSettingForm(
     try {
       const context = await getSettingHouse(props.projectId, spaceId)
       if (disposed || generation !== token) return
-      const previous = props.detail?.spaceId === spaceId ? props.detail.customerRelationshipId : ''
-      const relationshipId = context.customers.some((row) => row.relationshipId === previous)
-        ? previous
+      const previous = props.detail?.spaceId === spaceId ? props.detail.customerRelationshipIds : []
+      const selected = previous.filter((id) => context.customers.some((row) => row.relationshipId === id))
+      const relationshipIds = selected.length
+        ? selected
         : context.customers.length === 1
-          ? context.customers[0].relationshipId
-          : ''
+          ? [context.customers[0].relationshipId]
+          : []
       if (props.mode !== 'batch') targets.value = []
-      targets.value.push({ context, relationshipId })
+      targets.value.push({ context, relationshipIds })
       pickerOpen.value = false
     } catch (error) {
       if (!disposed && generation === token) notify(error)
@@ -125,7 +126,7 @@ export function useSettingForm(
       onlyMessage(t('Setting.chooseHouse'), 'warning')
       return
     }
-    if (targets.value.some((row) => !row.relationshipId)) {
+    if (targets.value.some((row) => !row.relationshipIds.length)) {
       onlyMessage(t('Setting.chooseEveryCustomer'), 'warning')
       return
     }
@@ -146,7 +147,7 @@ export function useSettingForm(
         ...model,
         variableValues,
         spaceId: row.context.house.spaceId,
-        customerRelationshipId: row.relationshipId,
+        customerRelationshipIds: [...row.relationshipIds],
         effectiveEndDate: model.effectiveEndDate || null
       }))
     )

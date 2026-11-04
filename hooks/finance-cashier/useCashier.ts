@@ -137,7 +137,10 @@ export function useCashier(
         project,
         props.rows.map((row) => row.id)
       )
-      if (!disposed && props.projectId === project) payers.value = options
+      if (!disposed && props.projectId === project) {
+        payers.value = options
+        if (options.length === 1) choosePayer(options[0].relationshipId)
+      }
     } catch (error) {
       if (!disposed) notify(error)
     }
@@ -204,7 +207,7 @@ export function useCashier(
     } catch (error) {
       if (!disposed) {
         const status = (error as { response?: { status?: number } })?.response?.status
-        if (status && status >= 400 && status < 500) {
+        if (status && status >= 400 && status < 500 && !uncertain.value) {
           try {
             recovery?.clear()
           } catch {

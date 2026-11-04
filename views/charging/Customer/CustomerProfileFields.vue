@@ -2,7 +2,12 @@
 import { useI18n } from 'vue-i18n'
 import type { CustomerProfile } from '../../../api/archive'
 import type { useDictionaries } from '../../../hooks/archive/useDictionaries'
-defineProps<{ model: CustomerProfile; type: 'person' | 'company'; dictionary: ReturnType<typeof useDictionaries> }>()
+defineProps<{
+  model: CustomerProfile
+  type: 'person' | 'company'
+  dictionary: ReturnType<typeof useDictionaries>
+  locked?: Partial<Record<'name' | 'telephone' | 'email', boolean>>
+}>()
 const { t } = useI18n()
 const k = 'Archive.'
 </script>
@@ -14,6 +19,7 @@ const k = 'Archive.'
   >
     <a-input
       v-model:value="model.name"
+      :disabled="locked?.name"
       :maxlength="128"
     />
   </a-form-item>
@@ -24,6 +30,7 @@ const k = 'Archive.'
   >
     <a-input
       v-model:value="model.telephone"
+      :disabled="locked?.telephone"
       :maxlength="64"
     />
   </a-form-item>
@@ -34,6 +41,7 @@ const k = 'Archive.'
   >
     <a-input
       v-model:value="model.email"
+      :disabled="locked?.email"
       :maxlength="128"
     />
   </a-form-item>

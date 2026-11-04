@@ -122,7 +122,7 @@ async function remove(record: House) {
     <template #name="record">
       <div class="archive-name">
         <b>{{ record.name }}</b>
-        <small class="archive-muted">{{ record.spaceLocation || record.fullName }}</small>
+        <small class="archive-muted">{{ record.fullName }}</small>
       </div>
     </template>
     <template #completed="record">

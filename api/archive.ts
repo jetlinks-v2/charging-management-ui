@@ -17,6 +17,12 @@ export interface Scope {
   projectId: string
   spaceId?: string
 }
+export interface SpaceSegment {
+  id: string
+  name: string
+  typeId?: string
+  typeName?: string
+}
 export interface Space {
   id: string
   name: string
@@ -25,6 +31,7 @@ export interface Space {
   fullName?: string
   spaceTypeId?: string
   spaceTypeName?: string
+  spaceSegments?: SpaceSegment[]
   spaceLocation?: string
   organizationId?: string | null
   version: number
@@ -57,6 +64,7 @@ export interface House {
   fullName?: string
   spaceTypeId?: string
   spaceTypeName?: string
+  spaceSegments?: SpaceSegment[]
   spaceLocation?: string
   projectId: string
   completed: boolean
@@ -87,11 +95,6 @@ export interface CustomerProfile {
 export interface RelationInput {
   spaceId: string
   nature?: string
-  familyMode?: 'new' | 'existing'
-  familyName?: string
-  familyId?: string
-  familyGroup?: string
-  startTime: number
 }
 export interface CustomerCreate extends CustomerProfile, RelationInput {
   userId: string
@@ -99,6 +102,7 @@ export interface CustomerCreate extends CustomerProfile, RelationInput {
 }
 export interface Customer extends CustomerProfile {
   id: string
+  recordId?: string
   projectId: string
   userId: string
   customerType: 'person' | 'company'
@@ -117,10 +121,9 @@ export interface Relationship {
   fullName?: string
   spaceTypeId?: string
   spaceTypeName?: string
+  spaceSegments?: SpaceSegment[]
   spaceLocation?: string
   nature?: string
-  familyId?: string
-  familyName?: string
   startTime: number
   endTime?: number
   endReason?: string
@@ -260,32 +263,25 @@ export const exportHouses = (scope: Scope, query: Query) =>
     .then(excelResponse)
 export const queryCustomers = (scope: Scope, query: Query, signal?: AbortSignal) =>
   request.post<Page<Customer>>(`${base}/customer/_query?${scopeQuery(scope)}`, query, { signal })
+export const queryCustomerProfiles = (scope: Scope, query: Query) =>
+  request.post<Page<Customer>>(`${base}/customer/_profiles?${scopeQuery({ projectId: scope.projectId })}`, query)
 export const getCustomer = (scope: Scope, customerId: string) =>
   request.get<Customer>(`${base}/customer/${id(customerId)}?${scopeQuery(scope)}`).then(checked)
 export const createCustomer = (scope: Scope, value: CustomerCreate) =>
   request.post<Customer>(`${base}/customer?${scopeQuery(scope)}`, value).then(checked)
-export const saveCustomer = (scope: Scope, customerId: string, value: CustomerProfile & { version: number }) =>
-  request.put<Customer>(`${base}/customer/${id(customerId)}?${scopeQuery(scope)}`, value).then(checked)
-export const deleteCustomer = (scope: Scope, value: Customer) =>
-  request.remove(`${base}/customer/${id(value.id)}?${scopeQuery(scope)}&version=${value.version}`).then(checked)
+export const saveCustomer = (
+  scope: Scope,
+  customerId: string,
+  value: CustomerProfile & { version: number; relationshipId?: string; relationshipVersion?: number; nature?: string }
+) => request.put<Customer>(`${base}/customer/${id(customerId)}?${scopeQuery(scope)}`, value).then(checked)
 export const addRelationship = (scope: Scope, customerId: string, value: RelationInput) =>
   request
     .post<Relationship>(`${base}/customer/${id(customerId)}/relationships?${scopeQuery(scope)}`, value)
-    .then(checked)
-export const endRelationship = (scope: Scope, value: Relationship, endTime: number, endReason: string) =>
-  request
-    .put<Relationship>(`${base}/customer/relationships/${id(value.id)}/end?${scopeQuery(scope)}`, {
-      version: value.version,
-      endTime,
-      endReason
-    })
     .then(checked)
 export const deleteRelationship = (scope: Scope, value: Relationship) =>
   request
     .remove(`${base}/customer/relationships/${id(value.id)}?${scopeQuery(scope)}&version=${value.version}`)
     .then(checked)
-export const getFamilies = (scope: Scope) =>
-  request.get<{ id: string; name: string }[]>(`${base}/customer/_families?${scopeQuery(scope)}`).then(checked)
 export const queryHistory = (scope: Scope, query: Query, signal?: AbortSignal) =>
   request.post<Page<Relationship>>(`${base}/customer/_history?${scopeQuery(scope)}`, historyQuery(query), { signal })
 export const importCustomers = (scope: Scope, file: File, customerType: CustomerType) =>

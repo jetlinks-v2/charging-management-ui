@@ -22,9 +22,8 @@ const period = computed(() =>
 )
 const identity = computed(() => [
   { label: t('Setting.house'), value: props.detail?.fullName },
-  { label: t('Setting.customer'), value: props.detail?.customerName },
+  { label: t('Setting.customer'), value: props.detail?.customerNames?.join('、') || props.detail?.customerName },
   { label: t('Setting.telephone'), value: props.detail?.snapshot?.customer.telephone || '—' },
-  { label: t('Setting.family'), value: props.detail?.snapshot?.customer.familyName || '—' },
   { label: t('Setting.subject'), value: props.detail?.subjectName },
   { label: t('Setting.standard'), value: props.detail?.standardName },
   { label: t('Historical.contractCode'), value: props.detail?.contractCode || '—' },

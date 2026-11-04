@@ -19,6 +19,7 @@ export interface Receivable {
   contractCode?: string
   remark?: string
   customerName: string
+  customerNames: string[]
   subjectName: string
   standardName: string
   subjectId: string

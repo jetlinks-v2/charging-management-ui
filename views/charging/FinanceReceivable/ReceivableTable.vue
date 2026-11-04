@@ -83,7 +83,7 @@ const selection = computed(() => ({
     </template>
     <template #subjectName="row">
       {{ row.subjectName }}
-      <small class="receivable-secondary">{{ row.customerName }}</small>
+      <small class="receivable-secondary">{{ row.customerNames?.join('、') || row.customerName }}</small>
     </template>
     <template #coverage="row">
       <span class="receivable-date">{{ row.calcStartDate }}</span>

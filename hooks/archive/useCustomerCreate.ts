@@ -1,4 +1,4 @@
-import { onScopeDispose, reactive, ref, watch } from 'vue'
+import { computed, onScopeDispose, reactive, ref, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
@@ -6,7 +6,7 @@ import {
   addRelationship,
   checked,
   createCustomer,
-  queryCustomers,
+  queryCustomerProfiles,
   type Customer,
   type CustomerProfile,
   type RelationInput,
@@ -25,16 +25,18 @@ export function useCustomerCreate(scope: Scope, done: () => void) {
   const userId = ref<string>()
   const customerId = ref<string>()
   const users = ref<PropertyUser[]>([])
+  const selectedUser = ref<PropertyUser>()
   const customers = ref<Customer[]>([])
+  const existingCustomer = ref<Customer>()
   const optionsLoading = ref(false)
   const optionsFailed = ref(false)
   const optionsTotal = ref(0)
   const saving = ref(false)
   const profile = reactive<CustomerProfile>({ name: '', telephone: '' })
-  const relation = reactive<RelationInput>({ spaceId: scope.spaceId || '', startTime: Date.now(), familyMode: 'new' })
+  const relation = reactive<RelationInput>({ spaceId: scope.spaceId || '' })
   let generation = 0
   let disposed = false
-  const selectedCustomer = () => customers.value.find((item) => item.id === customerId.value)
+  const selectedCustomer = () => existingCustomer.value
   async function load(keyword = '') {
     const token = ++generation
     optionsLoading.value = true
@@ -68,7 +70,7 @@ export function useCustomerCreate(scope: Scope, done: () => void) {
         }
       } else {
         const result = checked(
-          await queryCustomers(
+          await queryCustomerProfiles(
             { projectId: scope.projectId },
             {
               terms: keyword ? [{ column: 'name', termType: 'like', value: `%${keyword}%` }] : [],
@@ -102,13 +104,23 @@ export function useCustomerCreate(scope: Scope, done: () => void) {
   )
   watch(userId, (value) => {
     const user = users.value.find((item) => item.id === value)
+    // 搜索会替换候选列表；已选来源独立保留，避免字段意外解锁。
+    selectedUser.value = user
     // 来源资料只在选择时回显，之后用户输入属于本地主档，不回写账号。
     Object.assign(profile, {
-      name: user?.name || user?.username || '',
+      name: user?.name || '',
       telephone: user?.telephone || '',
       email: user?.email || ''
     })
   })
+  watch(customerId, (value) => {
+    existingCustomer.value = customers.value.find((item) => item.id === value)
+  })
+  const lockedFields = computed(() => ({
+    name: !userId.value || !!selectedUser.value?.name?.trim(),
+    telephone: !userId.value || !!selectedUser.value?.telephone?.trim(),
+    email: !userId.value || !!selectedUser.value?.email?.trim()
+  }))
   async function save() {
     if (saving.value) return
     saving.value = true
@@ -149,6 +161,7 @@ export function useCustomerCreate(scope: Scope, done: () => void) {
     profile,
     relation,
     selectedCustomer,
+    lockedFields,
     load,
     search,
     save

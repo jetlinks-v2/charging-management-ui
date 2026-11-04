@@ -22,7 +22,6 @@ export interface HouseCustomer {
   userId: string
   name: string
   telephone?: string
-  familyName?: string
   nature?: string
 }
 export interface HouseContext {
@@ -33,7 +32,7 @@ export interface SettingInput {
   spaceId: string
   projectSubjectId: string
   standardId: string
-  customerRelationshipId: string
+  customerRelationshipIds: string[]
   effectiveStartDate: string
   effectiveEndDate?: string | null
   variableValues: Record<string, string>
@@ -50,6 +49,7 @@ export interface ChargeSetting extends Omit<SettingInput, 'variableValues'> {
   standardName: string
   customerId: string
   customerName: string
+  customerNames: string[]
   configVersion: number
   previousVersionId?: string
   status: 'ACTIVE' | 'STOPPED' | 'SUPERSEDED'
@@ -59,6 +59,7 @@ export interface ChargeSetting extends Omit<SettingInput, 'variableValues'> {
     standard: FinanceStandard
     house: HouseInfo
     customer: HouseCustomer
+    customers: HouseCustomer[]
     values: Record<string, string>
   }
 }

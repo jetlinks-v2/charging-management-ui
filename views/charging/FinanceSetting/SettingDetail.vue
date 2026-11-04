@@ -15,9 +15,14 @@ const items = computed(() => [
 const house = computed(() => [
   { label: t('Setting.house'), value: props.detail.snapshot.house.fullName },
   { label: t('Setting.billingArea'), value: String(props.detail.snapshot.house.billingArea) + ' m²' },
-  { label: t('Setting.customer'), value: props.detail.customerName },
-  { label: t('Setting.telephone'), value: props.detail.snapshot.customer.telephone || '—' },
-  { label: t('Setting.family'), value: props.detail.snapshot.customer.familyName || '—' }
+  { label: t('Setting.customer'), value: props.detail.customerNames.join('、') },
+  {
+    label: t('Setting.telephone'),
+    value:
+      props.detail.snapshot.customers?.map((customer) => `${customer.name}：${customer.telephone || '—'}`).join('；') ||
+      props.detail.snapshot.customer.telephone ||
+      '—'
+  }
 ])
 const rule = computed(() => props.detail.snapshot.standard)
 const variables = computed(() =>

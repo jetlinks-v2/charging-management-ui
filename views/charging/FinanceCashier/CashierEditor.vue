@@ -179,17 +179,20 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
                     format="YYYY-MM-DD HH:mm:ss"
                   />
                 </a-form-item>
-                <a-form-item :label="t('Cashier.familyPayer')">
+                <a-form-item
+                  :label="t('Cashier.selectedPayer')"
+                  name="payerRelationshipId"
+                  :rules="required('Cashier.selectedPayer')"
+                >
                   <a-select
                     :value="model.payerRelationshipId"
-                    allow-clear
                     :options="
                       payers.map((item) => ({
                         value: item.relationshipId,
-                        label: item.familyName ? `${item.name} · ${item.familyName}` : item.name
+                        label: item.name
                       }))
                     "
-                    :placeholder="t('Cashier.optionalFamily')"
+                    :placeholder="t('Cashier.choosePayer')"
                     @change="(value) => choosePayer(value ? String(value) : undefined)"
                   />
                 </a-form-item>
@@ -201,7 +204,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
                   <a-input
                     v-model:value="model.payerName"
                     :maxlength="128"
-                    :disabled="!!model.payerRelationshipId"
+                    disabled
                   />
                 </a-form-item>
               </div>

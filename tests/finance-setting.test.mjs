@@ -82,7 +82,7 @@ const row = (id) => ({
   spaceId: 'room',
   projectSubjectId: 'issued',
   standardId: 'std',
-  customerRelationshipId: 'room-0',
+  customerRelationshipIds: ['room-0'],
   snapshot: { values: { STANDARD_PRICE: '1.23', BILLING_AREA: '100.25', BILLING_PERSON: '3' } }
 })
 const deferred = () => {
@@ -209,15 +209,15 @@ test('表单按房屋唯一客户自动选择，多客户不猜测，提交排�
   })
   await state.addHouse('a')
   await state.addHouse('b')
-  assert.equal(state.targets.value[0].relationshipId, 'a-0')
-  assert.equal(state.targets.value[1].relationshipId, '')
+  assert.deepEqual(state.targets.value[0].relationshipIds, ['a-0'])
+  assert.deepEqual(state.targets.value[1].relationshipIds, [])
   await state.submit()
   assert.equal(emitted.length, 0)
-  state.targets.value[1].relationshipId = 'b-1'
+  state.targets.value[1].relationshipIds = ['b-0', 'b-1']
   await state.submit()
   assert.equal(emitted[0].length, 2)
   assert.deepEqual(emitted[0][0].variableValues, { BILLING_PERSON: '3' })
-  assert.equal(emitted[0][1].customerRelationshipId, 'b-1')
+  assert.deepEqual(emitted[0][1].customerRelationshipIds, ['b-0', 'b-1'])
   unmount()
 })
 test('更换项目使迟到房屋来源失效，详情不加载可编辑来源', async () => {

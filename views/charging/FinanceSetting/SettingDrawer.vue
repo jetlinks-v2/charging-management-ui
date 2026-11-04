@@ -104,7 +104,8 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
             required
           >
             <a-select
-              v-model:value="target.relationshipId"
+              v-model:value="target.relationshipIds"
+              mode="multiple"
               :disabled="!target.context.customers.length"
               show-search
               option-filter-prop="label"

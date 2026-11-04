@@ -7,10 +7,18 @@ import type { PaymentRecord } from '../../../api/financeCashier'
 import { usePaymentRecords } from '../../../hooks/finance-cashier/usePaymentRecords'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import PaymentSummary from '../FinanceCashier/PaymentSummary.vue'
+import PaymentRefundActions from './PaymentRefundActions.vue'
+import { useRefundFlow } from '../../../hooks/finance-cashier/useRefundFlow'
+import { refundableMoney } from '../../../utils/refundMoney'
 import '../FinanceCashier/cashier.css'
 const { t } = useI18n()
 const { projectId, table, terms, params, open, loading, failed, detail, request, select, close, notify } =
   usePaymentRecords()
+const refund = useRefundFlow(projectId, () => table.value?.reload())
+const paymentRequest: typeof request = (query, config) => {
+  refund.selected.value = []
+  return request(query, config)
+}
 const rowKey = (row: PaymentRecord) => row.line.id
 const fields = computed(() =>
   ['fullName', 'customerName', 'subjectName', 'methodText'].map((key) => ({
@@ -25,9 +33,10 @@ const columns = computed(() => [
   { title: t('Cashier.payer'), dataIndex: 'payerName', width: 130 },
   { title: t('Cashier.method'), dataIndex: 'method', scopedSlots: true, width: 160 },
   { title: t('Cashier.amount'), dataIndex: 'amount', scopedSlots: true, width: 130, align: 'right' },
+  { title: t('Refund.available'), dataIndex: 'available', scopedSlots: true, width: 130, align: 'right' },
   { title: t('Cashier.paidAt'), dataIndex: 'paidAt', width: 190 },
   { title: t('Cashier.company'), dataIndex: 'companyName', width: 200 },
-  { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 90, fixed: 'right' }
+  { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 150, fixed: 'right' }
 ])
 function filter({ filter }: ConditionFilterChangePayload) {
   terms.value = (filter.terms || []) as Query['terms']
@@ -50,6 +59,10 @@ function filter({ filter }: ConditionFilterChangePayload) {
           <AIcon type="ReloadOutlined" />
         </a-button>
       </div>
+      <PaymentRefundActions
+        :project-id="projectId"
+        :state="refund"
+      />
       <ConditionFilter
         :fields="fields"
         @change="filter"
@@ -62,7 +75,8 @@ function filter({ filter }: ConditionFilterChangePayload) {
         mode="TABLE"
         :columns="columns"
         :params="params"
-        :request="request"
+        :request="paymentRequest"
+        :row-selection="refund.selection.value"
         :no-pagination="false"
         :pagination="{ pageSize: 12 }"
         :alert-show="false"
@@ -90,6 +104,10 @@ function filter({ filter }: ConditionFilterChangePayload) {
         <template #amount="row">
           <strong class="cashier-money">{{ row.line.amount }}</strong>
         </template>
+        <template #available="row">
+          {{ refundableMoney(row.line) }}
+          <small>{{ t('Cashier.refunded') }} {{ row.line.refundedAmount }}</small>
+        </template>
         <template #actions="row">
           <a-button
             type="link"
@@ -97,6 +115,14 @@ function filter({ filter }: ConditionFilterChangePayload) {
           >
             {{ t('Finance.detail') }}
           </a-button>
+          <j-permission-button
+            type="link"
+            hasPermission="charging/FinancePayment:refund"
+            :disabled="refund.pending.value || refund.failed.value || refundableMoney(row.line) === '0.00'"
+            @click="refund.start([row])"
+          >
+            {{ t('Refund.start') }}
+          </j-permission-button>
         </template>
         <template #emptyText><CloudEmpty :description="t('Cashier.noPayments')" /></template>
       </j-pro-table>
