@@ -427,5 +427,425 @@
       }
     ],
     "icon": "ApartmentOutlined"
+  },
+  {
+    "id": "charging-finance",
+    "code": "charging/finance",
+    "name": "计费管理",
+    "url": "/charging/finance",
+    "owner": "app",
+    "sortIndex": 72,
+    "icon": "AccountBookOutlined",
+    "permissions": [],
+    "buttons": [],
+    "i18nMessages": {
+      "name": {
+        "zh_CN": "计费管理",
+        "en_US": "Billing management",
+        "en": "Billing management"
+      }
+    },
+    "children": [
+      {
+        "id": "charging-FinanceCompany",
+        "code": "charging/FinanceCompany",
+        "name": "税号设置",
+        "url": "/charging/finance/companies",
+        "owner": "app",
+        "sortIndex": 1,
+        "icon": "BankOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "税号设置",
+            "en_US": "Tax accounts",
+            "en": "Tax accounts"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-company",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "维护公司",
+            "i18nMessages": {
+              "zh_CN": "维护公司",
+              "en_US": "Maintain companies",
+              "en": "Maintain companies"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-company",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "i18nMessages": {
+              "zh_CN": "删除",
+              "en_US": "Delete",
+              "en": "Delete"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-company",
+                "actions": ["delete"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceProject",
+        "code": "charging/FinanceProject",
+        "name": "基础资料设置",
+        "url": "/charging/finance/settings",
+        "owner": "app",
+        "sortIndex": 2,
+        "icon": "BankOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "基础资料设置",
+            "en_US": "Project billing settings",
+            "en": "Project billing settings"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-project-company",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "关联及默认设置",
+            "i18nMessages": {
+              "zh_CN": "关联及默认设置",
+              "en_US": "Link and set default",
+              "en": "Link and set default"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-project-company",
+                "actions": ["save"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceTax",
+        "code": "charging/FinanceTax",
+        "name": "税目设置",
+        "url": "/charging/finance/taxes",
+        "owner": "app",
+        "sortIndex": 3,
+        "icon": "FileTextOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "税目设置",
+            "en_US": "Tax items",
+            "en": "Tax items"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-tax",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-project-company",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "维护税目",
+            "permissions": [
+              {
+                "permission": "property-finance-tax",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "permissions": [
+              {
+                "permission": "property-finance-tax",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "import",
+            "name": "导入",
+            "permissions": [
+              {
+                "permission": "property-finance-tax",
+                "actions": ["import"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceRecorded",
+        "code": "charging/FinanceRecorded",
+        "name": "入账信息设置",
+        "url": "/charging/finance/recorded",
+        "owner": "app",
+        "sortIndex": 4,
+        "icon": "BankOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "入账信息设置",
+            "en_US": "Posting settings",
+            "en": "Posting settings"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-recorded",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-project-company",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "维护入账信息",
+            "permissions": [
+              {
+                "permission": "property-finance-recorded",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "permissions": [
+              {
+                "permission": "property-finance-recorded",
+                "actions": ["delete"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceSubject",
+        "code": "charging/FinanceSubject",
+        "name": "收费科目",
+        "url": "/charging/finance/subjects",
+        "owner": "app",
+        "sortIndex": 5,
+        "icon": "ProfileOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "收费科目",
+            "en_US": "Charge subjects",
+            "en": "Charge subjects"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-subject",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-subject-category",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-arrears",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
+            "permissions": [
+              {
+                "permission": "property-finance-subject",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "permissions": [
+              {
+                "permission": "property-finance-subject",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "issue",
+            "name": "下发项目",
+            "permissions": [
+              {
+                "permission": "property-finance-subject",
+                "actions": ["issue"]
+              }
+            ]
+          },
+          {
+            "id": "category-save",
+            "name": "维护目录",
+            "permissions": [
+              {
+                "permission": "property-finance-subject-category",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "category-delete",
+            "name": "删除目录",
+            "permissions": [
+              {
+                "permission": "property-finance-subject-category",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "import",
+            "name": "导入",
+            "permissions": [
+              {
+                "permission": "property-finance-subject",
+                "actions": ["import"]
+              }
+            ]
+          },
+          {
+            "id": "imports",
+            "name": "导入记录",
+            "i18nMessages": {
+              "zh_CN": "导入记录",
+              "en_US": "Import history",
+              "en": "Import history"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-subject",
+                "actions": ["imports"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceProjectSubject",
+        "code": "charging/FinanceProjectSubject",
+        "name": "项目收费科目",
+        "url": "/charging/finance/project-subjects",
+        "owner": "app",
+        "sortIndex": 6,
+        "icon": "ApartmentOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "项目收费科目",
+            "en_US": "Project charge subjects",
+            "en": "Project charge subjects"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-project-subject",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-subject-category",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-subject",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-arrears",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-project",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "delete",
+            "name": "删除",
+            "permissions": [
+              {
+                "permission": "property-finance-project-subject",
+                "actions": ["delete"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceArrears",
+        "code": "charging/FinanceArrears",
+        "name": "欠费通知等级",
+        "url": "/charging/finance/arrears",
+        "owner": "app",
+        "sortIndex": 7,
+        "icon": "BellOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "欠费通知等级",
+            "en_US": "Arrears notification levels",
+            "en": "Arrears notification levels"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-arrears",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
+            "permissions": [
+              {
+                "permission": "property-finance-arrears",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "permissions": [
+              {
+                "permission": "property-finance-arrears",
+                "actions": ["delete"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]

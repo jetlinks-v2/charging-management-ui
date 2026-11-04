@@ -1,3 +1,7 @@
+import * as financeSubject from './api/financeSubject'
+import * as financeTax from './api/financeTax'
+import * as financeRecorded from './api/financeRecorded'
+import * as finance from './api/finance'
 import {
   queryPropertyUsers,
   countPropertyUsers,
@@ -21,6 +25,10 @@ import {
 export default {
   apis: {
     ...archive,
+    ...finance,
+    ...financeSubject,
+    ...financeTax,
+    ...financeRecorded,
     queryPropertyUsers,
     countPropertyUsers,
     getPropertyUser,
