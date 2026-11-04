@@ -1040,6 +1040,83 @@
             ]
           }
         ]
+      },
+      {
+        "id": "charging-FinanceReceivable",
+        "code": "charging/FinanceReceivable",
+        "name": "应收款管理",
+        "url": "/charging/finance/receivables",
+        "owner": "app",
+        "sortIndex": 10,
+        "icon": "AccountBookOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "应收款管理",
+            "en_US": "Receivables",
+            "en": "Receivables"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-receivable",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-project",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-space",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "freeze",
+            "name": "冻结/解冻",
+            "i18nMessages": {
+              "zh_CN": "冻结/解冻",
+              "en_US": "Freeze / unfreeze",
+              "en": "Freeze / unfreeze"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["freeze"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "i18nMessages": {
+              "zh_CN": "删除",
+              "en_US": "Delete",
+              "en": "Delete"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "export",
+            "name": "导出",
+            "i18nMessages": {
+              "zh_CN": "导出",
+              "en_US": "Export",
+              "en": "Export"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["export"]
+              }
+            ]
+          }
+        ]
       }
     ]
   }

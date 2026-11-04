@@ -1,3 +1,4 @@
+import * as financeReceivable from './api/financeReceivable'
 import * as financeSetting from './api/financeSetting'
 import * as financeStandard from './api/financeStandard'
 import * as financeSubject from './api/financeSubject'
@@ -31,6 +32,7 @@ export default {
     ...financeSubject,
     ...financeStandard,
     ...financeSetting,
+    ...financeReceivable,
     ...financeTax,
     ...financeRecorded,
     queryPropertyUsers,

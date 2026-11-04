@@ -819,5 +819,63 @@
       "FAILED": "执行失败",
       "SKIPPED": "已跳过"
     }
+  },
+  "Receivable": {
+    "title": "应收款管理",
+    "detail": "应收账单详情",
+    "scopeHint": "按房屋查看账单、金额构成与操作记录",
+    "empty": "当前范围暂无应收账单",
+    "fullName": "房屋",
+    "subjectName": "收费科目",
+    "customerName": "收费客户",
+    "standardName": "收费标准",
+    "coverage": "计费期间",
+    "amounts": "账单金额",
+    "composition": "费用构成",
+    "period": "账期信息",
+    "rule": "计算规则",
+    "logs": "操作记录",
+    "noLogs": "暂无操作记录",
+    "reason": "操作原因",
+    "reasonRequired": "请填写本次操作原因",
+    "changed": "操作成功",
+    "financialClosed": "已财务结账",
+    "versionChange": "版本 {before} → {after}",
+    "status": {
+      "ALL": "全部",
+      "OPEN": "开放中",
+      "CLOSED": "已关闭",
+      "FROZEN": "已冻结"
+    },
+    "operation": {
+      "FREEZE": "冻结",
+      "UNFREEZE": "解冻",
+      "DELETE": "删除"
+    },
+    "confirm": {
+      "FREEZE": "冻结后暂停账单业务操作，计提和逾期费用仍按原规则计算。",
+      "UNFREEZE": "解冻后，账单恢复当前状态允许的业务操作。",
+      "DELETE": "仅用于错误账单。删除后不再显示在应收列表，原账期身份和操作记录仍会保留。"
+    },
+    "contractReceivableAmount": "账期应收",
+    "accruedReceivableAmount": "已计提本金",
+    "adjustmentAmount": "调整金额",
+    "assessmentAmount": "考核金额",
+    "temporaryDispatchAmount": "临时增派金额",
+    "feeReductionAmount": "本金减免",
+    "accruedLateFeeAmount": "应计逾期费用",
+    "lateFeeReductionAmount": "逾期减免",
+    "finalLateFeeAmount": "实际逾期费用",
+    "actualReceivableAmount": "实际应收",
+    "paidAmount": "已收金额",
+    "arrears": "欠费金额",
+    "periodStart": "账期开始",
+    "periodEnd": "账期结束",
+    "calcStartDate": "计费开始",
+    "calcEndDate": "计费结束",
+    "dueDate": "到期日",
+    "calculatedAsOfDate": "计算截至日",
+    "confirmAction": "确认",
+    "export": "导出"
   }
 }

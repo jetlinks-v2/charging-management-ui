@@ -819,5 +819,63 @@
       "FAILED": "Failed",
       "SKIPPED": "Skipped"
     }
+  },
+  "Receivable": {
+    "title": "Receivables",
+    "detail": "Receivable details",
+    "scopeHint": "Review bills, amount breakdown and operation history by space",
+    "empty": "No receivables in this scope",
+    "fullName": "House",
+    "subjectName": "Charge subject",
+    "customerName": "Billed customer",
+    "standardName": "Charge standard",
+    "coverage": "Billing coverage",
+    "amounts": "Bill amounts",
+    "composition": "Amount breakdown",
+    "period": "Billing period",
+    "rule": "Calculation rules",
+    "logs": "Operation history",
+    "noLogs": "No operation history",
+    "reason": "Reason",
+    "reasonRequired": "Enter a reason for this operation",
+    "changed": "Operation completed",
+    "financialClosed": "Financially closed",
+    "versionChange": "Version {before} → {after}",
+    "status": {
+      "ALL": "All",
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "FROZEN": "Frozen"
+    },
+    "operation": {
+      "FREEZE": "Freeze",
+      "UNFREEZE": "Unfreeze",
+      "DELETE": "Delete"
+    },
+    "confirm": {
+      "FREEZE": "Freezing pauses bill operations. Accrual and late fees continue under the original rules.",
+      "UNFREEZE": "Unfreezing restores operations allowed by the current bill state.",
+      "DELETE": "Use only for incorrect bills. The original period identity and audit history remain after removal from the list."
+    },
+    "contractReceivableAmount": "Period receivable",
+    "accruedReceivableAmount": "Accrued principal",
+    "adjustmentAmount": "Adjustment",
+    "assessmentAmount": "Assessment",
+    "temporaryDispatchAmount": "Temporary dispatch",
+    "feeReductionAmount": "Principal reduction",
+    "accruedLateFeeAmount": "Accrued late fees",
+    "lateFeeReductionAmount": "Late fee reduction",
+    "finalLateFeeAmount": "Final late fees",
+    "actualReceivableAmount": "Actual receivable",
+    "paidAmount": "Paid",
+    "arrears": "Outstanding",
+    "periodStart": "Period start",
+    "periodEnd": "Period end",
+    "calcStartDate": "Coverage start",
+    "calcEndDate": "Coverage end",
+    "dueDate": "Due date",
+    "calculatedAsOfDate": "Calculated through",
+    "confirmAction": "Confirm",
+    "export": "Export"
   }
 }
