@@ -1871,6 +1871,21 @@
                 "actions": ["print"]
               }
             ]
+          },
+          {
+            "id": "verify",
+            "name": "核销收据",
+            "i18nMessages": {
+              "zh_CN": "核销收据",
+              "en_US": "Verify receipts",
+              "en": "Verify receipts"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receipts",
+                "actions": ["verify"]
+              }
+            ]
           }
         ]
       },

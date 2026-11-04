@@ -69,6 +69,28 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
     />
   </SectionCard>
   <SectionCard
+    v-if="record?.documentType === 'RECEIPT'"
+    icon="CheckCircleOutlined"
+    :title="t('Verification.state')"
+  >
+    <KvGrid
+      :cols="2"
+      :items="[
+        {
+          label: t('Verification.state'),
+          value: t(record.verified ? 'Verification.verified' : 'Verification.unverified')
+        },
+        ...(record.verified
+          ? [
+              { label: t('Verification.at'), value: record.verifiedAt?.replace('T', ' ') || '—' },
+              { label: t('Verification.operator'), value: record.verifiedName || '—' },
+              { label: t('Verification.remark'), value: record.verificationRemark || '—' }
+            ]
+          : [])
+      ]"
+    />
+  </SectionCard>
+  <SectionCard
     icon="UserOutlined"
     :title="t('Document.buyerTitle')"
   >

@@ -1552,5 +1552,22 @@
       "NUMBER_ENABLE": "启用号码",
       "NUMBER_DISCARD": "废弃号码"
     }
+  },
+  "Verification": {
+    "verify": "核销",
+    "state": "核销状态",
+    "verified": "已核销",
+    "unverified": "未核销",
+    "hint": "核对票据后登记核销；核销后不能作废，不支持反核销。",
+    "remark": "核销备注",
+    "remarkHint": "选填，最多200字",
+    "confirm": "确认核销",
+    "batch": "批量核销（{count}）",
+    "recover": "恢复核销确认",
+    "success": "核销成功",
+    "completed": "已完成 {count} 张收据的核销登记",
+    "limit": "每次最多选择100张收据",
+    "at": "核销时间",
+    "operator": "核销人"
   }
 }

@@ -124,6 +124,11 @@ export interface DocumentRecord {
   invoiceType?: string
   issueScene: string
   issuedAt: string
+  verified?: boolean | null
+  verifiedAt?: string
+  verifiedBy?: string
+  verifiedName?: string
+  verificationRemark?: string
   amount: string
   taxAmount: string
   netAmount: string
@@ -146,7 +151,7 @@ export interface DocumentOperation {
   id: string
   documentId: string
   resultDocumentId: string
-  action: 'ISSUE' | 'REVERSE' | 'REOPEN'
+  action: 'ISSUE' | 'REVERSE' | 'REOPEN' | 'VERIFY'
   beforeState?: DocumentRecord['status']
   afterState: DocumentRecord['status']
   reason?: string
@@ -161,6 +166,14 @@ export interface DocumentReverseInput {
 export interface DocumentReversePreview {
   token: string
   document: DocumentRecord
+}
+export interface ReceiptVerificationInput {
+  items: { id: string; version: number }[]
+  remark?: string
+}
+export interface ReceiptVerificationPreview {
+  token: string
+  documents: DocumentRecord[]
 }
 export interface DocumentReopenInput {
   id: string
@@ -251,6 +264,12 @@ export const reverseDocument = (
     )
     .then(checked)
 }
+export const verifyReceipts = (project: string, input: PaymentRequest<ReceiptVerificationInput>) =>
+  request
+    .post<
+      DocumentDetail[]
+    >(`${base(project, 'RECEIPT')}/_verify`, { requestId: input.requestId, ...input.input }, { hiddenError: true })
+    .then(checked)
 const rulePath = (project: string) => `/property/finance/projects/${encodeURIComponent(project)}/document-rule`
 export const previewDocumentReopen = (project: string, input: DocumentReopenInput) => {
   const { id, ...correction } = input

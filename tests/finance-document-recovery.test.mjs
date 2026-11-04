@@ -101,3 +101,26 @@ test('红冲恢复须与原票类型编号版本对应', () => {
   store.write(pending)
   assert.throws(() => store.read(), /scope/)
 })
+
+test('核销恢复逐张校验收据身份版本，不能跨项目或混入发票', () => {
+  setup()
+  const project = ref('project'),
+    use = mod.exports.useDocumentRecovery,
+    store = use(project, 'RECEIPT', 'verify')
+  const value = {
+    request: { requestId: 'verify', token: 'token', input: { items: [{ id: 'receipt', version: 1 }], remark: '备注' } },
+    preview: { token: 'token', documents: [{ id: 'receipt', version: 1, documentType: 'RECEIPT' }] }
+  }
+  store.write(value)
+  assert.deepEqual(store.read(), value)
+  project.value = 'other'
+  assert.equal(store.read(), undefined)
+  project.value = 'project'
+  value.preview.documents[0].documentType = 'INVOICE'
+  store.write(value)
+  assert.throws(() => store.read(), /scope/)
+  value.preview.documents[0].documentType = 'RECEIPT'
+  value.request.input.items[0].version = 2
+  store.write(value)
+  assert.throws(() => store.read(), /scope/)
+})

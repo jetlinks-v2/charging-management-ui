@@ -10,6 +10,7 @@ const bundle = await build({
     contents: `export * from './hooks/finance-document/useDocumentEditor';
     export * from './hooks/finance-document/useDocumentReverse';
     export * from './hooks/finance-document/useDocumentReopen';
+    export * from './hooks/finance-document/useReceiptVerification';
     export * from './utils/documentSelection';`,
     resolveDir: fileURLToPath(new URL('..', import.meta.url)),
     loader: 'ts'
@@ -35,7 +36,8 @@ const bundle = await build({
                 'reverseDocument',
                 'getDocument',
                 'previewDocumentReopen',
-                'confirmDocumentReopen'
+                'confirmDocumentReopen',
+                'verifyReceipts'
               ]
                 .map((n) => `export const ${n}=(...a)=>globalThis.__documentApi.${n}(...a)`)
                 .join('\n')
@@ -153,7 +155,12 @@ function mount(overrides = {}, recovery = memory(), reverse = false) {
   }
   let state,
     saved = 0
-  const props = reactive({ projectId: 'project', type: 'INVOICE', document })
+  const props = reactive({
+    projectId: 'project',
+    type: 'INVOICE',
+    document,
+    documents: [{ ...document, documentType: 'RECEIPT', status: 'ISSUED' }]
+  })
   const renderer = createRenderer({
     patchProp() {},
     insert() {},
@@ -170,11 +177,13 @@ function mount(overrides = {}, recovery = memory(), reverse = false) {
     defineComponent({
       setup() {
         state =
-          reverse === 'reopen'
-            ? api.useDocumentReopen(props, () => saved++, recovery)
-            : reverse
-              ? api.useDocumentReverse(props, () => saved++, recovery)
-              : api.useDocumentEditor(props, () => saved++, recovery)
+          reverse === 'verify'
+            ? api.useReceiptVerification(props, () => saved++, recovery)
+            : reverse === 'reopen'
+              ? api.useDocumentReopen(props, () => saved++, recovery)
+              : reverse
+                ? api.useDocumentReverse(props, () => saved++, recovery)
+                : api.useDocumentEditor(props, () => saved++, recovery)
         return () => h('div')
       }
     })
@@ -195,6 +204,96 @@ test('跨页来源只允许同客户销方，可撤销且临时款按主单键�
   s.toggle(candidate('temporary', { sourceType: 'TEMP_PAYMENT' }))
   assert.equal(s.selected.value.length, 1)
   assert.equal(s.buyer.name, '龚超')
+  m.unmount()
+})
+
+test('核销批量原请求冻结并阻止双击，成功只登记一次', async () => {
+  let resolve
+  const waiting = new Promise((yes) => (resolve = yes)),
+    calls = []
+  const m = mount(
+    {
+      verifyReceipts: async (p, r) => {
+        calls.push([p, structuredClone(r)])
+        return waiting
+      }
+    },
+    memory(),
+    'verify'
+  )
+  m.state.remark.value = '核对无误'
+  const first = m.state.submit()
+  await flush()
+  await m.state.submit()
+  assert.equal(calls.length, 1)
+  assert.equal(m.state.canClose.value, false)
+  assert.deepEqual(calls[0][1].input, { items: [{ id: 'blue', version: 1 }], remark: '核对无误' })
+  resolve([{ document: { id: 'blue', verified: true } }])
+  await first
+  assert.equal(m.saved(), 1)
+  assert.equal(m.state.canClose.value, true)
+  assert.equal(m.state.locked.value, true)
+  m.unmount()
+})
+test('核销未知结果重挂后保持原批次和项目，不重查票据且不能换载荷重试', async () => {
+  const recovery = memory(),
+    calls = []
+  let m = mount(
+    {
+      verifyReceipts: async (p, r) => {
+        calls.push([p, structuredClone(r)])
+        throw Error('network')
+      }
+    },
+    recovery,
+    'verify'
+  )
+  m.state.remark.value = '原核销备注'
+  await m.state.submit()
+  assert.equal(m.state.uncertain.value, true)
+  assert.equal(m.state.canClose.value, false)
+  m.unmount()
+  m = mount(
+    {
+      verifyReceipts: async (p, r) => {
+        calls.push([p, structuredClone(r)])
+        return [{ document: { id: 'blue', verified: true } }]
+      }
+    },
+    recovery,
+    'verify'
+  )
+  await flush()
+  assert.equal(m.state.remark.value, '原核销备注')
+  m.props.projectId = 'changed'
+  m.props.documents = [{ id: 'different', version: 99 }]
+  m.state.remark.value = '篡改'
+  await m.state.submit()
+  assert.deepEqual(calls[0], calls[1])
+  assert.equal(recovery.read(), undefined)
+  m.unmount()
+})
+test('核销确定拒绝仅消息提示并保留备注，超过100张不发送', async () => {
+  let calls = 0
+  const m = mount(
+    {
+      verifyReceipts: async () => {
+        calls++
+        throw { response: { status: 409, data: { message: '收据状态变化' } } }
+      }
+    },
+    memory(),
+    'verify'
+  )
+  m.state.remark.value = '保留说明'
+  await m.state.submit()
+  assert.equal(m.state.uncertain.value, false)
+  assert.equal(m.state.remark.value, '保留说明')
+  assert.ok(globalThis.__documentMessages.length)
+  assert.equal(m.state.canClose.value, true)
+  m.props.documents = Array.from({ length: 101 }, (_, i) => ({ id: String(i), version: 0 }))
+  await m.state.submit()
+  assert.equal(calls, 1)
   m.unmount()
 })
 test('金额以整数分校验，超JS安全整数仍能区分相差一分钱', () => {

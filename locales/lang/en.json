@@ -1551,5 +1551,22 @@
       "NUMBER_ENABLE": "Number enabled",
       "NUMBER_DISCARD": "Number discarded"
     }
+  },
+  "Verification": {
+    "verify": "Verify",
+    "state": "Verification",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "hint": "Register verification after checking receipts. Verified receipts cannot be voided. Verification cannot be undone.",
+    "remark": "Verification note",
+    "remarkHint": "Optional, up to 200 characters",
+    "confirm": "Confirm verification",
+    "batch": "Verify selected ({count})",
+    "recover": "Resume verification",
+    "success": "Verification completed",
+    "completed": "Verified {count} receipts",
+    "limit": "Select up to 100 receipts per batch",
+    "at": "Verified at",
+    "operator": "Verified by"
   }
 }

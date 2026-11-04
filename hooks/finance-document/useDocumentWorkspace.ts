@@ -18,10 +18,12 @@ import type { Query } from '../../api/archive'
 import { requestErrorMessage } from '../../utils/requestError'
 import { useProjectContext, useProjectSwitchGuard } from '../project/useProjectContext'
 import { useDocumentRecovery } from './useDocumentRecovery'
+import { useReceiptVerificationWorkspace } from './useReceiptVerificationWorkspace'
 
 export function useDocumentWorkspace(type: DocumentType) {
   const { t } = useI18n(),
     { projectId } = useProjectContext()
+  const verification = useReceiptVerificationWorkspace(projectId, type)
   const table = ref<{ reload: () => void }>(),
     terms = ref<Query['terms']>([]),
     status = ref('ALL')
@@ -59,7 +61,8 @@ export function useDocumentWorkspace(type: DocumentType) {
       issuePending.value ||
       reversePending.value ||
       reopenPending.value ||
-      recoveryFailed.value
+      recoveryFailed.value ||
+      verification.blocked.value
   )
   let generation = 0,
     disposed = false
@@ -109,6 +112,8 @@ export function useDocumentWorkspace(type: DocumentType) {
   }
   function saved() {
     checkPending()
+    verification.check()
+    verification.selected.value = []
     table.value?.reload()
   }
   function reverse(row: DocumentRecord) {
@@ -164,12 +169,16 @@ export function useDocumentWorkspace(type: DocumentType) {
     { immediate: true }
   )
   useProjectSwitchGuard(() => !blocked.value && !detailOpen.value)
+  watch(params, () => {
+    verification.selected.value = []
+  })
   onScopeDispose(() => {
     disposed = true
     ++generation
   })
   return {
     projectId,
+    verification,
     permission,
     table,
     terms,

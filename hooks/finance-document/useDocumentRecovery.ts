@@ -9,7 +9,7 @@ import type { PaymentRecovery, PendingPayment } from '../../api/paymentConfirmat
 export function useDocumentRecovery<I, P extends { token: string }>(
   project: MaybeRefOrGetter<string>,
   type: DocumentType,
-  action: 'issue' | 'reverse' | 'reopen'
+  action: 'issue' | 'reverse' | 'reopen' | 'verify'
 ): PaymentRecovery<I, P> {
   const user = useUserStore()
   const key = computed(
@@ -38,7 +38,7 @@ export function useDocumentRecovery<I, P extends { token: string }>(
         throw new Error('Invalid pending document')
       const input = value.request.input as {
         documentType?: string
-        items?: unknown[]
+        items?: { id?: string; version?: number }[]
         id?: string
         version?: number
         reason?: string
@@ -47,21 +47,40 @@ export function useDocumentRecovery<I, P extends { token: string }>(
         documentType?: string
         document?: { id?: string; version?: number; documentType?: string }
         original?: { id?: string; version?: number; documentType?: string }
+        documents?: { id?: string; version?: number; documentType?: string }[]
       }
       if (
         action === 'issue'
           ? input.documentType !== type || preview.documentType !== type || !input.items?.length
-          : action === 'reopen'
-            ? type !== 'INVOICE' ||
-              preview.documentType !== type ||
-              preview.original?.documentType !== type ||
-              preview.original?.id !== input.id ||
-              preview.original?.version !== input.version ||
-              !input.reason?.trim()
-            : preview.document?.documentType !== type ||
-              preview.document.id !== input.id ||
-              preview.document.version !== input.version ||
-              !input.reason?.trim()
+          : action === 'verify'
+            ? type !== 'RECEIPT' ||
+              !Array.isArray(input.items) ||
+              !input.items.length ||
+              input.items.length > 100 ||
+              !Array.isArray(preview.documents) ||
+              preview.documents.length !== input.items.length ||
+              input.items.some(
+                (item, index) =>
+                  !item?.id ||
+                  item.id.length > 64 ||
+                  !Number.isSafeInteger(item.version) ||
+                  item.version! < 0 ||
+                  input.items?.findIndex((other) => other?.id === item.id) !== index ||
+                  preview.documents?.[index]?.documentType !== 'RECEIPT' ||
+                  preview.documents?.[index]?.id !== item.id ||
+                  preview.documents?.[index]?.version !== item.version
+              )
+            : action === 'reopen'
+              ? type !== 'INVOICE' ||
+                preview.documentType !== type ||
+                preview.original?.documentType !== type ||
+                preview.original?.id !== input.id ||
+                preview.original?.version !== input.version ||
+                !input.reason?.trim()
+              : preview.document?.documentType !== type ||
+                preview.document.id !== input.id ||
+                preview.document.version !== input.version ||
+                !input.reason?.trim()
       )
         throw new Error('Invalid document scope')
       return value
