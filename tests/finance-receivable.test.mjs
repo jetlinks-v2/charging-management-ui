@@ -15,7 +15,10 @@ const names = [
   'submitAdjustment',
   'getSplitOptions',
   'previewSplit',
-  'submitSplit'
+  'submitSplit',
+  'historicalTemplate',
+  'importHistorical',
+  'queryHistoricalImports'
 ]
 async function load(path) {
   const result = await build({
@@ -303,5 +306,58 @@ test('拆分先加载真实客户，预览不可被变更或迟到响应复用�
   assert.equal(state.model.reason, '搬迁分账')
   assert.equal(state.preview.value, undefined)
   assert.equal(calls.includes('done'), false)
+  unmount()
+})
+
+const { useHistoricalImport } = await load('../hooks/finance-receivable/useHistoricalImport.ts')
+test('历史导入失败不刷新账单也不关闭文件选择，成功才刷新并解除忙碌', async () => {
+  let reloads = 0,
+    attempts = 0
+  const props = reactive({ projectId: 'a', projectName: '园区' })
+  const { state, unmount } = mount(() => useHistoricalImport(props, () => reloads++), {
+    importHistorical: async () =>
+      ++attempts === 1 ? { status: 'FAILED', errorMessage: '第3行金额错误' } : { status: 'SUCCESS', successCount: 2 }
+  })
+  state.open.value = true
+  const file = new File(['data'], '历史.xlsx', {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  })
+  await state.upload(file)
+  assert.equal(reloads, 0)
+  assert.equal(state.open.value, true)
+  assert.equal(globalThis.__receivableMessages.at(-1)[1], 'error')
+  await state.upload(file)
+  assert.equal(reloads, 1)
+  assert.equal(state.open.value, false)
+  assert.equal(state.busy.value, false)
+  unmount()
+})
+
+test('历史导入锁定项目，切换项目或卸载后丢弃迟到结果，记录请求只取当前项目', async () => {
+  const pending = deferred(),
+    calls = []
+  let saved = 0
+  const props = reactive({ projectId: 'a', projectName: '园区' })
+  const { state, unmount } = mount(() => useHistoricalImport(props, () => saved++), {
+    importHistorical: async () => pending.promise,
+    queryHistoricalImports: async (...args) => {
+      calls.push(args)
+      return { success: true, result: { data: [], total: 0 } }
+    }
+  })
+  state.open.value = true
+  assert.equal(globalThis.__receivableGuards.at(-1)(), false)
+  const uploading = state.upload(new File(['data'], '历史.xlsx'))
+  assert.equal(state.busy.value, true)
+  props.projectId = 'b'
+  await nextTick()
+  pending.resolve({ status: 'SUCCESS', successCount: 1 })
+  await uploading
+  assert.equal(saved, 0)
+  assert.equal(state.busy.value, false)
+  state.historyOpen.value = true
+  await state.request({ pageIndex: 2, pageSize: 12, terms: [{ column: 'projectId', termType: 'eq', value: 'a' }] })
+  assert.equal(calls[0][0], 'b')
+  assert.deepEqual(calls[0][1], { terms: [], pageIndex: 2, pageSize: 12 })
   unmount()
 })

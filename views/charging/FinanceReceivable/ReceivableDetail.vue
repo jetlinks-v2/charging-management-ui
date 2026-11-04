@@ -13,10 +13,12 @@ const { rows, total, current, loading: logsLoading, failed: logsFailed, load } =
 const amounts = (keys: (keyof Receivable)[]) =>
   keys.map((key) => ({ label: t('Receivable.' + key), value: String(props.detail?.[key] ?? '—') }))
 const period = computed(() =>
-  ['periodStart', 'periodEnd', 'calcStartDate', 'calcEndDate', 'dueDate', 'calculatedAsOfDate'].map((key) => ({
-    label: t('Receivable.' + key),
-    value: String(props.detail?.[key as keyof Receivable] || '—')
-  }))
+  ['periodStart', 'periodEnd', 'calcStartDate', 'calcEndDate', 'dueDate', 'calculatedAsOfDate', 'accountPeriod'].map(
+    (key) => ({
+      label: t('Receivable.' + key),
+      value: String(props.detail?.[key as keyof Receivable] || '—')
+    })
+  )
 )
 const identity = computed(() => [
   { label: t('Setting.house'), value: props.detail?.fullName },
@@ -24,7 +26,9 @@ const identity = computed(() => [
   { label: t('Setting.telephone'), value: props.detail?.snapshot?.customer.telephone || '—' },
   { label: t('Setting.family'), value: props.detail?.snapshot?.customer.familyName || '—' },
   { label: t('Setting.subject'), value: props.detail?.subjectName },
-  { label: t('Setting.standard'), value: props.detail?.standardName }
+  { label: t('Setting.standard'), value: props.detail?.standardName },
+  { label: t('Historical.contractCode'), value: props.detail?.contractCode || '—' },
+  { label: t('Setting.remark'), value: props.detail?.remark || '—' }
 ])
 const variables = computed(
   () =>
@@ -73,6 +77,7 @@ const variables = computed(
         {{ t('Split.viewSource') }}
       </a-button>
       <a-tag v-if="detail.split">{{ t('Split.archived') }}</a-tag>
+      <a-tag v-if="detail.sourceType === 'HISTORICAL_IMPORT'">{{ t('Historical.source') }}</a-tag>
       <a-tabs>
         <a-tab-pane
           key="amount"

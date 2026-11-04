@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReceivableWorkspace, receivablePermission } from '../../../hooks/finance-receivable/useReceivableWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
@@ -7,6 +8,7 @@ import ReceivableDetail from './ReceivableDetail.vue'
 import ReceivableChange from './ReceivableChange.vue'
 import ReceivableAdjustment from './ReceivableAdjustment.vue'
 import ReceivableSplit from './ReceivableSplit.vue'
+import HistoricalImports from './HistoricalImports.vue'
 const { t } = useI18n()
 const state = useReceivableWorkspace()
 const {
@@ -26,6 +28,7 @@ const {
   exportRows
 } = state
 const { projectId, keyword, selectedId, selected, loading: treeLoading, failed: treeFailed } = archive
+const projectName = computed(() => archive.projects.value.find((project) => project.id === projectId.value)?.name || '')
 function refresh() {
   void archive.loadTree()
   state.reload()
@@ -82,7 +85,12 @@ function adjustmentSaved() {
             <h2>{{ t('Receivable.title') }}</h2>
             <span class="subject-caption">{{ selected?.spaceLocation || t('Receivable.scopeHint') }}</span>
           </div>
-          <a-space>
+          <a-space wrap>
+            <HistoricalImports
+              :project-id="projectId"
+              :project-name="projectName"
+              @saved="state.reload()"
+            />
             <j-permission-button
               :hasPermission="`${receivablePermission}:export`"
               :disabled="!projectId"

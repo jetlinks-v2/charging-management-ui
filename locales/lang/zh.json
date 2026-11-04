@@ -852,7 +852,8 @@
       "UNFREEZE": "解冻",
       "DELETE": "删除",
       "ADJUST": "调整",
-      "SPLIT": "日期拆分"
+      "SPLIT": "日期拆分",
+      "IMPORT": "历史导入"
     },
     "confirm": {
       "FREEZE": "冻结后暂停账单业务操作，计提和逾期费用仍按原规则计算。",
@@ -878,7 +879,8 @@
     "dueDate": "到期日",
     "calculatedAsOfDate": "计算截至日",
     "confirmAction": "确认",
-    "export": "导出"
+    "export": "导出",
+    "accountPeriod": "应收账期"
   },
   "Adjustment": {
     "title": "调整",
@@ -938,5 +940,18 @@
     "viewSource": "查看原账单",
     "archived": "已拆分归档",
     "selectDate": "请选择拆分日期"
+  },
+  "Historical": {
+    "title": "历史应收导入",
+    "history": "历史应收导入记录",
+    "guide": "使用本项目模板，按完整房屋路径、客户名称及科目标准匹配。所有行校验通过后才会整批入账；历史金额按填写值保存。",
+    "fileHint": "支持 .xlsx、.xls，文件不超过10 MB，最多500行。",
+    "succeeded": "已导入 {count} 笔历史应收",
+    "failed": "导入失败，本批次未生成账单，请查看导入记录。",
+    "processing": "正在处理，请在导入记录中查看结果。",
+    "noWrites": "本批次未写入任何账单，请修正后重新上传。",
+    "result": "导入结果",
+    "source": "历史应收",
+    "contractCode": "合同编号"
   }
 }

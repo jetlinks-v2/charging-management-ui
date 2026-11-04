@@ -13,6 +13,11 @@ export interface Receivable {
   fullName: string
   customerRelationshipId: string
   sourceReceivableId?: string
+  sourceType?: string
+  importId?: string
+  accountPeriod?: string
+  contractCode?: string
+  remark?: string
   customerName: string
   subjectName: string
   standardName: string
@@ -161,3 +166,30 @@ export const previewSplit = (project: string, key: string, input: SplitInput) =>
   request.post<SplitPreview>(`${base(project)}/${id(key)}/split/_preview`, input, { hiddenError: true }).then(checked)
 export const submitSplit = (project: string, key: string, input: SplitInput, token: string) =>
   request.post<Receivable[]>(`${base(project)}/${id(key)}/split`, { input, token }, { hiddenError: true }).then(checked)
+
+export interface HistoricalImportRecord {
+  id: string
+  projectId: string
+  fileName: string
+  status: 'PROCESSING' | 'SUCCESS' | 'FAILED'
+  totalCount: number
+  successCount: number
+  errorCount: number
+  errorMessage?: string
+  operatorName: string
+  createTime: number
+  finishTime?: number
+}
+export const historicalTemplate = (project: string) =>
+  request
+    .get<Blob>(`${base(project)}/imports/template.xlsx`, {}, { hiddenError: true, responseType: 'blob' })
+    .then(excelResponse)
+export const importHistorical = (project: string, file: File) => {
+  const body = new FormData()
+  body.append('file', file)
+  return request.post<HistoricalImportRecord>(`${base(project)}/imports`, body, { hiddenError: true }).then(checked)
+}
+export const queryHistoricalImports = (project: string, query: Query, signal?: AbortSignal) =>
+  request
+    .post<Page<HistoricalImportRecord>>(`${base(project)}/imports/_query`, query, { hiddenError: true, signal })
+    .then(pageResponse)

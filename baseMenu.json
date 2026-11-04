@@ -1145,6 +1145,36 @@
                 "actions": ["split"]
               }
             ]
+          },
+          {
+            "id": "import",
+            "name": "历史应收导入",
+            "i18nMessages": {
+              "zh_CN": "历史应收导入",
+              "en_US": "Import historical receivables",
+              "en": "Import historical receivables"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["import"]
+              }
+            ]
+          },
+          {
+            "id": "imports",
+            "name": "导入记录",
+            "i18nMessages": {
+              "zh_CN": "导入记录",
+              "en_US": "Import records",
+              "en": "Import records"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["imports"]
+              }
+            ]
           }
         ]
       }

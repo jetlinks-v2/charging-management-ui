@@ -9,6 +9,9 @@ const props = defineProps<{
   projectName: string
   kind: 'house' | 'customer'
   busy: boolean
+  title?: string
+  guideText?: string
+  fileHint?: string
 }>()
 const emit = defineEmits<{ close: []; template: [CustomerType?]; upload: [File, CustomerType?] }>()
 const { t } = useI18n()
@@ -39,7 +42,7 @@ function choose(selected: File) {
     :open="open"
     :width="640"
     :style="{ maxWidth: 'calc(100vw - 32px)' }"
-    :title="t('Archive.importTitle', { kind: t('Archive.' + (kind === 'house' ? 'houses' : 'customers')) })"
+    :title="title || t('Archive.importTitle', { kind: t('Archive.' + (kind === 'house' ? 'houses' : 'customers')) })"
     :closable="!busy"
     :mask-closable="!busy"
     :keyboard="!busy"
@@ -75,7 +78,7 @@ function choose(selected: File) {
       <div class="archive-import__guide">
         <div>
           <h3>{{ t('Archive.importGuide') }}</h3>
-          <p>{{ t('Archive.' + (kind === 'customer' ? 'importGuideText' : 'houseImportGuideText')) }}</p>
+          <p>{{ guideText || t('Archive.' + (kind === 'customer' ? 'importGuideText' : 'houseImportGuideText')) }}</p>
         </div>
         <a-button
           :loading="busy"
@@ -95,7 +98,7 @@ function choose(selected: File) {
       >
         <div class="archive-import__upload-icon"><AIcon type="FileExcelOutlined" /></div>
         <p class="archive-import__drop">{{ t('Archive.importDrop') }}</p>
-        <p class="archive-import__hint">{{ t('Archive.importFileHint') }}</p>
+        <p class="archive-import__hint">{{ fileHint || t('Archive.importFileHint') }}</p>
       </a-upload-dragger>
       <div
         v-if="file"

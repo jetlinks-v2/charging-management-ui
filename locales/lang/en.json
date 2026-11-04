@@ -852,7 +852,8 @@
       "UNFREEZE": "Unfreeze",
       "DELETE": "Delete",
       "ADJUST": "Adjust",
-      "SPLIT": "Split by date"
+      "SPLIT": "Split by date",
+      "IMPORT": "Historical import"
     },
     "confirm": {
       "FREEZE": "Freezing pauses bill operations. Accrual and late fees continue under the original rules.",
@@ -878,7 +879,8 @@
     "dueDate": "Due date",
     "calculatedAsOfDate": "Calculated through",
     "confirmAction": "Confirm",
-    "export": "Export"
+    "export": "Export",
+    "accountPeriod": "Account period"
   },
   "Adjustment": {
     "title": "Adjust",
@@ -938,5 +940,18 @@
     "viewSource": "View source bill",
     "archived": "Archived after split",
     "selectDate": "Select split date"
+  },
+  "Historical": {
+    "title": "Import historical receivables",
+    "history": "Historical import records",
+    "guide": "Use this project’s template. Match the complete space path, customer name, subject and standard. All rows must pass validation before the entire file is posted. Historical amounts are preserved.",
+    "fileHint": "Excel .xlsx / .xls only. Maximum 10 MB and 500 rows.",
+    "succeeded": "Imported {count} historical receivables",
+    "failed": "Import failed. No bills were created. See import records.",
+    "processing": "Processing. Check import records for the result.",
+    "noWrites": "No bills were written for this batch. Correct the file and upload again.",
+    "result": "Import result",
+    "source": "Historical receivable",
+    "contractCode": "Contract number"
   }
 }
