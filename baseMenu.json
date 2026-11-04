@@ -1458,6 +1458,21 @@
                 "actions": ["return-offset"]
               }
             ]
+          },
+          {
+            "id": "revoke-topup",
+            "name": "撤销预收存入",
+            "i18nMessages": {
+              "zh_CN": "撤销预收存入",
+              "en_US": "Reverse advance top-up",
+              "en": "Reverse advance top-up"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["revoke-topup"]
+              }
+            ]
           }
         ]
       },

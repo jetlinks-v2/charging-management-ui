@@ -1083,7 +1083,8 @@
     "attachmentPending": "请等待凭证上传完成，或移除上传失败的文件。",
     "TRANSFER_OUT": "划出",
     "RETURN_OFFSET": "冲抵退回余额",
-    "TO_ADVANCE": "实收转预存"
+    "TO_ADVANCE": "实收转预存",
+    "REVOKE_TOPUP": "撤销存入"
   },
   "Temporary": {
     "title": "临时收款",
@@ -1126,5 +1127,16 @@
     "effect": "本次操作将恢复原应收欠费，并转入目标预收余额，不产生现金支出。",
     "pending": "有一笔转预存结果待确认，请使用原请求恢复。",
     "sourceCompany": "原收款公司"
+  },
+  "FundRevoke": {
+    "title": "撤销存入",
+    "amount": "撤销原存入金额（元）",
+    "original": "原存入流水",
+    "source": "原存入信息",
+    "info": "撤销信息",
+    "effect": "整笔冲销原预收存入及原收款现金流。已消费、退款、划转、开票、交账或月结的来源不能撤销。",
+    "pending": "有一笔存入撤销结果待确认，请恢复原请求。",
+    "succeeded": "原预收存入已撤销",
+    "confirm": "确认撤销原存入"
   }
 }

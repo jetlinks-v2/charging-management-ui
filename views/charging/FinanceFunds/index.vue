@@ -9,6 +9,7 @@ import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import FundDetail from './FundDetail.vue'
 import FundEditor from './FundEditor.vue'
 import FundReturnEditor from './FundReturnEditor.vue'
+import FundRevokeEditor from './FundRevokeEditor.vue'
 import '../FinanceCashier/cashier.css'
 const { t } = useI18n()
 const state = useFundsWorkspace()
@@ -22,6 +23,13 @@ const {
   recover: recoverReturn,
   close: closeReturn
 } = state.returns
+const {
+  draft: revokeDraft,
+  pending: revokePending,
+  failed: revokeFailed,
+  recover: recoverRevoke,
+  close: closeRevoke
+} = state.revocations
 const fields = computed(() =>
   ['fullName', 'customerName', 'subjectName', 'companyName'].map((key) => ({
     title: t(key === 'companyName' ? 'Cashier.company' : 'Receivable.' + key),
@@ -46,12 +54,23 @@ function operate(action: FundAction, account: FundAccount) {
 }
 function disabled(row: FundAccount) {
   return (
-    pending.value || recoveryFailed.value || returnPending.value || returnFailed.value || !/[1-9]/.test(row.balance)
+    pending.value ||
+    recoveryFailed.value ||
+    returnPending.value ||
+    returnFailed.value ||
+    revokePending.value ||
+    revokeFailed.value ||
+    !/[1-9]/.test(row.balance)
   )
 }
 function returnOffset(entry: FundEntry) {
-  if (!detail.value || pending.value || recoveryFailed.value) return
+  if (!detail.value || pending.value || recoveryFailed.value || revokePending.value || revokeFailed.value) return
   state.returns.start({ account: detail.value, entry })
+  close()
+}
+function revokeTopup(entry: FundEntry) {
+  if (!detail.value || pending.value || recoveryFailed.value || returnPending.value || returnFailed.value) return
+  state.revocations.start({ account: detail.value, entry })
   close()
 }
 </script>
@@ -95,6 +114,21 @@ function returnOffset(entry: FundEntry) {
           >
             {{ t('Cashier.retry') }}
           </a-button>
+        </template>
+      </a-alert>
+      <a-alert
+        v-if="revokePending"
+        type="warning"
+        show-icon
+        :message="t('FundRevoke.pending')"
+      >
+        <template #action>
+          <j-permission-button
+            hasPermission="charging/FinanceFunds:revoke-topup"
+            @click="recoverRevoke"
+          >
+            {{ t('Cashier.retry') }}
+          </j-permission-button>
         </template>
       </a-alert>
       <a-tabs v-model:active-key="type">
@@ -209,8 +243,9 @@ function returnOffset(entry: FundEntry) {
           v-if="detail"
           :project-id="projectId"
           :account="detail"
-          :return-disabled="pending || recoveryFailed || returnPending || returnFailed"
+          :return-disabled="pending || recoveryFailed || returnPending || returnFailed || revokePending || revokeFailed"
           @return-offset="returnOffset"
+          @revoke-topup="revokeTopup"
         />
         <CloudEmpty
           v-else-if="!loading"
@@ -233,6 +268,13 @@ function returnOffset(entry: FundEntry) {
       :project-id="projectId"
       :draft="returnDraft"
       @close="closeReturn"
+      @saved="saved"
+    />
+    <FundRevokeEditor
+      v-if="revokeDraft"
+      :project-id="projectId"
+      :draft="revokeDraft"
+      @close="closeRevoke"
       @saved="saved"
     />
   </j-page-container>

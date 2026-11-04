@@ -1082,7 +1082,8 @@
     "attachmentPending": "Wait for the attachment upload to finish or remove failed files.",
     "TRANSFER_OUT": "Transfer out",
     "RETURN_OFFSET": "Offset returned to balance",
-    "TO_ADVANCE": "Receipt to advance"
+    "TO_ADVANCE": "Receipt to advance",
+    "REVOKE_TOPUP": "Top-up reversal"
   },
   "Temporary": {
     "title": "Temporary collections",
@@ -1125,5 +1126,16 @@
     "effect": "This restores the original receivable debt and credits the target advance balance. No cash is paid out.",
     "pending": "A conversion result is pending. Recover the original request.",
     "sourceCompany": "Original receipt company"
+  },
+  "FundRevoke": {
+    "title": "Reverse top-up",
+    "amount": "Original top-up amount",
+    "original": "Original top-up entry",
+    "source": "Original top-up",
+    "info": "Reversal information",
+    "effect": "Reverse the full original advance top-up and its receipt cash flow. Used, refunded, transferred, invoiced or closed sources cannot be reversed.",
+    "pending": "A top-up reversal result is pending. Recover the original request.",
+    "succeeded": "Original top-up reversed",
+    "confirm": "Confirm original top-up reversal"
   }
 }

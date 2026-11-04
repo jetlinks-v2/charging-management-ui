@@ -6,7 +6,7 @@ import type { FundAccount, FundEntry } from '../../../api/financeFunds'
 import { useFundHistory } from '../../../hooks/finance-funds/useFundHistory'
 import { requestErrorMessage } from '../../../utils/requestError'
 const props = defineProps<{ projectId: string; account: FundAccount; returnDisabled?: boolean }>()
-const emit = defineEmits<{ returnOffset: [entry: FundEntry] }>()
+const emit = defineEmits<{ returnOffset: [entry: FundEntry]; revokeTopup: [entry: FundEntry] }>()
 const { t } = useI18n(),
   { selected, params, request } = useFundHistory(props)
 const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.failed')), 'error')
@@ -74,6 +74,15 @@ const summary = computed(() => [
             @click="emit('returnOffset', row)"
           >
             {{ t('FundReturn.title') }}
+          </j-permission-button>
+          <j-permission-button
+            v-if="row.action === 'TOPUP' && account.type === 'ADVANCE'"
+            type="link"
+            hasPermission="charging/FinanceFunds:revoke-topup"
+            :disabled="returnDisabled"
+            @click="emit('revokeTopup', row)"
+          >
+            {{ t('FundRevoke.title') }}
           </j-permission-button>
         </template>
         <template #emptyText><CloudEmpty :description="t('Funds.emptyHistory')" /></template>
