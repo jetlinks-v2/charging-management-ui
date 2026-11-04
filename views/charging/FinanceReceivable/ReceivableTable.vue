@@ -10,9 +10,10 @@ import {
 } from '../../../hooks/finance-receivable/useReceivableWorkspace'
 import ReceivableBatchActions from './ReceivableBatchActions.vue'
 import ReceivableColumnSettings from './ReceivableColumnSettings.vue'
+import ReceivableRowActions from './ReceivableRowActions.vue'
 import { useReceivableColumns } from '../../../hooks/finance-receivable/useReceivableColumns'
 import { receivableFields } from '../../../utils/receivableFields'
-const props = defineProps<{ state: ReturnType<typeof useReceivableWorkspace> }>()
+const props = defineProps<{ state: ReturnType<typeof useReceivableWorkspace>; cashier?: boolean }>()
 const { t } = useI18n()
 const { archive, table, terms, params, status, request, select, actionTarget, notify } = props.state
 const columnState = useReceivableColumns()
@@ -21,8 +22,6 @@ const fields = computed(() => receivableFields(t))
 const filter = ({ filter }: ConditionFilterChangePayload) => {
   terms.value = (filter.terms || []) as Query['terms']
 }
-const actions = (row: Receivable) =>
-  (['FREEZE', 'UNFREEZE', 'DELETE'] as ReceivableAction[]).filter((action) => row.allowedOperations.includes(action))
 const selection = computed(() => ({
   selectedRowKeys: props.state.batch.selected.value.map((row) => row.id),
   onChange: (_keys: string[], rows: Receivable[]) => {
@@ -52,7 +51,10 @@ const selection = computed(() => ({
     />
     <ReceivableColumnSettings :state="columnState" />
   </div>
-  <ReceivableBatchActions :state="state.batch" />
+  <ReceivableBatchActions
+    v-if="!cashier"
+    :state="state.batch"
+  />
   <j-pro-table
     v-if="archive.projectId.value"
     ref="table"
@@ -108,65 +110,12 @@ const selection = computed(() => ({
       </small>
     </template>
     <template #actions="row">
-      <a-space :size="0">
-        <a-button
-          type="link"
-          size="small"
-          @click="select(row)"
-        >
-          {{ t('Finance.detail') }}
-        </a-button>
-        <j-permission-button
-          v-if="row.allowedOperations.includes('ADJUST')"
-          type="link"
-          size="small"
-          :hasPermission="`${receivablePermission}:adjust`"
-          @click="select(row, true)"
-        >
-          {{ t('Adjustment.title') }}
-        </j-permission-button>
-        <a-dropdown
-          v-if="actions(row).length || row.allowedOperations.includes('SPLIT')"
-          :trigger="['click']"
-        >
-          <a-button
-            type="text"
-            size="small"
-            :aria-label="t('Setting.more')"
-          >
-            <AIcon type="MoreOutlined" />
-          </a-button>
-          <template #overlay>
-            <a-menu>
-              <a-menu-item
-                v-if="row.allowedOperations.includes('SPLIT')"
-                key="split"
-              >
-                <j-permission-button
-                  type="text"
-                  :hasPermission="`${receivablePermission}:split`"
-                  @click="select(row, 'SPLIT')"
-                >
-                  {{ t('Split.title') }}
-                </j-permission-button>
-              </a-menu-item>
-              <a-menu-item
-                v-for="action in actions(row)"
-                :key="action"
-              >
-                <j-permission-button
-                  type="text"
-                  :danger="action === 'DELETE'"
-                  :hasPermission="`${receivablePermission}:${action === 'DELETE' ? 'delete' : 'freeze'}`"
-                  @click="actionTarget = { row, action }"
-                >
-                  {{ t('Receivable.operation.' + action) }}
-                </j-permission-button>
-              </a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-      </a-space>
+      <ReceivableRowActions
+        :row="row"
+        :readonly="cashier"
+        @select="(mode) => select(row, mode)"
+        @action="(action) => (actionTarget = { row, action })"
+      />
     </template>
     <template #emptyText><CloudEmpty :description="t('Receivable.empty')" /></template>
   </j-pro-table>

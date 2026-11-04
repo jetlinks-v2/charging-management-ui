@@ -1194,5 +1194,88 @@
         ]
       }
     ]
+  },
+  {
+    "id": "charging-payment",
+    "code": "charging/payment",
+    "name": "收款管理",
+    "url": "/charging/payment",
+    "owner": "app",
+    "sortIndex": 74,
+    "i18nMessages": {
+      "name": {
+        "zh_CN": "收款管理",
+        "en_US": "Payment management",
+        "en": "Payment management"
+      }
+    },
+    "permissions": [],
+    "buttons": [],
+    "children": [
+      {
+        "id": "charging-FinanceCashier",
+        "code": "charging/FinanceCashier",
+        "name": "收银台",
+        "url": "/charging/payment/FinanceCashier",
+        "owner": "app",
+        "sortIndex": 1,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "收银台",
+            "en_US": "Cashier",
+            "en": "Cashier"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-cashier",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-receivable",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "collect",
+            "name": "收款",
+            "i18nMessages": {
+              "zh_CN": "收款",
+              "en_US": "Collect payment",
+              "en": "Collect payment"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-cashier",
+                "actions": ["collect"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinancePayment",
+        "code": "charging/FinancePayment",
+        "name": "实收款管理",
+        "url": "/charging/payment/FinancePayment",
+        "owner": "app",
+        "sortIndex": 2,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "实收款管理",
+            "en_US": "Received payments",
+            "en": "Received payments"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-cashier",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": []
+      }
+    ]
   }
 ]
