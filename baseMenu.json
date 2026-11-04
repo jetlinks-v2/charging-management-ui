@@ -1911,6 +1911,74 @@
             ]
           }
         ]
+      },
+      {
+        "id": "charging-FinanceAllocation",
+        "code": "charging/FinanceAllocation",
+        "name": "票据分配",
+        "url": "/charging/documents/FinanceAllocation",
+        "owner": "app",
+        "sortIndex": 4,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "票据分配",
+            "en_US": "Document allocation",
+            "en": "Document allocation"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-allocation",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
+            "i18nMessages": {
+              "zh_CN": "保存",
+              "en_US": "Save",
+              "en": "Save"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-allocation",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "i18nMessages": {
+              "zh_CN": "删除",
+              "en_US": "Delete",
+              "en": "Delete"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-allocation",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "pool",
+            "name": "维护票据池",
+            "i18nMessages": {
+              "zh_CN": "维护票据池",
+              "en_US": "Maintain number pool",
+              "en": "Maintain number pool"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-allocation",
+                "actions": ["pool"]
+              }
+            ]
+          }
+        ]
       }
     ]
   }

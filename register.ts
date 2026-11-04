@@ -1,3 +1,4 @@
+import * as financeAllocation from './api/financeAllocation'
 import * as financeDocument from './api/financeDocument'
 import * as financeReceivable from './api/financeReceivable'
 import * as financeCashier from './api/financeCashier'
@@ -34,6 +35,7 @@ import {
 export default {
   apis: {
     ...archive,
+    ...financeAllocation,
     ...financeDocument,
     ...finance,
     ...financeSubject,
