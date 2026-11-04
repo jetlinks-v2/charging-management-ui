@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import type { useDocumentWorkspace } from '../../../hooks/finance-document/useDocumentWorkspace'
 import DocumentSnapshot from './DocumentSnapshot.vue'
 import DocumentLogs from './DocumentLogs.vue'
+import ReceiptPrintButton from './ReceiptPrintButton.vue'
 const props = defineProps<{ state: ReturnType<typeof useDocumentWorkspace> }>()
 const { t } = useI18n()
 const { projectId, detail, loading, failed, closeDetail, select } = props.state
@@ -50,6 +51,11 @@ const { projectId, detail, loading, failed, closeDetail, select } = props.state
       />
     </a-spin>
     <template #foot>
+      <ReceiptPrintButton
+        v-if="detail?.document.documentType === 'RECEIPT'"
+        :project-id="projectId"
+        :document="detail.document"
+      />
       <a-button @click="closeDetail">{{ t('Finance.close') }}</a-button>
     </template>
   </JlDrawerShell>

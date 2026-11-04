@@ -1856,6 +1856,21 @@
                 "actions": ["void"]
               }
             ]
+          },
+          {
+            "id": "print",
+            "name": "打印收据",
+            "i18nMessages": {
+              "zh_CN": "打印收据",
+              "en_US": "Print receipt",
+              "en": "Print receipt"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receipts",
+                "actions": ["print"]
+              }
+            ]
           }
         ]
       },

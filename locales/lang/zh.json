@@ -1479,6 +1479,11 @@
     "replacementInvoice": "查看重开发票",
     "reopenReason": "更正原因",
     "reopenHint": "确认后将模拟红冲原发票，并按原来源和金额开具新发票。原票及红票保留。",
-    "reopenReversedHint": "原发票已红冲，本次按原来源和金额继续重开，不再生成红票。"
+    "reopenReversedHint": "原发票已红冲，本次按原来源和金额继续重开，不再生成红票。",
+    "print": "打印收据",
+    "printTitle": "收据打印预览",
+    "printLoading": "正在生成收据",
+    "downloadPdf": "下载 PDF",
+    "printFailed": "收据生成失败，请重试。"
   }
 }

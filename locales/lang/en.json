@@ -1478,6 +1478,11 @@
     "replacementInvoice": "View replacement invoice",
     "reopenReason": "Correction reason",
     "reopenHint": "Confirmation simulates a reversal and issues a replacement for the same sources and amounts. Original and red invoices are retained.",
-    "reopenReversedHint": "The original was reversed. Reissue uses its sources and amounts without creating another red invoice."
+    "reopenReversedHint": "The original was reversed. Reissue uses its sources and amounts without creating another red invoice.",
+    "print": "Print receipt",
+    "printTitle": "Receipt print preview",
+    "printLoading": "Preparing receipt",
+    "downloadPdf": "Download PDF",
+    "printFailed": "Unable to prepare receipt. Please try again."
   }
 }

@@ -1,6 +1,7 @@
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Page, type Query } from './archive'
 import type { PaymentRequest } from './paymentConfirmation'
+import { receiptPdfResponse } from '../utils/receiptPdf'
 
 const request: Pick<Request, 'get' | 'post' | 'put'> = hostRequest
 export type DocumentType = 'INVOICE' | 'RECEIPT'
@@ -187,6 +188,14 @@ export const getDocument = (project: string, type: DocumentType, id: string) =>
   request
     .get<DocumentDetail>(`${base(project, type)}/${encodeURIComponent(id)}`, {}, { hiddenError: true })
     .then(checked)
+export const getReceiptPdf = (project: string, id: string) =>
+  request
+    .get<Blob>(
+      `${base(project, 'RECEIPT')}/${encodeURIComponent(id)}/print.pdf`,
+      {},
+      { responseType: 'blob', hiddenError: true }
+    )
+    .then(receiptPdfResponse)
 export const queryDocumentLogs = (
   project: string,
   type: DocumentType,
