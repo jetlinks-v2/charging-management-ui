@@ -1428,6 +1428,21 @@
                 "actions": ["offset"]
               }
             ]
+          },
+          {
+            "id": "return-offset",
+            "name": "退回余额",
+            "i18nMessages": {
+              "zh_CN": "退回余额",
+              "en_US": "Return to balance",
+              "en": "Return to balance"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["return-offset"]
+              }
+            ]
           }
         ]
       },

@@ -1081,7 +1081,8 @@
     "bills": "选择冲抵账单",
     "offsetAmount": "本次冲抵（元）",
     "attachmentPending": "请等待凭证上传完成，或移除上传失败的文件。",
-    "TRANSFER_OUT": "划出"
+    "TRANSFER_OUT": "划出",
+    "RETURN_OFFSET": "冲抵退回余额"
   },
   "Temporary": {
     "title": "临时收款",
@@ -1099,5 +1100,18 @@
     "amount": "本次收款金额（元）",
     "pending": "本项目有一笔临时收款结果待确认，请先核对原收款结果。",
     "fundingDetails": "收款明细"
+  },
+  "FundReturn": {
+    "title": "退回余额",
+    "amount": "退回金额（元）",
+    "source": "原冲抵信息",
+    "original": "原冲抵流水号",
+    "info": "退回信息",
+    "bills": "恢复欠费明细",
+    "restoreDebt": "恢复欠费（元）",
+    "confirm": "确认退回原账户",
+    "succeeded": "已退回原余额账户",
+    "pending": "本项目有一笔退回余额操作待确认，请先核对原操作结果。",
+    "billId": "应收单号"
   }
 }

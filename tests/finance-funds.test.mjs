@@ -5,12 +5,22 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRenderer, defineComponent, h, nextTick } from 'vue'
 const require = createRequire(import.meta.url)
-const apiNames = ['previewFunds', 'confirmFunds', 'queryFundBills', 'getFundsOptions', 'getFundsHouse', 'getFundQuote']
+const apiNames = [
+  'previewFunds',
+  'confirmFunds',
+  'queryFundBills',
+  'getFundsOptions',
+  'getFundsHouse',
+  'getFundQuote',
+  'previewFundReturn',
+  'confirmFundReturn'
+]
 const compiled = await build({
   entryPoints: [
     fileURLToPath(new URL('../hooks/finance-funds/useFundConfirmation.ts', import.meta.url)),
     fileURLToPath(new URL('../hooks/finance-funds/useFundBills.ts', import.meta.url)),
-    fileURLToPath(new URL('../hooks/finance-funds/useFundEditor.ts', import.meta.url))
+    fileURLToPath(new URL('../hooks/finance-funds/useFundEditor.ts', import.meta.url)),
+    fileURLToPath(new URL('../hooks/finance-funds/useFundReturn.ts', import.meta.url))
   ],
   outdir: 'out',
   bundle: true,
@@ -22,18 +32,27 @@ const compiled = await build({
     {
       name: 'boundaries',
       setup(builder) {
-        builder.onResolve({ filter: /api\/financeFunds|@jetlinks-web\/utils|vue-i18n|useFundRecovery/ }, (args) => ({
-          path: args.path,
-          namespace: 'mock'
-        }))
+        builder.onResolve(
+          {
+            filter:
+              /api\/financeFunds|api\/financeFundReturn|usePaymentRecovery|@jetlinks-web\/utils|vue-i18n|useFundRecovery/
+          },
+          (args) => ({
+            path: args.path,
+            namespace: 'mock'
+          })
+        )
         builder.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
-          contents: args.path.includes('financeFunds')
-            ? apiNames.map((name) => `export const ${name}=(...a)=>globalThis.__fundApi.${name}(...a)`).join('\n')
-            : args.path.includes('useFundRecovery')
-              ? 'export const useFundRecovery=()=>globalThis.__fundRecovery'
-              : args.path === 'vue-i18n'
-                ? 'export const useI18n=()=>({t:key=>key})'
-                : 'export const onlyMessage=(...a)=>globalThis.__fundMessages.push(a)'
+          contents:
+            args.path.includes('financeFunds') || args.path.includes('financeFundReturn')
+              ? apiNames.map((name) => `export const ${name}=(...a)=>globalThis.__fundApi.${name}(...a)`).join('\n')
+              : args.path.includes('usePaymentRecovery')
+                ? 'export const usePaymentRecovery=()=>globalThis.__fundRecovery'
+                : args.path.includes('useFundRecovery')
+                  ? 'export const useFundRecovery=()=>globalThis.__fundRecovery'
+                  : args.path === 'vue-i18n'
+                    ? 'export const useI18n=()=>({t:key=>key})'
+                    : 'export const onlyMessage=(...a)=>globalThis.__fundMessages.push(a)'
         }))
       }
     }
@@ -46,7 +65,8 @@ const modules = compiled.outputFiles.map((file) => {
 })
 const { useFundConfirmation } = modules[0],
   { useFundBills } = modules[1],
-  { useFundEditor } = modules[2]
+  { useFundEditor } = modules[2],
+  { useFundReturn } = modules[3]
 const flush = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0))
   await nextTick()
@@ -285,5 +305,102 @@ test('恢复跨公司收取原请求时不由空选项清除标准、付款方�
   assert.equal(state.model.standardId, 'standard')
   assert.equal(state.model.method, '2')
   assert.equal(state.model.quantity, '2')
+  unmount()
+})
+
+test('冲抵退回发送原流水、账户版本和精确金额；成功只刷新一次', async () => {
+  let saved = 0,
+    received
+  globalThis.__fundRecovery = storage()
+  const { state, unmount } = mount(
+    () =>
+      useFundReturn(
+        'project',
+        {
+          account: { version: 7 },
+          entry: { id: 'offset', amount: '-30.01' }
+        },
+        () => saved++
+      ),
+    {
+      previewFundReturn: async (_p, value) => {
+        received = value
+        return { token: 'return-token', amount: value.amount }
+      },
+      confirmFundReturn: async () => ({ account: { balance: '60.00' }, entry: { id: 'returned', cashAmount: '0.00' } })
+    }
+  )
+  state.model.amount = '10.01'
+  state.model.reason = '部分撤销'
+  await state.calculate()
+  assert.equal(received.sourceEntryId, 'offset')
+  assert.equal(received.accountVersion, 7)
+  assert.equal(received.amount, '10.01')
+  await state.confirmation.submit()
+  await state.confirmation.submit()
+  assert.equal(state.confirmation.result.value.entry.cashAmount, '0.00')
+  assert.equal(saved, 1)
+  assert.equal(globalThis.__fundRecovery.read(), undefined)
+  unmount()
+})
+
+test('退回余额未知结果重挂载仍发送同一原请求；409不丢未知资金事实', async () => {
+  globalThis.__fundRecovery = storage()
+  const calls = []
+  const api = {
+    previewFundReturn: async () => ({ token: 'return-token', amount: '10.01' }),
+    confirmFundReturn: async (_p, request) => {
+      calls.push(structuredClone(request))
+      if (calls.length === 1) throw Error('network')
+      if (calls.length === 2) throw { response: { status: 409 } }
+      return { account: { balance: '60.00' }, entry: { id: 'returned' } }
+    }
+  }
+  let current = mount(
+    () => useFundReturn('project', { account: { version: 1 }, entry: { id: 'offset', amount: '-10.01' } }, () => {}),
+    api
+  )
+  current.state.model.reason = '撤销'
+  await current.state.calculate()
+  await current.state.confirmation.submit()
+  assert.equal(current.state.confirmation.uncertain.value, true)
+  current.unmount()
+  current = mount(() => useFundReturn('project', {}, () => {}), api)
+  assert.equal(current.state.model.sourceEntryId, 'offset')
+  assert.equal(current.state.confirmation.preview.value.token, 'return-token')
+  await current.state.confirmation.submit()
+  current.state.confirmation.invalidate()
+  assert.equal(current.state.confirmation.uncertain.value, true)
+  assert.ok(current.state.confirmation.preview.value)
+  await current.state.confirmation.submit()
+  assert.equal(calls[0].requestId, calls[2].requestId)
+  assert.deepEqual(calls[0].input, calls[2].input)
+  assert.equal(current.state.confirmation.result.value.entry.id, 'returned')
+  current.unmount()
+})
+
+test('退回余额输入变更使迟到预览失效；上传未完成不能预览', async () => {
+  globalThis.__fundRecovery = storage()
+  let finish,
+    calls = 0
+  const { state, unmount } = mount(
+    () => useFundReturn('project', { account: { version: 1 }, entry: { id: 'offset', amount: '-10.01' } }, () => {}),
+    {
+      previewFundReturn: () => {
+        calls++
+        return new Promise((resolve) => (finish = resolve))
+      }
+    }
+  )
+  const pending = state.calculate()
+  await flush()
+  state.model.amount = '2.00'
+  finish({ token: 'old' })
+  await pending
+  assert.equal(state.confirmation.preview.value, undefined)
+  state.filesChanged({ fileList: [{ uid: 'x', name: 'file.xlsx', status: 'uploading' }] })
+  await state.calculate()
+  assert.equal(calls, 1)
+  assert.ok(globalThis.__fundMessages.length)
   unmount()
 })

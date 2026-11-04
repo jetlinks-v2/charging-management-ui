@@ -3,17 +3,25 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { Query } from '../../../api/archive'
-import type { FundAccount, FundAction } from '../../../api/financeFunds'
+import type { FundAccount, FundAction, FundEntry } from '../../../api/financeFunds'
 import { useFundsWorkspace } from '../../../hooks/finance-funds/useFundsWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import FundDetail from './FundDetail.vue'
 import FundEditor from './FundEditor.vue'
+import FundReturnEditor from './FundReturnEditor.vue'
 import '../FinanceCashier/cashier.css'
 const { t } = useI18n()
 const state = useFundsWorkspace()
 const { projectId, table, type, terms, params, request, open, loading, failed, detail, select, close, saved, notify } =
   state
 const { draft, pending, failed: recoveryFailed, recover, start, close: closeEditor } = state.flow
+const {
+  draft: returnDraft,
+  pending: returnPending,
+  failed: returnFailed,
+  recover: recoverReturn,
+  close: closeReturn
+} = state.returns
 const fields = computed(() =>
   ['fullName', 'customerName', 'subjectName', 'companyName'].map((key) => ({
     title: t(key === 'companyName' ? 'Cashier.company' : 'Receivable.' + key),
@@ -37,7 +45,14 @@ function operate(action: FundAction, account: FundAccount) {
   start({ action, type: account.type, account })
 }
 function disabled(row: FundAccount) {
-  return pending.value || recoveryFailed.value || !/[1-9]/.test(row.balance)
+  return (
+    pending.value || recoveryFailed.value || returnPending.value || returnFailed.value || !/[1-9]/.test(row.balance)
+  )
+}
+function returnOffset(entry: FundEntry) {
+  if (!detail.value || pending.value || recoveryFailed.value) return
+  state.returns.start({ account: detail.value, entry })
+  close()
 }
 </script>
 <template>
@@ -65,6 +80,21 @@ function disabled(row: FundAccount) {
       >
         <template #action>
           <a-button @click="recover">{{ t('Cashier.retry') }}</a-button>
+        </template>
+      </a-alert>
+      <a-alert
+        v-if="returnPending"
+        type="warning"
+        show-icon
+        :message="t('FundReturn.pending')"
+      >
+        <template #action>
+          <a-button
+            type="link"
+            @click="recoverReturn"
+          >
+            {{ t('Cashier.retry') }}
+          </a-button>
         </template>
       </a-alert>
       <a-tabs v-model:active-key="type">
@@ -179,6 +209,8 @@ function disabled(row: FundAccount) {
           v-if="detail"
           :project-id="projectId"
           :account="detail"
+          :return-disabled="pending || recoveryFailed || returnPending || returnFailed"
+          @return-offset="returnOffset"
         />
         <CloudEmpty
           v-else-if="!loading"
@@ -194,6 +226,13 @@ function disabled(row: FundAccount) {
       :project-id="projectId"
       :draft="draft"
       @close="closeEditor"
+      @saved="saved"
+    />
+    <FundReturnEditor
+      v-if="returnDraft"
+      :project-id="projectId"
+      :draft="returnDraft"
+      @close="closeReturn"
       @saved="saved"
     />
   </j-page-container>

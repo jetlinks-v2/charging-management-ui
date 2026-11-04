@@ -6,11 +6,13 @@ import { queryFunds, getFund, type FundAccount, type FundType } from '../../api/
 import type { Query } from '../../api/archive'
 import { requestErrorMessage } from '../../utils/requestError'
 import { useFundFlow } from './useFundFlow'
+import { useFundReturnFlow } from './useFundReturnFlow'
 
 export function useFundsWorkspace() {
   const { t } = useI18n(),
     { projectId } = useProjectContext()
   const flow = useFundFlow(projectId)
+  const returns = useFundReturnFlow(projectId)
   const type = ref<FundType | ''>(''),
     terms = ref<Query['terms']>([])
   const table = ref<{ reload: () => void }>()
@@ -58,6 +60,7 @@ export function useFundsWorkspace() {
   }
   function saved() {
     flow.saved()
+    returns.saved()
     table.value?.reload()
     close()
   }
@@ -74,6 +77,7 @@ export function useFundsWorkspace() {
   return {
     projectId,
     flow,
+    returns,
     table,
     type,
     terms,

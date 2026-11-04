@@ -2,10 +2,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
-import type { FundAccount } from '../../../api/financeFunds'
+import type { FundAccount, FundEntry } from '../../../api/financeFunds'
 import { useFundHistory } from '../../../hooks/finance-funds/useFundHistory'
 import { requestErrorMessage } from '../../../utils/requestError'
-const props = defineProps<{ projectId: string; account: FundAccount }>()
+const props = defineProps<{ projectId: string; account: FundAccount; returnDisabled?: boolean }>()
+const emit = defineEmits<{ returnOffset: [entry: FundEntry] }>()
 const { t } = useI18n(),
   { selected, params, request } = useFundHistory(props)
 const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.failed')), 'error')
@@ -16,7 +17,7 @@ const columns = computed(() => [
   { title: t('Funds.after'), dataIndex: 'afterBalance', width: 140, align: 'right' },
   { title: t('Funds.cashAmount'), dataIndex: 'cashAmount', width: 130, align: 'right' },
   { title: t('Funds.payer'), dataIndex: 'payerName', width: 130 },
-  { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 100, fixed: 'right' }
+  { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 200, fixed: 'right' }
 ])
 const summary = computed(() => [
   { label: t('Setting.house'), value: props.account.fullName },
@@ -65,6 +66,15 @@ const summary = computed(() => [
           >
             {{ t('Finance.detail') }}
           </a-button>
+          <j-permission-button
+            v-if="row.action === 'OFFSET'"
+            type="link"
+            hasPermission="charging/FinanceFunds:return-offset"
+            :disabled="returnDisabled"
+            @click="emit('returnOffset', row)"
+          >
+            {{ t('FundReturn.title') }}
+          </j-permission-button>
         </template>
         <template #emptyText><CloudEmpty :description="t('Funds.emptyHistory')" /></template>
       </j-pro-table>

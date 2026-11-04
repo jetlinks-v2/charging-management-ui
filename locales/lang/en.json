@@ -1080,7 +1080,8 @@
     "bills": "Select bills to offset",
     "offsetAmount": "Offset amount (CNY)",
     "attachmentPending": "Wait for the attachment upload to finish or remove failed files.",
-    "TRANSFER_OUT": "Transfer out"
+    "TRANSFER_OUT": "Transfer out",
+    "RETURN_OFFSET": "Offset returned to balance"
   },
   "Temporary": {
     "title": "Temporary collections",
@@ -1098,5 +1099,18 @@
     "amount": "Collection amount (CNY)",
     "pending": "A temporary collection is awaiting confirmation. Check the original result first.",
     "fundingDetails": "Payment details"
+  },
+  "FundReturn": {
+    "title": "Return to balance",
+    "amount": "Amount returned (CNY)",
+    "source": "Original offset",
+    "original": "Original offset ID",
+    "info": "Return details",
+    "bills": "Restored arrears",
+    "restoreDebt": "Arrears restored (CNY)",
+    "confirm": "Confirm return to original account",
+    "succeeded": "Returned to original account",
+    "pending": "An offset return is awaiting confirmation. Check its original result first.",
+    "billId": "Receivable ID"
   }
 }
