@@ -208,7 +208,6 @@
     "confirmEnd": "Confirm end",
     "deleteCustomer": "Delete customer profile",
     "deleteCustomerConfirm": "Remove this customer from the current space? The record will remain in history.",
-    "multipleCustomers": "A house may have multiple customers",
     "completeFirst": "Complete this house profile before adding or linking customers",
     "selectLeaf": "Select a leaf space to add customers",
     "houseFailed": "Unable to read the house profile. Retry.",

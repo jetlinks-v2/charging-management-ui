@@ -89,8 +89,11 @@ const change = ({ filter }: ConditionFilterChangePayload) => {
     @change="change"
   />
   <div class="archive-actions">
-    <span class="archive-muted">
-      {{ t(k + (space?.leaf ? (houseCompleted ? 'multipleCustomers' : 'completeFirst') : 'selectLeaf')) }}
+    <span
+      v-if="!space?.leaf || !houseCompleted"
+      class="archive-muted"
+    >
+      {{ t(k + (space?.leaf ? 'completeFirst' : 'selectLeaf')) }}
     </span>
     <ExcelActions
       :project-name="projectName"

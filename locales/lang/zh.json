@@ -208,7 +208,6 @@
     "confirmEnd": "确认结束",
     "deleteCustomer": "删除客户档案",
     "deleteCustomerConfirm": "确定删除当前空间下的该客户？删除后可在历史客户中查看。",
-    "multipleCustomers": "同一空间可以新增多个客户",
     "completeFirst": "请先完善当前房屋资料，再新增或关联客户",
     "selectLeaf": "选择末端空间后，可新增客户",
     "houseFailed": "房屋资料读取失败，请重试",
