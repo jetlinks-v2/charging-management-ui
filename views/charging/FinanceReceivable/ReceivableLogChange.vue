@@ -63,4 +63,22 @@ const files = computed(() =>
       </FileUpload>
     </a-collapse-panel>
   </a-collapse>
+  <a-collapse
+    v-else-if="row.operation === 'SPLIT'"
+    ghost
+  >
+    <a-collapse-panel
+      key="parts"
+      :header="t('Split.title')"
+    >
+      <div
+        v-for="part in row.detail?.children"
+        :key="part.id"
+        class="split-log-part"
+      >
+        <strong>{{ part.customerName }} · {{ part.amount }} {{ t('Split.yuan') }}</strong>
+        <p>{{ part.start }} ～ {{ part.end }}</p>
+      </div>
+    </a-collapse-panel>
+  </a-collapse>
 </template>

@@ -6,7 +6,7 @@ import type { Receivable } from '../../../api/financeReceivable'
 import { useReceivableLogs } from '../../../hooks/finance-receivable/useReceivableLogs'
 import ReceivableLogChange from './ReceivableLogChange.vue'
 const props = defineProps<{ projectId: string; detail?: Receivable; loading: boolean; failed: boolean }>()
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; source: [id: string] }>()
 const { t } = useI18n()
 const logs = useReceivableLogs(props)
 const { rows, total, current, loading: logsLoading, failed: logsFailed, load } = logs
@@ -65,6 +65,14 @@ const variables = computed(
         </a-tag>
         <span>{{ t('Receivable.calculatedAsOfDate') }} {{ detail.calculatedAsOfDate }}</span>
       </div>
+      <a-button
+        v-if="detail.sourceReceivableId"
+        type="link"
+        @click="emit('source', detail.sourceReceivableId)"
+      >
+        {{ t('Split.viewSource') }}
+      </a-button>
+      <a-tag v-if="detail.split">{{ t('Split.archived') }}</a-tag>
       <a-tabs>
         <a-tab-pane
           key="amount"

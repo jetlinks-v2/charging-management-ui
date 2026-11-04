@@ -29,6 +29,7 @@ export function useReceivableWorkspace() {
     exporting = ref(false)
   const detail = ref<Receivable>()
   const adjusting = ref(false)
+  const splitting = ref(false)
   const actionTarget = ref<{ row: Receivable; action: ReceivableAction }>()
   let detailToken = 0,
     disposed = false
@@ -59,12 +60,13 @@ export function useReceivableWorkspace() {
     if (!archive.projectId.value) return { success: true, result: { data: [], total: 0, pageIndex: 0, pageSize: 12 } }
     return queryReceivables(archive.projectId.value, query, config?.signal)
   }
-  async function select(row: Receivable, forAdjustment = false) {
+  async function select(row: Pick<Receivable, 'id'>, forAdjustment: boolean | 'SPLIT' = false) {
     const project = archive.projectId.value,
       token = ++detailToken
     if (!project) return
     open.value = true
-    adjusting.value = forAdjustment
+    adjusting.value = forAdjustment === true
+    splitting.value = forAdjustment === 'SPLIT'
     loading.value = true
     failed.value = false
     detail.value = undefined
@@ -84,6 +86,7 @@ export function useReceivableWorkspace() {
     ++detailToken
     open.value = false
     adjusting.value = false
+    splitting.value = false
     detail.value = undefined
   }
   async function change(reason: string) {
@@ -143,6 +146,7 @@ export function useReceivableWorkspace() {
     failed,
     detail,
     adjusting,
+    splitting,
     actionTarget,
     saving,
     exporting,

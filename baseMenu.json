@@ -1130,6 +1130,21 @@
                 "actions": ["export"]
               }
             ]
+          },
+          {
+            "id": "split",
+            "name": "拆分",
+            "i18nMessages": {
+              "zh_CN": "拆分",
+              "en_US": "Split",
+              "en": "Split"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": ["split"]
+              }
+            ]
           }
         ]
       }

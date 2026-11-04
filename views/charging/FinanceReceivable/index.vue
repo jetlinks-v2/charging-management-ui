@@ -6,6 +6,7 @@ import ReceivableTable from './ReceivableTable.vue'
 import ReceivableDetail from './ReceivableDetail.vue'
 import ReceivableChange from './ReceivableChange.vue'
 import ReceivableAdjustment from './ReceivableAdjustment.vue'
+import ReceivableSplit from './ReceivableSplit.vue'
 const { t } = useI18n()
 const state = useReceivableWorkspace()
 const {
@@ -16,6 +17,7 @@ const {
   failed,
   detail,
   adjusting,
+  splitting,
   actionTarget,
   saving,
   exporting,
@@ -107,15 +109,23 @@ function adjustmentSaved() {
       </main>
     </div>
     <ReceivableDetail
-      v-if="open && (!adjusting || loading || failed)"
+      v-if="open && ((!adjusting && !splitting) || loading || failed)"
       :project-id="projectId"
       :detail="detail"
       :loading="loading"
       :failed="failed"
       @close="close"
+      @source="(id) => state.select({ id })"
     />
     <ReceivableAdjustment
       v-if="open && adjusting && detail && !loading && !failed"
+      :project-id="projectId"
+      :detail="detail"
+      @close="close"
+      @saved="adjustmentSaved"
+    />
+    <ReceivableSplit
+      v-if="open && splitting && detail && !loading && !failed"
       :project-id="projectId"
       :detail="detail"
       @close="close"

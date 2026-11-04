@@ -128,7 +128,7 @@ const actions = (row: Receivable) =>
           {{ t('Adjustment.title') }}
         </j-permission-button>
         <a-dropdown
-          v-if="actions(row).length"
+          v-if="actions(row).length || row.allowedOperations.includes('SPLIT')"
           :trigger="['click']"
         >
           <a-button
@@ -140,6 +140,18 @@ const actions = (row: Receivable) =>
           </a-button>
           <template #overlay>
             <a-menu>
+              <a-menu-item
+                v-if="row.allowedOperations.includes('SPLIT')"
+                key="split"
+              >
+                <j-permission-button
+                  type="text"
+                  :hasPermission="`${receivablePermission}:split`"
+                  @click="select(row, 'SPLIT')"
+                >
+                  {{ t('Split.title') }}
+                </j-permission-button>
+              </a-menu-item>
               <a-menu-item
                 v-for="action in actions(row)"
                 :key="action"

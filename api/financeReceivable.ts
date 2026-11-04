@@ -11,6 +11,8 @@ export interface Receivable {
   projectId: string
   spaceId: string
   fullName: string
+  customerRelationshipId: string
+  sourceReceivableId?: string
   customerName: string
   subjectName: string
   standardName: string
@@ -26,6 +28,7 @@ export interface Receivable {
   calculatedAsOfDate: string
   accruedAsOfDate: string
   periodStatus: 'OPEN' | 'CLOSED'
+  split?: boolean
   frozen: boolean
   financialClosed: boolean
   contractReceivableAmount: string
@@ -53,7 +56,11 @@ export interface ReceivableLog {
   afterVersion: number
   before: Partial<Receivable> & { deleted?: boolean }
   after: Partial<Receivable> & { deleted?: boolean }
-  detail?: { input?: Partial<AdjustmentInput>; preview?: { formula?: AdjustmentPreview['formula'] } }
+  detail?: {
+    input?: Partial<AdjustmentInput>
+    preview?: { formula?: AdjustmentPreview['formula'] }
+    children?: { id: string; start: string; end: string; customerName: string; amount: string }[]
+  }
 }
 const pageResponse = <T>(response: { success: boolean; result: T; message?: string }) => {
   checked(response)
@@ -130,3 +137,27 @@ export const submitAdjustment = (project: string, key: string, input: Adjustment
   request
     .post<Receivable>(`${base(project)}/${id(key)}/adjustment`, { input, token }, { hiddenError: true })
     .then(checked)
+
+export interface SplitInput {
+  version: number
+  splitDate: string
+  scale: number
+  firstRelationshipId: string
+  secondRelationshipId: string
+  reason: string
+}
+export interface SplitOption {
+  relationshipId: string
+  name: string
+}
+export interface SplitPreview {
+  token: string
+  total: string
+  parts: { start: string; end: string; relationshipId: string; customerName: string; amount: string }[]
+}
+export const getSplitOptions = (project: string, key: string) =>
+  request.get<SplitOption[]>(`${base(project)}/${id(key)}/split/_options`, {}, { hiddenError: true }).then(checked)
+export const previewSplit = (project: string, key: string, input: SplitInput) =>
+  request.post<SplitPreview>(`${base(project)}/${id(key)}/split/_preview`, input, { hiddenError: true }).then(checked)
+export const submitSplit = (project: string, key: string, input: SplitInput, token: string) =>
+  request.post<Receivable[]>(`${base(project)}/${id(key)}/split`, { input, token }, { hiddenError: true }).then(checked)

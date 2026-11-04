@@ -851,7 +851,8 @@
       "FREEZE": "冻结",
       "UNFREEZE": "解冻",
       "DELETE": "删除",
-      "ADJUST": "调整"
+      "ADJUST": "调整",
+      "SPLIT": "日期拆分"
     },
     "confirm": {
       "FREEZE": "冻结后暂停账单业务操作，计提和逾期费用仍按原规则计算。",
@@ -912,5 +913,30 @@
     "reference": "截至 {date} 的试算结果",
     "formulaHint": "按原账单公式计算本次差额；月数由起止日期自动计算，原账单资料和计费期间保留。",
     "dateRequired": "请选择原计费期间内的日期"
+  },
+  "Split": {
+    "title": "日期拆分",
+    "edit": "填写拆分",
+    "first": "第一段",
+    "second": "第二段",
+    "yuan": "元",
+    "original": "原账单",
+    "rules": "拆分规则",
+    "date": "拆分日期",
+    "scale": "首段金额精度",
+    "scale0": "元（整数）",
+    "scale1": "角（1位小数）",
+    "scale2": "分（2位小数）",
+    "firstCustomer": "第一段收费客户",
+    "secondCustomer": "第二段收费客户",
+    "accruedThrough": "已计提至",
+    "dateHint": "拆分日期计入第一段，第二段从次日开始；金额由系统计算，尾差计入第二段。",
+    "confirmHint": "请核对两段计费期间、收费客户和应收金额。确认后原账留存，生成两笔独立账单。",
+    "total": "拆分合计",
+    "confirm": "确认拆分",
+    "saved": "账单拆分成功",
+    "viewSource": "查看原账单",
+    "archived": "已拆分归档",
+    "selectDate": "请选择拆分日期"
   }
 }

@@ -851,7 +851,8 @@
       "FREEZE": "Freeze",
       "UNFREEZE": "Unfreeze",
       "DELETE": "Delete",
-      "ADJUST": "Adjust"
+      "ADJUST": "Adjust",
+      "SPLIT": "Split by date"
     },
     "confirm": {
       "FREEZE": "Freezing pauses bill operations. Accrual and late fees continue under the original rules.",
@@ -912,5 +913,30 @@
     "reference": "Trial amounts as of {date}",
     "formulaHint": "Calculate the difference using the original formula. Months are derived from dates. Original bill details and coverage remain on record.",
     "dateRequired": "Select a date within the original coverage"
+  },
+  "Split": {
+    "title": "Split by date",
+    "edit": "Split details",
+    "first": "First part",
+    "second": "Second part",
+    "yuan": "CNY",
+    "original": "Original bill",
+    "rules": "Split rules",
+    "date": "Split date",
+    "scale": "First amount precision",
+    "scale0": "Whole yuan",
+    "scale1": "One decimal",
+    "scale2": "Two decimals",
+    "firstCustomer": "First part customer",
+    "secondCustomer": "Second part customer",
+    "accruedThrough": "Accrued through",
+    "dateHint": "The split date belongs to the first part; the second starts the next day. Amounts are calculated by the server; the second part receives the remainder.",
+    "confirmHint": "Check dates, customers and amounts. Confirming archives the original bill and creates two independent bills.",
+    "total": "Split total",
+    "confirm": "Confirm split",
+    "saved": "Bill split successfully",
+    "viewSource": "View source bill",
+    "archived": "Archived after split",
+    "selectDate": "Select split date"
   }
 }

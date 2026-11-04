@@ -12,7 +12,10 @@ const names = [
   'exportReceivables',
   'queryReceivableLogs',
   'previewAdjustment',
-  'submitAdjustment'
+  'submitAdjustment',
+  'getSplitOptions',
+  'previewSplit',
+  'submitSplit'
 ]
 async function load(path) {
   const result = await build({
@@ -252,5 +255,53 @@ test('确认提交使用预览的原始字符串、附件及版本；拒绝保�
   await state.calculate()
   await state.submit()
   assert.equal(done, 1)
+  unmount()
+})
+
+const { useReceivableSplit } = await load('../hooks/finance-receivable/useReceivableSplit.ts')
+test('拆分先加载真实客户，预览不可被变更或迟到响应复用，拒绝保留原因', async () => {
+  const pending = deferred(),
+    calls = []
+  const props = reactive({
+    projectId: 'a',
+    detail: {
+      ...row('bill'),
+      customerRelationshipId: 'link',
+      calcStartDate: '2024-02-10',
+      calcEndDate: '2024-02-29',
+      accruedAsOfDate: '2024-02-15'
+    }
+  })
+  const { state, unmount } = mount(() => useReceivableSplit(props, () => calls.push('done')), {
+    getSplitOptions: async () => [{ relationshipId: 'link', name: '龚超' }],
+    previewSplit: async (...a) => {
+      calls.push(a)
+      return pending.promise
+    },
+    submitSplit: async (...a) => {
+      calls.push(a)
+      throw new Error('版本过期')
+    }
+  })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(state.options.value[0].name, '龚超')
+  state.form.value = { validate: async () => {} }
+  state.model.splitDate = '2024-02-12'
+  state.model.reason = '搬迁分账'
+  await state.submit()
+  assert.equal(calls.length, 0)
+  const request = state.calculate()
+  await nextTick()
+  state.model.scale = 0
+  pending.resolve({ token: 'expired', total: '25.51', parts: [] })
+  await request
+  assert.equal(state.preview.value, undefined)
+  await state.calculate()
+  await state.submit()
+  assert.equal(calls.at(-1)[2].scale, 0)
+  assert.equal(calls.at(-1)[2].version, 3)
+  assert.equal(state.model.reason, '搬迁分账')
+  assert.equal(state.preview.value, undefined)
+  assert.equal(calls.includes('done'), false)
   unmount()
 })
