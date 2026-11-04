@@ -28,12 +28,14 @@ async function loadComponent(path) {
       {
         name: 'platform',
         setup(builder) {
-          builder.onResolve({ filter: /api\/archive$|@jetlinks-web|vue-i18n|\.vue$/ }, (args) => ({
+          builder.onResolve({ filter: /api\/archive$|project\/useProjectContext|@jetlinks-web|vue-i18n|\.vue$/ }, (args) => ({
             path: args.path,
             namespace: 'platform'
           }))
           builder.onLoad({ filter: /.*/, namespace: 'platform' }, ({ path }) => ({
-            contents: path.includes('api/archive')
+            contents: path.includes('project/useProjectContext')
+              ? `import {ref} from 'vue'; export const useProjectContext = () => {const projects=ref([]),projectId=ref(''); return {projects,projectId,refresh: async()=>{ projects.value=await globalThis.__treeApi.getSpaceProjects(); projectId.value=projects.value[0]?.id||'' }} }`
+              : path.includes('api/archive')
               ? [
                   'getSpaceProjects',
                   'getSpaceTree',

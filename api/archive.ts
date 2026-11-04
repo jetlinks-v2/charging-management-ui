@@ -2,6 +2,7 @@ import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import type { UserQuery } from './user'
 import { historyQuery } from '../utils/historyQuery'
 import { excelResponse } from '../utils/archiveFiles'
+import type { ProjectOption } from './project'
 const request: Pick<Request, 'get' | 'post' | 'put' | 'remove'> = hostRequest
 
 export type Query = UserQuery
@@ -141,8 +142,7 @@ export const checked = <T>(response: { success: boolean; result: T; message?: st
   if (!response.success) throw new Error(response.message || 'Request rejected')
   return response.result
 }
-export const getSpaceProjects = () =>
-  request.get<{ id: string; name: string }[]>(`${base}/space/_projects`).then(checked)
+export const getSpaceProjects = () => request.get<ProjectOption[]>(`${base}/space/_projects`).then(checked)
 export const getSpaceRoots = () => request.get<Space[]>(`${base}/space/_roots`).then(checked)
 export const getSpaceRootTree = (rootId: string) =>
   request.get<Space[]>(`${base}/space/${id(rootId)}/_tree`).then(checked)

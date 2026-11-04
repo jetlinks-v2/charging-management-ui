@@ -13,9 +13,11 @@ import {
 } from '../../api/archive'
 import { relationshipPayload } from '../../utils/customer'
 import { requestErrorMessage } from '../../utils/requestError'
+import { useProjectSwitchGuard } from '../project/useProjectContext'
 
 /** 为已有主档新增房屋关系；不恢复旧关系，不修改客户资料或历史家庭。 */
 export function useCustomerLink(scope: Scope, customer: Customer, done: (value: Relationship) => void) {
+  useProjectSwitchGuard(() => false)
   const { t } = useI18n()
   const spaces = ref<Space[]>([])
   const loading = ref(false)

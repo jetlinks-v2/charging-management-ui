@@ -1,12 +1,6 @@
 import { computed, onMounted, onScopeDispose, ref, watch } from 'vue'
-import {
-  getSpaceProjects,
-  getSpaceTree,
-  spaceSyncStatus,
-  syncSpaces,
-  type Space,
-  type SpaceSyncStatus
-} from '../../api/archive'
+import { getSpaceTree, spaceSyncStatus, syncSpaces, type Space, type SpaceSyncStatus } from '../../api/archive'
+import { useProjectContext } from '../project/useProjectContext'
 export const flattenSpaces = (nodes: Space[]): Space[] =>
   nodes.flatMap((node) => [node, ...flattenSpaces(node.children || [])])
 export const filterSpaces = (nodes: Space[], keyword: string): Space[] =>
@@ -18,8 +12,8 @@ export const filterSpaces = (nodes: Space[], keyword: string): Space[] =>
   })
 /** 来源 leaf 是完整来源树的事实；可见子树无 children 不代表能维护房屋。 */
 export function useArchiveScope() {
-  const projects = ref<{ id: string; name: string }[]>([])
-  const projectId = ref('')
+  const context = useProjectContext()
+  const { projects, projectId } = context
   const tree = ref<Space[]>([])
   const selectedId = ref<string>()
   const keyword = ref('')
@@ -29,27 +23,23 @@ export function useArchiveScope() {
   const status = ref<SpaceSyncStatus>()
   const statusFailed = ref(false)
   let generation = 0
-  let projectGeneration = 0
   let disposed = false
   const selected = computed(() => flattenSpaces(tree.value).find((node) => node.id === selectedId.value))
   const scope = computed(() => ({ projectId: projectId.value, spaceId: selectedId.value }))
   const visibleTree = computed(() => filterSpaces(tree.value, keyword.value))
   async function loadProjects() {
-    const token = ++projectGeneration
     try {
-      const result = await getSpaceProjects()
-      if (disposed || token !== projectGeneration) return
-      projects.value = result
-      if (!result.some((item) => item.id === projectId.value)) projectId.value = result[0]?.id || ''
-      failed.value = false
+      await context.refresh()
+      if (!disposed) failed.value = false
     } catch {
-      if (!disposed && token === projectGeneration) failed.value = true
+      if (!disposed) failed.value = true
     }
   }
   async function loadTree() {
     const token = ++generation
     tree.value = []
     selectedId.value = undefined
+    loading.value = false
     if (!projectId.value) return
     loading.value = true
     failed.value = false
@@ -84,17 +74,23 @@ export function useArchiveScope() {
       await refreshStatus()
     }
   }
-  watch(projectId, () => {
-    void loadTree()
-  })
+  watch(
+    projectId,
+    () => {
+      void loadTree()
+    },
+    { flush: 'sync' }
+  )
   onMounted(() => {
-    void loadProjects()
+    const previous = projectId.value
+    void loadProjects().then(() => {
+      if (!disposed && previous === projectId.value) void loadTree()
+    })
     void refreshStatus()
   })
   onScopeDispose(() => {
     disposed = true
     generation++
-    projectGeneration++
   })
   return {
     projects,

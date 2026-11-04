@@ -18,12 +18,14 @@ async function load(entry, apiNames = []) {
           {
             name: 'archive-api',
             setup(builder) {
-              builder.onResolve({ filter: /api\/(archive|user)|@jetlinks-web|vue-i18n/ }, (args) => ({
+              builder.onResolve({ filter: /api\/(archive|user)|project\/useProjectContext|@jetlinks-web|vue-i18n/ }, (args) => ({
                 path: args.path,
                 namespace: 'mock'
               }))
               builder.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
-                contents: /api\/(archive|user)/.test(args.path)
+                contents: args.path.includes('project/useProjectContext')
+                  ? `import {ref} from 'vue'; export const useProjectSwitchGuard = () => {}; export const useProjectContext = () => { const projects=ref([]), projectId=ref(''); return {projects, projectId, refresh: async () => { projects.value=await globalThis.__archiveApi.getSpaceProjects(); if (!projects.value.some(p=>p.id===projectId.value)) projectId.value=projects.value.length===1?projects.value[0].id:'' } } }`
+                  : /api\/(archive|user)/.test(args.path)
                   ? apiNames
                       .map((name) => `export const ${name} = (...args) => globalThis.__archiveApi.${name}(...args)`)
                       .join('\n')

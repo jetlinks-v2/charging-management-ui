@@ -400,5 +400,22 @@
       "modifierName": "Modifier name"
     },
     "houseImportGuideText": "Download the project template, choose full space paths and fill in house type, occupancy and areas. The entire file must pass validation before import."
+  },
+  "ProjectContext": {
+    "selectHint": "Choose a project to continue",
+    "selected": "Selected: {name}",
+    "organizations": "Organizations",
+    "empty": "No available projects",
+    "search": "Search projects or organizations",
+    "refresh": "Refresh projects",
+    "switchBlocked": "Save or close the open editor and wait for operations to finish before switching projects.",
+    "failed": "Unable to load projects. Please retry.",
+    "currentProject": "Current project",
+    "cancel": "Cancel",
+    "choose": "Choose project",
+    "confirm": "Confirm selection",
+    "available": "{count} available projects",
+    "all": "All projects",
+    "current": "Current"
   }
 }

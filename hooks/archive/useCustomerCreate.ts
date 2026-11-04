@@ -15,8 +15,10 @@ import {
 import { queryPropertyUsers, type PropertyUser } from '../../api/user'
 import { createPayload, relationshipPayload } from '../../utils/customer'
 import { requestErrorMessage } from '../../utils/requestError'
+import { useProjectSwitchGuard } from '../project/useProjectContext'
 
 export function useCustomerCreate(scope: Scope, done: () => void) {
+  useProjectSwitchGuard(() => false)
   const { t } = useI18n()
   const type = ref<'person' | 'company'>('person')
   const mode = ref<'new' | 'existing'>('new')

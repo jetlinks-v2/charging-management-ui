@@ -4,6 +4,7 @@ import { getSpaceProjects } from './archive'
 export interface ProjectOption {
   id: string
   name: string
+  organizationPath?: readonly { id: string; name: string }[]
 }
 
 /** 未接入与查询成功但无可选项目分开表达，避免把缺少接口误报为无数据。 */

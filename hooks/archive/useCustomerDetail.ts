@@ -14,6 +14,7 @@ import {
 } from '../../api/archive'
 import { profilePayload } from '../../utils/customer'
 import { requestErrorMessage } from '../../utils/requestError'
+import { useProjectSwitchGuard } from '../project/useProjectContext'
 export function useCustomerDetail(scope: Scope, reload: () => void) {
   const { t } = useI18n()
   const open = ref(false)
@@ -28,6 +29,7 @@ export function useCustomerDetail(scope: Scope, reload: () => void) {
   const ending = ref<Relationship>()
   const endTime = ref<number>(Date.now())
   const endReason = ref('')
+  useProjectSwitchGuard(() => !busy.value && !editing.value && !linking.value && !ending.value)
   const profile = reactive<CustomerProfile>({ name: '', telephone: '' })
   let generation = 0
   let disposed = false

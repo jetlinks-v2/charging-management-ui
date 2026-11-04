@@ -400,5 +400,22 @@
       "modifierName": "修改人"
     },
     "houseImportGuideText": "下载本项目房屋模板，按完整空间路径选择房屋，补充房屋类型、房态和面积；整份校验通过才导入。"
+  },
+  "ProjectContext": {
+    "selectHint": "请选择要办理业务的项目",
+    "selected": "已选择：{name}",
+    "organizations": "按组织选择",
+    "empty": "暂无可选项目",
+    "search": "搜索项目名称或所属组织",
+    "refresh": "刷新项目",
+    "switchBlocked": "请先保存或关闭正在编辑的内容，等待操作完成后再切换项目",
+    "failed": "项目加载失败，请刷新重试",
+    "currentProject": "当前项目",
+    "cancel": "取消",
+    "choose": "选择项目",
+    "confirm": "确认选择",
+    "available": "可选项目 {count} 个",
+    "all": "全部项目",
+    "current": "当前项目"
   }
 }

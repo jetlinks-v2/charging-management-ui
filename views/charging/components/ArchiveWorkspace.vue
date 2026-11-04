@@ -5,6 +5,7 @@ import type { Space } from '../../../api/archive'
 import { FullPage } from '@jetlinks-web-core/layout'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { useArchiveScope } from '../../../hooks/archive/useArchiveScope'
+import ProjectScopeBar from './ProjectScopeBar.vue'
 const { t } = useI18n()
 const k = 'Archive.'
 const {
@@ -75,14 +76,7 @@ const refresh = () => {
       transparentBackground
     >
       <div class="archive-workspace">
-        <div class="archive-toolbar">
-          <a-select
-            v-model:value="projectId"
-            :options="projects.map((item) => ({ value: item.id, label: item.name }))"
-            :placeholder="t(k + 'selectProject')"
-            :aria-label="t(k + 'project')"
-            class="archive-project"
-          />
+        <ProjectScopeBar>
           <span class="archive-muted">
             {{ t(k + 'lastSync') }}：{{
               status?.lastSuccessTime ? new Date(status.lastSuccessTime).toLocaleString() : '—'
@@ -101,7 +95,7 @@ const refresh = () => {
             <AIcon type="SyncOutlined" />
             {{ t(k + 'syncSpaces') }}
           </j-permission-button>
-        </div>
+        </ProjectScopeBar>
         <div
           v-if="projectId"
           class="archive-split"
@@ -152,7 +146,9 @@ const refresh = () => {
         </div>
         <CloudEmpty
           v-else-if="!loading"
-          :description="t(k + (failed ? 'scopeFailed' : 'noProjects'))"
+          :description="
+            failed ? t(k + 'scopeFailed') : t('ProjectContext.' + (projects.length ? 'selectHint' : 'empty'))
+          "
         />
       </div>
     </FullPage>

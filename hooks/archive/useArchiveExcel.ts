@@ -13,6 +13,7 @@ import {
 } from '../../api/archive'
 import { validateImportFile } from '../../utils/archiveImport'
 import { excelErrorMessage } from '../../utils/archiveFiles'
+import { useProjectSwitchGuard } from '../project/useProjectContext'
 
 export function useArchiveExcel(
   getConfig: () => { scope: Scope; projectName?: string; query: Query; kind: 'house' | 'customer'; history?: boolean },
@@ -20,6 +21,7 @@ export function useArchiveExcel(
 ) {
   const { t } = useI18n()
   const busy = ref(false)
+  useProjectSwitchGuard(() => !busy.value)
   let disposed = false
   const name = () => t('Archive.' + (getConfig().kind === 'house' ? 'houses' : 'customers'))
   const report = async (cause: unknown, fallback: string) => {

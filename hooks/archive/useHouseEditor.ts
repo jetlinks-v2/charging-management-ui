@@ -3,6 +3,7 @@ import { onScopeDispose, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { getHouse, saveHouse, type House, type HouseInput, type Scope } from '../../api/archive'
+import { useProjectSwitchGuard } from '../project/useProjectContext'
 export function useHouseEditor(scope: Scope, reload: () => void) {
   const { t } = useI18n()
   const open = ref(false)
@@ -12,6 +13,7 @@ export function useHouseEditor(scope: Scope, reload: () => void) {
   const house = ref<House>()
   const selectedId = ref('')
   const readOnly = ref(false)
+  useProjectSwitchGuard(() => !saving.value && (!open.value || readOnly.value))
   let generation = 0
   let disposed = false
   async function select(spaceId: string, readonly = false) {
