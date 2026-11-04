@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
+import type { OrganizationTypeValue } from '../../../api/organization'
 import { useOrganizationSpaces } from '../../../hooks/archive/useOrganizationSpaces'
 interface TreeNode {
   key: string
@@ -14,7 +15,8 @@ const toTree = (nodes: import('../../../api/archive').Space[]): TreeNode[] =>
     title: node.spaceTypeName ? `${node.name} · ${node.spaceTypeName}` : node.name,
     children: toTree(node.children || [])
   }))
-const props = defineProps<{ organizationId: string }>()
+const props = defineProps<{ organizationId: string; organizationType?: OrganizationTypeValue; disabled: boolean }>()
+const emit = defineEmits<{ (event: 'type-lock-change', locked: boolean): void }>()
 const { t } = useI18n()
 const k = 'Archive.'
 const {
@@ -24,6 +26,7 @@ const {
   selected,
   bound,
   options,
+  canBind,
   save,
   bind,
   synchronize,
@@ -34,8 +37,17 @@ const {
   tree,
   openEditor,
   preview
-} = useOrganizationSpaces(() => props.organizationId)
+} = useOrganizationSpaces(
+  () => props.organizationId,
+  () => props.organizationType,
+  () => !props.disabled
+)
 const treeData = computed(() => toTree(tree.value))
+watch(
+  () => loading.value || failed.value || saving.value || !!bound.value.length,
+  (locked) => emit('type-lock-change', locked),
+  { immediate: true }
+)
 watch(failed, (value) => {
   if (value) onlyMessage(t(k + 'rootsFailed'), 'error')
 })
@@ -53,6 +65,7 @@ watch(treeFailed, (value) => {
           hasPermission="charging/OrganizationType:spaceSync"
           type="primary"
           :loading="saving"
+          :disabled="disabled || loading"
           @click="synchronize"
         >
           <template #icon><AIcon type="SyncOutlined" /></template>
@@ -61,7 +74,7 @@ watch(treeFailed, (value) => {
         <j-permission-button
           v-if="!bound.length"
           hasPermission="charging/OrganizationType:bind"
-          :disabled="loading || failed || saving"
+          :disabled="!canBind"
           @click="openEditor"
         >
           <template #icon><AIcon type="PlusOutlined" /></template>
@@ -106,7 +119,7 @@ watch(treeFailed, (value) => {
                 hasPermission="charging/OrganizationType:bind"
                 type="link"
                 danger
-                :disabled="saving || loading || failed"
+                :disabled="disabled || saving || loading || failed"
               >
                 {{ t(k + 'unbind') }}
               </j-permission-button>
@@ -116,10 +129,18 @@ watch(treeFailed, (value) => {
       </EntityCard>
       <CloudEmpty
         v-if="!bound.length && !loading && !failed"
-        :description="t(k + 'noBoundSpaces')"
+        :description="
+          t(
+            k +
+              (organizationType === 'external'
+                ? 'unsupportedOrganizationType'
+                : organizationType === 'project'
+                ? 'noBoundSpaces'
+                : 'projectTypeRequired')
+          )
+        "
       />
     </a-spin>
-    <p class="organization-spaces__hint">{{ t(k + 'singleBindingHint') }}</p>
   </section>
   <a-modal
     :open="editing"
@@ -129,7 +150,7 @@ watch(treeFailed, (value) => {
     :confirm-loading="saving"
     :ok-text="t(k + 'associateSpace')"
     :cancel-text="t(k + 'cancel')"
-    :ok-button-props="{ disabled: !!bound.length || !selected || failed || loading }"
+    :ok-button-props="{ disabled: !canBind || !selected }"
     :closable="!saving"
     :mask-closable="!saving"
     :keyboard="!saving"
@@ -141,7 +162,7 @@ watch(treeFailed, (value) => {
       v-model:value="selected"
       :options="options"
       :loading="loading"
-      :disabled="saving || failed"
+      :disabled="!canBind"
       show-search
       option-filter-prop="label"
       :placeholder="t(k + 'selectRoot')"

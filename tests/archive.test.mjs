@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
-import { createRenderer, defineComponent, h, nextTick } from 'vue'
+import { createRenderer, defineComponent, h, nextTick, ref } from 'vue'
 const require = createRequire(import.meta.url)
 async function load(entry, apiNames = []) {
   const result = await build({
@@ -409,17 +409,24 @@ test('查询房屋详情的只读模式不能触发保存', async () => {
 })
 test('根空间兼容NON_NULL省略parentId但排除非根，解绑显式传null与版本', async () => {
   const calls = []
-  const { state, unmount } = mount(() => organizationSpaces.useOrganizationSpaces(() => 'org'), {
-    getSpaceRoots: async () => [
-      { id: 'omitted', name: 'Root', version: 4 },
-      { id: 'null', name: 'Root null', parentId: null, version: 2 },
-      { id: 'child', name: 'Child', parentId: 'omitted', version: 1 }
-    ],
-    bindSpaceRoot: async (...args) => {
-      calls.push(args)
-      return {}
+  const { state, unmount } = mount(
+    () =>
+      organizationSpaces.useOrganizationSpaces(
+        () => 'org',
+        () => 'project'
+      ),
+    {
+      getSpaceRoots: async () => [
+        { id: 'omitted', name: 'Root', version: 4 },
+        { id: 'null', name: 'Root null', parentId: null, version: 2 },
+        { id: 'child', name: 'Child', parentId: 'omitted', version: 1 }
+      ],
+      bindSpaceRoot: async (...args) => {
+        calls.push(args)
+        return {}
+      }
     }
-  })
+  )
   await settle()
   assert.deepEqual(
     state.options.value.map((item) => item.value),
@@ -435,23 +442,33 @@ test('组织已关联时不能追加第二个根，显式解除后才可关联�
     { id: 'second', name: 'Second', version: 0 }
   ]
   const writes = []
-  const { state, unmount } = mount(() => organizationSpaces.useOrganizationSpaces(() => 'org'), {
-    getSpaceRoots: async () => rows.map((row) => ({ ...row })),
-    bindSpaceRoot: async (id, organizationId, version) => {
-      writes.push([id, organizationId, version])
-      Object.assign(
-        rows.find((row) => row.id === id),
-        { organizationId, version: version + 1 }
-      )
+  const { state, unmount } = mount(
+    () =>
+      organizationSpaces.useOrganizationSpaces(
+        () => 'org',
+        () => 'project'
+      ),
+    {
+      getSpaceRoots: async () => rows.map((row) => ({ ...row })),
+      bindSpaceRoot: async (id, organizationId, version) => {
+        writes.push([id, organizationId, version])
+        Object.assign(
+          rows.find((row) => row.id === id),
+          { organizationId, version: version + 1 }
+        )
+      }
     }
-  })
+  )
   await settle()
   state.openEditor()
   state.selected.value = 'second'
   await state.bind()
   assert.equal(writes.length, 0)
   assert.equal(state.bound.value.length, 1)
+  assert.equal(state.canBind.value, false)
+  assert.equal(state.editing.value, false)
   await state.save(state.bound.value[0], true)
+  state.openEditor()
   assert.equal(state.editing.value, true)
   state.selected.value = 'second'
   await state.bind()
@@ -466,28 +483,78 @@ test('组织已关联时不能追加第二个根，显式解除后才可关联�
 
 test('关联冲突不覆盖原关联，查看空间树使用当前根且失败可重试', async () => {
   let attempts = 0
-  const { state, unmount } = mount(() => organizationSpaces.useOrganizationSpaces(() => 'org'), {
-    getSpaceRoots: async () => [{ id: 'first', name: 'First', version: 2, organizationId: 'org' }],
-    bindSpaceRoot: async () => {
-      throw new Error('Conflict')
-    },
-    getSpaceRootTree: async (rootId) => {
-      assert.equal(rootId, 'first')
-      if (++attempts === 1) throw new Error('Unavailable')
-      return [{ id: rootId, name: 'First', children: [{ id: 'room', name: '101' }] }]
+  const { state, unmount } = mount(
+    () =>
+      organizationSpaces.useOrganizationSpaces(
+        () => 'org',
+        () => 'project'
+      ),
+    {
+      getSpaceRoots: async () => [{ id: 'first', name: 'First', version: 2, organizationId: 'org' }],
+      bindSpaceRoot: async () => {
+        throw new Error('Conflict')
+      },
+      getSpaceRootTree: async (rootId) => {
+        assert.equal(rootId, 'first')
+        if (++attempts === 1) throw new Error('Unavailable')
+        return [{ id: rootId, name: 'First', children: [{ id: 'room', name: '101' }] }]
+      }
     }
-  })
+  )
   await settle()
   state.openEditor()
   await state.save(state.bound.value[0], true)
   assert.equal(state.bound.value[0].id, 'first')
   assert.deepEqual(globalThis.__archiveMessages.at(-1), { message: 'Conflict', type: 'error' })
-  assert.equal(state.editing.value, true)
+  assert.equal(state.editing.value, false)
   await state.preview()
   assert.equal(state.treeFailed.value, true)
   await state.preview()
   assert.equal(state.treeFailed.value, false)
   assert.equal(state.tree.value[0].children[0].id, 'room')
+  unmount()
+})
+
+test('未标注和外协单位不能打开关联或提交绑定，切换项目后才可关联', async () => {
+  const type = ref()
+  const editable = ref(true)
+  const writes = []
+  const { state, unmount } = mount(
+    () =>
+      organizationSpaces.useOrganizationSpaces(
+        () => 'org',
+        () => type.value,
+        () => editable.value
+      ),
+    {
+      getSpaceRoots: async () => [{ id: 'root', name: 'Root', version: 0 }],
+      bindSpaceRoot: async (...args) => {
+        writes.push(args)
+      }
+    }
+  )
+  assert.equal(state.canBind.value, false)
+  await settle()
+  for (const value of [undefined, 'external']) {
+    type.value = value
+    assert.equal(state.canBind.value, false)
+    state.openEditor()
+    assert.equal(state.editing.value, false)
+    state.selected.value = 'root'
+    await state.bind()
+    await state.save(state.roots.value[0])
+    assert.equal(writes.length, 0)
+  }
+  type.value = 'project'
+  editable.value = false
+  assert.equal(state.canBind.value, false)
+  editable.value = true
+  assert.equal(state.canBind.value, true)
+  state.openEditor()
+  assert.equal(state.editing.value, true)
+  state.selected.value = 'root'
+  await state.bind()
+  assert.deepEqual(writes, [['root', 'org', 0]])
   unmount()
 })
 

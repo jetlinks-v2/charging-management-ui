@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import type { PropType } from 'vue'
+import { ref, watch, type PropType } from 'vue'
 import type { OrganizationType, OrganizationTypeValue, PropertyOrganization } from '../../../api/organization'
 import OrganizationSpaces from './OrganizationSpaces.vue'
 
-defineProps({
+const props = defineProps({
   organization: { type: Object as PropType<PropertyOrganization>, required: true },
   state: {
     type: Object as PropType<{
@@ -20,6 +20,14 @@ defineProps({
 const emit = defineEmits<{ (event: 'save', value: OrganizationTypeValue | null): void }>()
 const { t } = useI18n()
 const key = 'OrganizationType.'
+// 查询未完成、失败或已绑定空间时锁定类型，防止状态尚未确认就修改组织。
+const spaceTypeLocked = ref(true)
+watch(
+  () => props.organization.id,
+  () => {
+    spaceTypeLocked.value = true
+  }
+)
 </script>
 
 <template>
@@ -31,8 +39,8 @@ const key = 'OrganizationType.'
           organization.organizationType?.value === 'project'
             ? 'blue'
             : organization.organizationType
-              ? 'purple'
-              : undefined
+            ? 'purple'
+            : undefined
         "
       >
         {{ organization.organizationType?.text || t(key + 'unmarked') }}
@@ -45,7 +53,7 @@ const key = 'OrganizationType.'
       <h3>{{ t(key + 'type') }}</h3>
       <a-radio-group
         :value="organization.organizationType?.value"
-        :disabled="!state.editable"
+        :disabled="!state.editable || spaceTypeLocked"
         @change="emit('save', $event.target.value)"
       >
         <a-radio
@@ -56,10 +64,9 @@ const key = 'OrganizationType.'
           {{ option.text }}
         </a-radio>
       </a-radio-group>
-      <p class="organization-detail__hint">{{ t(key + 'typeHint') }}</p>
       <div class="organization-detail__actions">
         <a-button
-          :disabled="!state.editable || !organization.organizationType"
+          :disabled="!state.editable || spaceTypeLocked || !organization.organizationType"
           @click="emit('save', null)"
         >
           {{ t(key + 'clear') }}
@@ -68,12 +75,20 @@ const key = 'OrganizationType.'
           v-if="state.saving"
           size="small"
         />
-        <span class="organization-detail__hint">{{ t(key + (state.saving ? 'saving' : 'autoSave')) }}</span>
+        <span
+          v-if="state.saving"
+          class="organization-detail__hint"
+        >
+          {{ t(key + 'saving') }}
+        </span>
       </div>
     </section>
     <OrganizationSpaces
       :key="organization.id"
       :organization-id="organization.id"
+      :organization-type="organization.organizationType?.value"
+      :disabled="!state.editable"
+      @type-lock-change="spaceTypeLocked = $event"
     />
     <section class="organization-detail__info">
       <h3>{{ t(key + 'information') }}</h3>

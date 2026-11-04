@@ -3,10 +3,15 @@ import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { computed, onMounted, onScopeDispose, ref } from 'vue'
 import { bindSpaceRoot, getSpaceRoots, getSpaceRootTree, syncSpaces, type Space } from '../../api/archive'
-export function useOrganizationSpaces(organizationId: () => string) {
+import type { OrganizationTypeValue } from '../../api/organization'
+export function useOrganizationSpaces(
+  organizationId: () => string,
+  organizationType: () => OrganizationTypeValue | undefined,
+  editable: () => boolean = () => true
+) {
   const { t } = useI18n()
   const roots = ref<Space[]>([])
-  const loading = ref(false)
+  const loading = ref(true)
   const failed = ref(false)
   const saving = ref(false)
   const selected = ref<string>()
@@ -19,6 +24,16 @@ export function useOrganizationSpaces(organizationId: () => string) {
   let previewGeneration = 0
   let disposed = false
   const bound = computed(() => roots.value.filter((root) => root.organizationId === organizationId()))
+  // 仅项目允许新增绑定；已有绑定必须显式解除，加载或保存期间不接受新操作。
+  const canBind = computed(
+    () =>
+      organizationType() === 'project' &&
+      editable() &&
+      !bound.value.length &&
+      !loading.value &&
+      !failed.value &&
+      !saving.value
+  )
   const options = computed(() =>
     roots.value
       .filter((root) => root.parentId == null)
@@ -38,7 +53,7 @@ export function useOrganizationSpaces(organizationId: () => string) {
     }
   }
   async function save(root: Space, clear = false) {
-    if (saving.value) return
+    if (saving.value || !editable() || (!clear && !canBind.value)) return
     const currentId = organizationId()
     saving.value = true
     try {
@@ -58,11 +73,12 @@ export function useOrganizationSpaces(organizationId: () => string) {
   }
   const bind = () => {
     // 一对一：已有根时必须先显式解除，不能继续追加或隐式替换关联。
-    if (bound.value.length || loading.value || failed.value) return
+    if (!canBind.value) return
     const root = roots.value.find((item) => item.id === selected.value)
     if (root && root.parentId == null && !root.organizationId) return save(root)
   }
   function openEditor() {
+    if (!canBind.value) return
     selected.value = undefined
     editing.value = true
   }
@@ -88,7 +104,7 @@ export function useOrganizationSpaces(organizationId: () => string) {
     }
   }
   async function synchronize() {
-    if (saving.value) return
+    if (saving.value || !editable()) return
     saving.value = true
     try {
       await syncSpaces()
@@ -114,6 +130,7 @@ export function useOrganizationSpaces(organizationId: () => string) {
     selected,
     bound,
     options,
+    canBind,
     reload,
     save,
     bind,

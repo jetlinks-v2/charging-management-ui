@@ -35,6 +35,7 @@ h3 {
 }
 .organization-detail__actions {
   display: flex;
+  margin-top: 16px;
   gap: 12px;
   align-items: center;
 }
