@@ -28,8 +28,11 @@
 
 .archive-import {
   display: grid;
-  gap: 20px;
+  gap: 16px;
   padding: 8px 0 12px;
+}
+.archive-import :deep(.ant-form-item) {
+  margin-bottom: 0;
 }
 .archive-import__project {
   display: flex;
@@ -72,21 +75,29 @@
 .archive-import__guide {
   display: flex;
   align-items: center;
-  gap: 20px;
-}
-.archive-import__guide > div {
-  flex: 1;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 .archive-import h3 {
   font-size: 14px;
   font-weight: 600;
-  margin: 0 0 8px;
+  margin: 0;
 }
-.archive-import__guide p {
+.archive-import__instructions {
+  padding: 14px 16px;
+  background: var(--ant-color-fill-quaternary, #f5f7fa);
+  border-radius: 8px;
+}
+.archive-import__instructions ul {
+  padding-left: 18px;
+  margin: 0;
   font-size: 13px;
   line-height: 1.8;
-  margin: 0;
   color: var(--ant-color-text-secondary, #595959);
+}
+.archive-import__instructions .archive-import__required {
+  color: var(--ant-color-error, #ff4d4f);
 }
 .archive-import__upload-icon {
   font-size: 36px;
@@ -123,11 +134,4 @@
   display: block;
   color: var(--ant-color-text-secondary, #595959);
   margin-top: 4px;
-}
-@media (max-width: 540px) {
-  .archive-import__guide {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 12px;
-  }
 }

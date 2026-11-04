@@ -54,7 +54,6 @@ function choose(selected: File) {
         </div>
         <AIcon type="LockOutlined" />
       </div>
-      <p class="archive-import__hint">{{ t('Archive.importProjectHint') }}</p>
       <a-form
         v-if="kind === 'customer'"
         layout="vertical"
@@ -72,19 +71,24 @@ function choose(selected: File) {
           </a-radio-group>
         </a-form-item>
       </a-form>
-      <div class="archive-import__guide">
-        <div>
-          <h3>{{ t('Archive.importGuide') }}</h3>
-          <p>{{ t('Archive.' + (kind === 'customer' ? 'importGuideText' : 'houseImportGuideText')) }}</p>
+      <div class="archive-import__instructions">
+        <div class="archive-import__guide">
+          <h3>{{ t('Archive.importInstructions') }}</h3>
+          <a-button
+            :loading="busy"
+            :disabled="kind === 'customer' && !customerType"
+            @click="emit('template', customerType)"
+          >
+            <template #icon><AIcon type="DownloadOutlined" /></template>
+            {{ t('Archive.template') }}
+          </a-button>
         </div>
-        <a-button
-          :loading="busy"
-          :disabled="kind === 'customer' && !customerType"
-          @click="emit('template', customerType)"
-        >
-          <template #icon><AIcon type="DownloadOutlined" /></template>
-          {{ t('Archive.template') }}
-        </a-button>
+        <ul>
+          <li class="archive-import__required">{{ t('Archive.importRequiredHeaders') }}</li>
+          <li>{{ t('Archive.' + (kind === 'customer' ? 'importGuideText' : 'houseImportGuideText')) }}</li>
+          <li>{{ t('Archive.importExampleHint') }}</li>
+          <li>{{ t('Archive.importValidationHint') }}</li>
+        </ul>
       </div>
       <a-upload-dragger
         accept=".xlsx,.xls"
