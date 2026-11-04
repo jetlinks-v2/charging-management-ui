@@ -1528,6 +1528,90 @@
             ]
           }
         ]
+      },
+      {
+        "id": "charging-FinanceCarry",
+        "code": "charging/FinanceCarry",
+        "name": "自动结转",
+        "url": "/charging/payment/FinanceCarry",
+        "owner": "app",
+        "sortIndex": 6,
+        "icon": "SwapOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "自动结转",
+            "en_US": "Automatic carry-forward",
+            "en": "Automatic carry-forward"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-carry",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
+            "i18nMessages": {
+              "zh_CN": "保存",
+              "en_US": "Save",
+              "en": "Save"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-carry",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "state",
+            "name": "启用停用",
+            "i18nMessages": {
+              "zh_CN": "启用停用",
+              "en_US": "Enable or disable",
+              "en": "Enable or disable"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-carry",
+                "actions": ["state"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "i18nMessages": {
+              "zh_CN": "删除",
+              "en_US": "Delete",
+              "en": "Delete"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-carry",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "retry",
+            "name": "失败重试",
+            "i18nMessages": {
+              "zh_CN": "失败重试",
+              "en_US": "Retry failed",
+              "en": "Retry failed"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-carry",
+                "actions": ["retry"]
+              }
+            ]
+          }
+        ]
       }
     ]
   }
