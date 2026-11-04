@@ -26,6 +26,7 @@ const reason = (code?: string) => t(code?.endsWith('expired') ? 'Document.expire
     >
       <a-radio-button value="RECEIVABLE">{{ t('Document.sourceReceivable') }}</a-radio-button>
       <a-radio-button value="TEMP_PAYMENT">{{ t('Document.sourceTemporary') }}</a-radio-button>
+      <a-radio-button value="FUND_TOPUP">{{ t('Document.sourceFund') }}</a-radio-button>
     </a-radio-group>
     <a-input-search
       :placeholder="t('Document.searchSource')"
@@ -61,7 +62,11 @@ const reason = (code?: string) => t(code?.endsWith('expired') ? 'Document.expire
     </template>
     <template #subject="row">
       {{ row.subjectName }}
-      <small>{{ row.startDate || '—' }} ～ {{ row.endDate || '—' }}</small>
+      <small v-if="row.sourceType === 'FUND_TOPUP'">
+        {{ t(row.fundType === 'DEPOSIT' ? 'Document.sourceDeposit' : 'Document.sourceAdvance') }}
+        · {{ row.paidAt?.replace('T', ' ') || '—' }}
+      </small>
+      <small v-else>{{ row.startDate || '—' }} ～ {{ row.endDate || '—' }}</small>
     </template>
     <template #available="row">
       <strong class="document-money">{{ row.availableAmount }}</strong>

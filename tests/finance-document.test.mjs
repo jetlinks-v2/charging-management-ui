@@ -235,6 +235,45 @@ test('核销批量原请求冻结并阻止双击，成功只登记一次', async
   assert.equal(m.state.locked.value, true)
   m.unmount()
 })
+
+test('原存入来源保持独立身份，预收押金可合并且未知结果恢复原来源', async () => {
+  const store = memory(),
+    calls = []
+  let m = mount(
+    {
+      confirmDocument: async (p, request) => {
+        calls.push([p, structuredClone(request)])
+        throw Error('network')
+      }
+    },
+    store
+  )
+  m.state.toggle(candidate('advance', { sourceType: 'FUND_TOPUP', fundType: 'ADVANCE' }))
+  m.state.toggle(candidate('deposit', { sourceType: 'FUND_TOPUP', fundType: 'DEPOSIT', availableAmount: '10.00' }))
+  m.state.toggle(candidate('advance', { sourceType: 'FUND_TOPUP' }))
+  assert.equal(m.state.items.value.length, 1)
+  assert.equal(m.state.items.value[0].sourceId, 'deposit')
+  await m.state.calculate()
+  await m.state.submit()
+  assert.equal(m.state.uncertain.value, true)
+  assert.equal(calls[0][1].input.items[0].sourceType, 'FUND_TOPUP')
+  m.unmount()
+  m = mount(
+    {
+      confirmDocument: async (p, request) => {
+        calls.push([p, structuredClone(request)])
+        return { document, buyer: {}, lines: [] }
+      }
+    },
+    store
+  )
+  await flush()
+  m.props.projectId = 'changed'
+  await m.state.submit()
+  assert.deepEqual(calls[0], calls[1])
+  assert.equal(store.read(), undefined)
+  m.unmount()
+})
 test('核销未知结果重挂后保持原批次和项目，不重查票据且不能换载荷重试', async () => {
   const recovery = memory(),
     calls = []

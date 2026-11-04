@@ -5,7 +5,7 @@ import { receiptPdfResponse } from '../utils/receiptPdf'
 
 const request: Pick<Request, 'get' | 'post' | 'put'> = hostRequest
 export type DocumentType = 'INVOICE' | 'RECEIPT'
-export type DocumentSourceType = 'RECEIVABLE' | 'TEMP_PAYMENT'
+export type DocumentSourceType = 'RECEIVABLE' | 'TEMP_PAYMENT' | 'FUND_TOPUP'
 export interface DocumentBuyer {
   name: string
   taxNum?: string
@@ -51,6 +51,7 @@ export interface DocumentRule {
   maxReopenTimes: number | null
 }
 export interface DocumentCandidate {
+  fundType?: 'ADVANCE' | 'DEPOSIT'
   sourceType: DocumentSourceType
   sourceId: string
   spaceId: string
