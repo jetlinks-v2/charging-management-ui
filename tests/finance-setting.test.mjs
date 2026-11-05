@@ -61,6 +61,7 @@ const { useSettingWorkspace } = await load('../hooks/finance-setting/useSettingW
 const { useSettingForm } = await load('../hooks/finance-setting/useSettingForm.ts')
 const { useSettingTargetList } = await load('../hooks/finance-setting/useSettingTargetList.ts')
 const { useSettingHousePicker } = await load('../hooks/finance-setting/useSettingHousePicker.ts')
+const { useSettingHouseTree } = await load('../hooks/finance-setting/useSettingHouseTree.ts')
 const { useBillingTasks } = await load('../hooks/finance-setting/useBillingTasks.ts')
 const context = (space = 'room', count = 1) => ({
   house: { spaceId: space, fullName: space, billingArea: '100.25' },
@@ -427,4 +428,137 @@ test('已选房屋分页保留收费对象，全部客户操作按各自房屋�
   assert.equal(state.page.value, 1)
   assert.deepEqual(draft.targets[4].relationshipIds, ['4-0', '4-1'])
   unmount()
+})
+
+const roomTree = (count) => [
+  {
+    id: 'project',
+    name: '测试园区',
+    leaf: false,
+    children: [
+      {
+        id: 'building',
+        name: '1栋',
+        leaf: false,
+        children: Array.from({ length: count }, (_, i) => ({ id: 'room-' + i, name: String(101 + i), leaf: true }))
+      }
+    ]
+  }
+]
+const housePage = (count, page = 0) => ({
+  total: count,
+  pageIndex: page,
+  pageSize: 200,
+  data: Array.from({ length: count }, (_, i) => ({
+    spaceId: 'room-' + i,
+    fullName: '测试园区/1栋/' + (101 + i),
+    billingArea: '100.25'
+  })).slice(page * 200, (page + 1) * 200)
+})
+const settleTree = async () => {
+  for (let i = 0; i < 8; i++) await nextTick()
+}
+
+test('树按项目楼栋级联选择，仅选择已完善末端，已添加和未完善房屋不重复加入', async () => {
+  const props = reactive({ projectId: 'a', spaces: roomTree(4), busy: false, selectedIds: ['room-0'], limit: 5 })
+  const { state, unmount } = mount(() => useSettingHouseTree(props), { querySettingHouses: async () => housePage(3) })
+  await settleTree()
+  assert.deepEqual(
+    state.visibleHouses.value.map((n) => n.key),
+    ['room-1', 'room-2']
+  )
+  state.check(['project', 'building', 'room-0', 'room-1', 'room-2', 'room-3'])
+  assert.deepEqual(state.selected.value, ['room-1', 'room-2'])
+  state.clear()
+  state.selectAll()
+  assert.deepEqual(state.selected.value, ['room-1', 'room-2'])
+  assert.equal(state.visibleTree.value[0].children[0].children[3].disabled, true)
+  unmount()
+})
+
+test('搜索勾选保留隐藏选择，搜索父节点保留全部下级，超限拒绝且忙碌时不可修改', async () => {
+  const props = reactive({ projectId: 'a', spaces: roomTree(3), busy: false, selectedIds: [], limit: 2 })
+  const { state, unmount } = mount(() => useSettingHouseTree(props), { querySettingHouses: async () => housePage(3) })
+  await settleTree()
+  state.check(['room-0'])
+  state.keyword.value = '102'
+  await nextTick()
+  assert.equal(state.visibleHouses.value.length, 1)
+  state.selectAll()
+  assert.deepEqual(state.selected.value, ['room-0', 'room-1'])
+  state.check([])
+  assert.deepEqual(state.selected.value, ['room-0'])
+  state.keyword.value = '1栋'
+  await nextTick()
+  assert.equal(state.visibleHouses.value.length, 3)
+  state.selectAll()
+  assert.deepEqual(state.selected.value, ['room-0'])
+  assert.equal(globalThis.__settingMessages.at(-1)[0], 'Setting.houseTreeLimit')
+  props.busy = true
+  state.clear()
+  state.check(['room-2'])
+  assert.deepEqual(state.selected.value, ['room-0'])
+  unmount()
+})
+
+test('大项目自动读取全部分页，房屋列表不完整或重复时整批不可选择', async () => {
+  const calls = []
+  const props = reactive({ projectId: 'a', spaces: roomTree(401), busy: false, selectedIds: [], limit: 200 })
+  const { state, unmount } = mount(() => useSettingHouseTree(props), {
+    querySettingHouses: async (_p, q) => {
+      calls.push(q)
+      return housePage(401, q.pageIndex)
+    }
+  })
+  await settleTree()
+  assert.deepEqual(
+    calls.map((q) => [q.pageIndex, q.pageSize]),
+    [
+      [0, 200],
+      [1, 200],
+      [2, 200]
+    ]
+  )
+  assert.equal(state.visibleHouses.value.length, 401)
+  assert.equal(state.failed.value, false)
+  state.selectAll()
+  assert.equal(state.selected.value.length, 0)
+  state.check(Array.from({ length: 200 }, (_, i) => 'room-' + i))
+  assert.equal(state.selected.value.length, 200)
+  unmount()
+  const bad = mount(() => useSettingHouseTree(props), {
+    querySettingHouses: async (_p, q) => ({ ...housePage(401, q.pageIndex), data: housePage(401, 0).data })
+  })
+  await settleTree()
+  assert.equal(bad.state.failed.value, true)
+  assert.equal(bad.state.visibleHouses.value.length, 0)
+  bad.state.selectAll()
+  assert.equal(bad.state.selected.value.length, 0)
+  bad.unmount()
+})
+
+test('换项目或关闭时丢弃旧树房屋响应，来源失败不留下可选的半份数据', async () => {
+  const old = deferred()
+  const props = reactive({ projectId: 'a', spaces: roomTree(2), busy: false, selectedIds: [], limit: 200 })
+  const { state, unmount } = mount(() => useSettingHouseTree(props), {
+    querySettingHouses: async (p) => (p === 'a' ? old.promise : housePage(1))
+  })
+  state.keyword.value = '101'
+  props.projectId = 'b'
+  await settleTree()
+  old.resolve(housePage(2))
+  await settleTree()
+  assert.equal(state.visibleHouses.value.length, 1)
+  assert.deepEqual(state.expandedKeys.value, ['project', 'building'])
+  assert.equal(state.selected.value.length, 0)
+  unmount()
+  const failure = mount(() => useSettingHouseTree(props), {
+    querySettingHouses: async () => {
+      throw new Error('来源失败')
+    }
+  })
+  await settleTree()
+  assert.equal(failure.state.failed.value, true)
+  assert.equal(failure.state.visibleHouses.value.length, 0)
+  failure.unmount()
 })

@@ -4,10 +4,13 @@ import type { ChargeSetting, SettingOptions, SettingInput } from '../../../api/f
 import { useSettingForm } from '../../../hooks/finance-setting/useSettingForm'
 import SettingDetail from './SettingDetail.vue'
 import SettingHousePicker from './SettingHousePicker.vue'
+import SettingHouseTree from './SettingHouseTree.vue'
+import type { FinanceSpace } from '../../../api/financeSpace'
 import SettingRuleCard from './SettingRuleCard.vue'
 import SettingTargets from './SettingTargets.vue'
 const props = defineProps<{
   projectId: string
+  spaces: FinanceSpace[]
   detail?: ChargeSetting
   options: SettingOptions
   initialSpace?: string
@@ -127,16 +130,24 @@ function ruleKeys(rule: SettingInput) {
         {{ t('Setting.saveAndGenerate') }}
       </a-button>
     </template>
+    <SettingHouseTree
+      v-if="pickerOpen && mode === 'batch'"
+      :project-id="projectId"
+      :spaces="spaces"
+      :busy="loadingHouse"
+      :selected-ids="targets.map((target) => target.context.house.spaceId)"
+      :limit="Math.floor(200 / rules.length)"
+      @close="pickerOpen = false"
+      @pick="addHouses"
+    />
     <SettingHousePicker
-      v-if="pickerOpen"
+      v-else-if="pickerOpen"
       :project-id="projectId"
       :busy="loadingHouse"
-      :multiple="mode === 'batch'"
       :selected-ids="targets.map((target) => target.context.house.spaceId)"
       :limit="Math.floor(200 / rules.length)"
       @close="pickerOpen = false"
       @pick="addHouse"
-      @pick-many="addHouses"
     />
   </JlDrawerShell>
 </template>

@@ -104,6 +104,7 @@ function selectTree(keys: (string | number)[]) {
     <SettingDrawer
       v-if="open"
       :project-id="projectId"
+      :spaces="archive.tree.value"
       :detail="detail"
       :options="options"
       :initial-space="selected?.leaf ? selected.id : undefined"
