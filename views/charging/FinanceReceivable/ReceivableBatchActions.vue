@@ -7,29 +7,27 @@ const { t } = useI18n()
 const { selected, deleting, busy, reason, notice, clear, startDelete, remove, preview } = props.state
 </script>
 <template>
-  <div
-    v-if="selected.length"
-    class="receivable-batch-actions"
-  >
-    <span>{{ t('Receivable.selectedCount', { count: selected.length }) }}</span>
+  <div class="receivable-batch-actions">
     <a-space wrap>
       <j-permission-button
         :hasPermission="'charging/FinanceReceivable:print'"
         :loading="busy"
+        :disabled="!selected.length"
         @click="preview"
       >
         <AIcon type="PrinterOutlined" />
-        {{ t('Notice.title') }}
+        {{ t('ReceivableLedger.print') }}
       </j-permission-button>
       <j-permission-button
         :hasPermission="'charging/FinanceReceivable:delete'"
         danger
-        :disabled="busy"
+        :disabled="busy || !selected.length"
         @click="startDelete"
       >
         {{ t('Receivable.batchDelete') }}
       </j-permission-button>
       <a-button
+        v-if="selected.length"
         type="link"
         :disabled="busy"
         @click="clear"
@@ -75,14 +73,6 @@ const { selected, deleting, busy, reason, notice, clear, startDelete, remove, pr
 </template>
 <style scoped>
 .receivable-batch-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  background: var(--ant-color-fill-alter, #f5f5f5);
-  border-radius: 6px;
+  display: inline-flex;
 }
 </style>

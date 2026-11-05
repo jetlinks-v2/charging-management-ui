@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { validateImportFile } from '../../../utils/archiveImport'
 const props = defineProps<{ open: boolean; projectName: string; busy: boolean }>()
-const emit = defineEmits<{ close: []; template: []; upload: [File] }>()
+const emit = defineEmits<{ close: []; template: []; upload: [File]; history: [] }>()
 const { t } = useI18n()
 const file = ref<File>()
 watch(
@@ -41,8 +41,12 @@ function choose(selected: File) {
       </div>
       <div class="historical-import__guide">
         <p>{{ t('Historical.guide') }}</p>
-        <a-button :loading="busy" @click="emit('template')">
-          <AIcon type="DownloadOutlined" /> {{ t('Subject.template') }}
+        <a-button
+          :loading="busy"
+          @click="emit('template')"
+        >
+          <AIcon type="DownloadOutlined" />
+          {{ t('Subject.template') }}
         </a-button>
       </div>
       <a-upload-dragger
@@ -56,11 +60,16 @@ function choose(selected: File) {
         <p class="ant-upload-text">{{ t('Historical.dropFile') }}</p>
         <p class="ant-upload-hint">{{ t('Historical.fileHint') }}</p>
       </a-upload-dragger>
-      <div v-if="file" class="historical-import__file" role="status">
+      <div
+        v-if="file"
+        class="historical-import__file"
+        role="status"
+      >
         <AIcon type="FileExcelOutlined" />
-        <span
-          >{{ file.name }} <small>{{ (file.size / 1024).toFixed(1) }} KB</small></span
-        >
+        <span>
+          {{ file.name }}
+          <small>{{ (file.size / 1024).toFixed(1) }} KB</small>
+        </span>
         <a-button
           type="text"
           :disabled="busy"
@@ -72,14 +81,36 @@ function choose(selected: File) {
       </div>
     </div>
     <template #footer>
-      <a-button :disabled="busy" @click="emit('close')">{{ t('Finance.cancel') }}</a-button>
-      <a-button type="primary" :disabled="!file" :loading="busy" @click="file && emit('upload', file)">
+      <j-permission-button
+        :hasPermission="'charging/FinanceReceivable:imports'"
+        type="link"
+        class="historical-history"
+        :disabled="busy"
+        @click="emit('history')"
+      >
+        {{ t('HistoricalAudit.history') }}
+      </j-permission-button>
+      <a-button
+        :disabled="busy"
+        @click="emit('close')"
+      >
+        {{ t('Finance.cancel') }}
+      </a-button>
+      <a-button
+        type="primary"
+        :disabled="!file"
+        :loading="busy"
+        @click="file && emit('upload', file)"
+      >
         {{ t('Historical.importStart') }}
       </a-button>
     </template>
   </a-modal>
 </template>
 <style scoped>
+.historical-history {
+  float: left;
+}
 .historical-import {
   display: grid;
   gap: 18px;

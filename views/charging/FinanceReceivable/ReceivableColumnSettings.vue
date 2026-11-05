@@ -26,26 +26,44 @@ const { t } = useI18n()
           </a-button>
         </div>
         <p>{{ t('Receivable.columnHint') }}</p>
-        <div
-          v-for="option in state.options.value"
-          :key="option.key"
-          class="column-settings-row"
-        >
-          <a-checkbox
-            :checked="!state.preferences.value[option.key]?.hidden"
-            :disabled="option.locked"
-            @change="state.update(option.key, { hidden: !$event.target.checked })"
+        <a-input-search
+          v-model:value="state.keyword.value"
+          allow-clear
+          :placeholder="t('ReceivableLedger.searchColumns')"
+          :aria-label="t('ReceivableLedger.searchColumns')"
+        />
+        <div class="column-settings-list">
+          <section
+            v-for="group in state.groups.value"
+            :key="group.key"
           >
-            {{ option.title }}
-          </a-checkbox>
-          <a-input-number
-            :aria-label="option.title + ' ' + t('Receivable.columnWidth')"
-            :value="state.preferences.value[option.key]?.width"
-            :min="90"
-            :max="600"
-            :step="10"
-            size="small"
-            @change="(value) => state.update(option.key, { width: Number(value) })"
+            <h4>{{ group.title }}</h4>
+            <div
+              v-for="option in group.options"
+              :key="option.key"
+              class="column-settings-row"
+            >
+              <a-checkbox
+                :checked="!state.preferences.value[option.key]?.hidden"
+                :disabled="option.locked"
+                @change="state.update(option.key, { hidden: !$event.target.checked })"
+              >
+                {{ option.title }}
+              </a-checkbox>
+              <a-input-number
+                :aria-label="option.title + ' ' + t('Receivable.columnWidth')"
+                :value="state.preferences.value[option.key]?.width"
+                :min="90"
+                :max="600"
+                :step="10"
+                size="small"
+                @change="(value) => state.update(option.key, { width: Number(value) })"
+              />
+            </div>
+          </section>
+          <CloudEmpty
+            v-if="!state.groups.value.length"
+            :description="t('ReceivableLedger.noColumn')"
           />
         </div>
       </div>
@@ -55,6 +73,17 @@ const { t } = useI18n()
 <style scoped>
 .column-settings {
   width: min(300px, 75vw);
+}
+.column-settings-list {
+  max-height: min(420px, 55vh);
+  overflow-y: auto;
+  margin-top: 12px;
+  padding-right: 8px;
+}
+.column-settings-list h4 {
+  margin: 12px 0 6px;
+  font-size: 12px;
+  color: var(--ant-color-text-secondary, #595959);
 }
 .column-settings-head,
 .column-settings-row {

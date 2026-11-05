@@ -19,8 +19,14 @@ const names = [
   'historicalTemplate',
   'importHistorical',
   'queryHistoricalImports',
+  'queryHistoricalImportLines',
+  'decideHistoricalImports',
+  'decideHistoricalImportLines',
   'deleteReceivableBatch',
-  'previewPaymentNotice'
+  'previewPaymentNotice',
+  'queryReceivableChanges',
+  'getReceivableChange',
+  'decideReceivableChange'
 ]
 async function load(path) {
   const result = await build({
@@ -448,4 +454,284 @@ test('列偏好保留已知列、限制宽度，并保证房屋身份和操作�
   assert.deepEqual(saved.amount, { hidden: true, width: 90 })
   assert.equal(saved.unknown, undefined)
   assert.deepEqual(normalizeReceivableColumns(options, null).remark, { hidden: true, width: 180 })
+})
+
+const { receivableFilterTerms, useReceivableFilters } = await load(
+  '../hooks/finance-receivable/useReceivableFilters.ts'
+)
+const { receivableCellText } = await load('../utils/receivableDisplay.ts')
+const { useHistoricalAudit } = await load('../hooks/finance-receivable/useHistoricalAudit.ts')
+
+test('台账固定筛选发送金额条件到服务端，重置及切项目清除旧条件', async () => {
+  const terms = ref([]),
+    project = ref('a')
+  const { state, unmount } = mount(() => useReceivableFilters(terms, project))
+  Object.assign(state.model, {
+    contractCode: ' HT-1 ',
+    customerName: ' 龚超 ',
+    payStatus: 'PARTIAL',
+    calcStartDate: '2024-02-01',
+    calcEndDate: '2024-02-29'
+  })
+  state.search()
+  assert.deepEqual(terms.value, [
+    { column: 'contractCode', termType: 'like', value: '%HT-1%' },
+    { column: 'customerName', termType: 'like', value: '%龚超%' },
+    { column: 'calcStartDate', termType: 'gte', value: '2024-02-01' },
+    { column: 'calcEndDate', termType: 'lte', value: '2024-02-29' },
+    { column: 'arrears', termType: 'gt', value: '0' },
+    { column: 'paidAmount', termType: 'gt', value: '0' }
+  ])
+  assert.deepEqual(receivableFilterTerms({ payStatus: 'PAID' }), [{ column: 'arrears', termType: 'lte', value: '0' }])
+  state.reset()
+  assert.deepEqual(terms.value, [])
+  state.model.fullName = '101'
+  state.search()
+  project.value = 'b'
+  await nextTick()
+  assert.equal(state.model.fullName, '')
+  assert.deepEqual(terms.value, [])
+  unmount()
+})
+
+test('台账显示保留财务精度、多个对象与未知来源，历史未知单价税额不能伪造', () => {
+  const t = (key, params) => (params ? key + ':' + params.count : key)
+  assert.equal(
+    receivableCellText(
+      { actualReceivableAmount: '900719925474099.91' },
+      { key: 'actualReceivableAmount', kind: 'money' },
+      t
+    ),
+    '900719925474099.91'
+  )
+  assert.equal(receivableCellText({ customerNames: ['张三', '李四'] }, { key: 'customerName' }, t), '张三、李四')
+  assert.equal(receivableCellText({ sourceType: 'unknown-import' }, { key: 'sourceType' }, t), 'unknown-import')
+  assert.equal(receivableCellText({ outputTaxAmount: null }, { key: 'outputTaxAmount', kind: 'money' }, t), '—')
+  assert.equal(receivableCellText({}, { key: 'price', kind: 'price' }, t), '—')
+  assert.equal(receivableCellText({ paidDate: '2024-02-29' }, { key: 'paidDate', kind: 'date' }, t), '2024-02-29')
+  assert.equal(
+    receivableCellText({ overdueDays: 61, overdueMonths: 2 }, { key: 'overdueDays', kind: 'days' }, t),
+    'ReceivableLedger.months:2 / ReceivableLedger.days:61'
+  )
+})
+
+test('历史上传校验成功只进入待审，不提前刷新正式应收', async () => {
+  let saved = 0
+  const props = reactive({ projectId: 'a', projectName: '园区' })
+  const { state, unmount } = mount(() => useHistoricalImport(props, () => saved++), {
+    importHistorical: async () => ({ status: 'PENDING', totalCount: 2, successCount: 0 })
+  })
+  state.open.value = true
+  await state.upload(new File(['data'], '历史.xlsx'))
+  assert.equal(saved, 0)
+  assert.equal(state.open.value, false)
+  assert.equal(state.historyOpen.value, true)
+  assert.equal(state.historyStatus.value, 'PENDING')
+  unmount()
+})
+
+test('导入审核分页和明细筛选交给后端，批次/行版本随决定提交，失败保留确认', async () => {
+  const props = reactive({ open: true, projectId: 'a', initialStatus: 'PENDING' }),
+    calls = []
+  let succeed = false,
+    saved = 0,
+    refreshed = 0
+  const record = {
+    id: 'batch',
+    version: 2,
+    status: 'PENDING',
+    fileName: '历史.xlsx',
+    column: reactive({ title: () => '框架附加列' })
+  }
+  const line = { id: 'line', version: 4, status: 'PENDING', lineNumber: 3 }
+  const { state, unmount } = mount(() => useHistoricalAudit(props, () => saved++), {
+    queryHistoricalImports: async (...a) => {
+      calls.push(['records', ...a])
+      return { result: { data: [], total: 0 } }
+    },
+    queryHistoricalImportLines: async (...a) => {
+      calls.push(['lines', ...a])
+      return { result: { data: [], total: 0 } }
+    },
+    decideHistoricalImportLines: async (...a) => {
+      calls.push(['decide', ...a])
+      if (!succeed) throw Error('版本已改变')
+      return { ...record, version: 3, status: 'APPROVED' }
+    }
+  })
+  state.searchKeyword.value = '迁移'
+  state.status.value = 'APPROVED'
+  await state.request({ pageIndex: 3, pageSize: 24 })
+  assert.deepEqual(calls[0][2], {
+    pageIndex: 3,
+    pageSize: 24,
+    terms: [
+      { column: 'status', termType: 'in', value: ['APPROVED', 'SUCCESS'] },
+      { column: 'fileName', termType: 'like', value: '%迁移%' }
+    ]
+  })
+  state.showLines(record)
+  state.house.value = ' 101 '
+  state.customer.value = '张三'
+  state.searchLines()
+  state.lineStatus.value = 'PENDING'
+  await state.requestLines({ pageIndex: 1, pageSize: 12 })
+  assert.equal(calls[1][1], 'a')
+  assert.equal(calls[1][2], 'batch')
+  assert.deepEqual(calls[1][3], {
+    pageIndex: 1,
+    pageSize: 12,
+    terms: [
+      { column: 'fullName', termType: 'like', value: '%101%' },
+      { column: 'customerName', termType: 'like', value: '%张三%' },
+      { column: 'status', termType: 'eq', value: 'PENDING' }
+    ]
+  })
+  state.table.value = { reload: () => refreshed++ }
+  state.lineTable.value = { reload: () => refreshed++ }
+  state.start('approve', [record], [line])
+  state.reason.value = ' 核对通过 '
+  await state.submit()
+  assert.ok(state.decision.value)
+  assert.equal(saved, 0)
+  assert.equal(refreshed, 0)
+  assert.equal(globalThis.__receivableMessages.at(-1)[1], 'error')
+  succeed = true
+  await state.submit()
+  assert.equal(state.decision.value, undefined)
+  assert.equal(saved, 1)
+  assert.equal(refreshed, 2)
+  assert.equal(calls.at(-1)[2].version, 2)
+  assert.equal(calls.at(-1)[4][0].version, 4)
+  assert.equal(calls.at(-1)[5], '核对通过')
+  assert.equal(state.record.value.version, 3)
+  unmount()
+})
+
+test('审核请求进行时阻止重复提交，切项目后迟到结果不能弹成功或刷新新项目', async () => {
+  const pending = deferred(),
+    props = reactive({ open: true, projectId: 'a', initialStatus: 'PENDING' })
+  let submitted = 0,
+    saved = 0
+  const { state, unmount } = mount(() => useHistoricalAudit(props, () => saved++), {
+    decideHistoricalImports: async () => {
+      submitted++
+      return pending.promise
+    }
+  })
+  state.start('reject', [{ id: 'b', version: 1, status: 'PENDING' }])
+  state.reason.value = '资料不符'
+  const request = state.submit()
+  await state.submit()
+  assert.equal(submitted, 1)
+  props.projectId = 'new'
+  await nextTick()
+  pending.resolve([{ id: 'b', status: 'REJECTED', version: 2 }])
+  await request
+  assert.equal(saved, 0)
+  assert.equal(state.busy.value, false)
+  assert.equal(state.decision.value, undefined)
+  assert.equal(globalThis.__receivableMessages.length, 0)
+  state.start('approve', [{ id: 'done', status: 'APPROVED' }])
+  assert.equal(state.decision.value, undefined)
+  unmount()
+})
+
+test('行日志入口直接打开日志页签，重新查看详情不会残留日志页签', async () => {
+  const { state, unmount } = mount()
+  await state.select(row('bill'), 'LOG')
+  assert.equal(state.detailTab.value, 'logs')
+  await state.select(row('bill'))
+  assert.equal(state.detailTab.value, 'amount')
+  unmount()
+})
+
+const { useReceivableChangeAudit } = await load('../hooks/finance-receivable/useReceivableChangeAudit.ts')
+test('变更审批保留失败原因、版本提交，成功后才刷新正式应收', async () => {
+  const props = reactive({ projectId: 'a' }),
+    calls = []
+  const record = { id: 'change', version: 7, status: 'PENDING', operation: 'ADJUST' }
+  let succeed = false,
+    saved = 0,
+    reload = 0
+  const { state, unmount } = mount(() => useReceivableChangeAudit(props, () => saved++), {
+    queryReceivableChanges: async (...args) => {
+      calls.push(['query', ...args])
+      return { result: { data: [], total: 0 } }
+    },
+    getReceivableChange: async () => ({ record, input: {}, preview: {}, before: {} }),
+    decideReceivableChange: async (...args) => {
+      calls.push(['decide', ...args])
+      if (!succeed) throw Error('原账已变化')
+      return { ...record, status: 'APPROVED', version: 8 }
+    }
+  })
+  state.show()
+  assert.equal(globalThis.__receivableGuards.at(-1)(), false)
+  state.operation.value = 'ADJUST'
+  state.search.value = '101'
+  await state.request({ pageIndex: 2, pageSize: 24 })
+  assert.deepEqual(calls[0][2], {
+    pageIndex: 2,
+    pageSize: 24,
+    terms: [
+      { column: 'status', termType: 'eq', value: 'PENDING' },
+      { column: 'operation', termType: 'eq', value: 'ADJUST' },
+      { column: 'fullName', termType: 'like', value: '%101%' }
+    ]
+  })
+  state.table.value = { reload: () => reload++ }
+  await state.inspect('change')
+  state.start('approve')
+  state.reason.value = ' 核对通过 '
+  await state.submit()
+  assert.equal(state.decision.value, 'approve')
+  assert.equal(state.reason.value, ' 核对通过 ')
+  assert.equal(saved, 0)
+  assert.equal(reload, 0)
+  assert.equal(globalThis.__receivableMessages.at(-1)[1], 'error')
+  succeed = true
+  await state.submit()
+  assert.equal(state.detail.value.record.status, 'APPROVED')
+  assert.equal(state.decision.value, undefined)
+  assert.equal(saved, 1)
+  assert.equal(reload, 1)
+  assert.equal(calls.at(-1)[2].version, 7)
+  assert.equal(calls.at(-1)[4], '核对通过')
+  state.start('reject')
+  assert.equal(state.decision.value, undefined)
+  unmount()
+})
+
+test('审批详情关闭后忽略迟到加载，审批进行时拒绝二次提交', async () => {
+  const props = reactive({ projectId: 'a' }),
+    late = deferred(),
+    decided = deferred()
+  let calls = 0,
+    saved = 0
+  const { state, unmount } = mount(() => useReceivableChangeAudit(props, () => saved++), {
+    getReceivableChange: async () => late.promise,
+    decideReceivableChange: async () => {
+      calls++
+      return decided.promise
+    }
+  })
+  const loading = state.inspect('old')
+  state.closeDetail()
+  late.resolve({ record: { id: 'old', status: 'PENDING', version: 1 } })
+  await loading
+  assert.equal(state.detail.value, undefined)
+  state.detail.value = { record: { id: 'new', status: 'PENDING', version: 3 } }
+  state.start('reject')
+  state.reason.value = '资料不符'
+  const first = state.submit()
+  await state.submit()
+  assert.equal(calls, 1)
+  state.closeDetail()
+  assert.ok(state.detail.value)
+  unmount()
+  decided.resolve({ id: 'new', status: 'REJECTED', version: 4 })
+  await first
+  assert.equal(saved, 0)
+  assert.equal(globalThis.__receivableMessages.length, 0)
 })

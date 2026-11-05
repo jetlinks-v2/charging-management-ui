@@ -5,7 +5,13 @@ import dayjs from 'dayjs'
 import type { Receivable } from '../../../api/financeReceivable'
 import { useReceivableLogs } from '../../../hooks/finance-receivable/useReceivableLogs'
 import ReceivableLogChange from './ReceivableLogChange.vue'
-const props = defineProps<{ projectId: string; detail?: Receivable; loading: boolean; failed: boolean }>()
+const props = defineProps<{
+  projectId: string
+  detail?: Receivable
+  loading: boolean
+  failed: boolean
+  initialTab?: string
+}>()
 const emit = defineEmits<{ close: []; source: [id: string] }>()
 const { t } = useI18n()
 const logs = useReceivableLogs(props)
@@ -90,7 +96,7 @@ const variables = computed(
       </a-button>
       <a-tag v-if="detail.split">{{ t('Split.archived') }}</a-tag>
       <a-tag v-if="detail.sourceType === 'HISTORICAL_IMPORT'">{{ t('Historical.source') }}</a-tag>
-      <a-tabs>
+      <a-tabs :default-active-key="initialTab || 'amount'">
         <a-tab-pane
           key="amount"
           :tab="t('Receivable.amounts')"

@@ -1,34 +1,26 @@
 import { computed, ref, watch } from 'vue'
+import { receivableColumnOptions } from '../../utils/receivableColumnDefinitions'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@jetlinks-web-core/store/user'
 import { onlyMessage } from '@jetlinks-web/utils'
-import {
-  normalizeReceivableColumns,
-  type ReceivableColumnPreference,
-  type ReceivableColumnOption
-} from '../../utils/receivableColumns'
+import { normalizeReceivableColumns, type ReceivableColumnPreference } from '../../utils/receivableColumns'
 
 export function useReceivableColumns() {
   const { t } = useI18n()
   const user = useUserStore()
-  const options = computed<ReceivableColumnOption[]>(() => [
-    { key: 'fullName', title: t('Setting.house'), width: 210, locked: true },
-    { key: 'state', title: t('Setting.state'), width: 110 },
-    { key: 'subjectName', title: t('Setting.subject'), width: 150 },
-    { key: 'coverage', title: t('Receivable.coverage'), width: 140 },
-    ...['actualReceivableAmount', 'paidAmount', 'arrears'].map((key) => ({
-      key,
-      title: t('Receivable.' + key),
-      width: 130
-    })),
-    ...['contractCode', 'customerName', 'standardName', 'dueDate'].map((key) => ({
-      key,
-      title: t('Receivable.' + key),
-      width: 160,
-      hidden: true
-    })),
-    { key: 'actions', title: t('Finance.actions'), width: 160, locked: true }
-  ])
+  const options = computed(() => receivableColumnOptions(t))
+  const keyword = ref('')
+  const groups = computed(() =>
+    ['identity', 'amount', 'payment', 'billing', 'record']
+      .map((key) => ({
+        key,
+        title: t('ReceivableLedger.groups.' + key),
+        options: options.value.filter(
+          (option) => option.group === key && (!keyword.value.trim() || option.title.includes(keyword.value.trim()))
+        )
+      }))
+      .filter((group) => group.options.length)
+  )
   const preferences = ref<Record<string, ReceivableColumnPreference>>({})
   const storageKey = computed(() => `charging:receivable-columns:${user.userInfo.id || 'anonymous'}`)
   watch(
@@ -62,20 +54,19 @@ export function useReceivableColumns() {
         title: option.title,
         dataIndex: option.key,
         width: preferences.value[option.key]?.width || option.width,
-        scopedSlots: [
-          'fullName',
-          'state',
-          'subjectName',
-          'coverage',
-          'actualReceivableAmount',
-          'paidAmount',
-          'arrears',
-          'actions'
-        ].includes(option.key),
-        align: ['actualReceivableAmount', 'paidAmount', 'arrears'].includes(option.key) ? 'right' : undefined,
-        fixed: option.key === 'actions' ? 'right' : undefined
+        scopedSlots: true,
+        align:
+          option.kind === 'money' || option.kind === 'price' || option.key === 'usageValue'
+            ? ('right' as const)
+            : undefined,
+        fixed:
+          option.key === 'actions'
+            ? ('right' as const)
+            : ['contractCode', 'rowNumber'].includes(option.key)
+              ? ('left' as const)
+              : undefined
       }))
   )
   const scrollWidth = computed(() => columns.value.reduce((sum, column) => sum + column.width, 48))
-  return { options, preferences, columns, scrollWidth, update }
+  return { options, preferences, columns, scrollWidth, update, keyword, groups }
 }

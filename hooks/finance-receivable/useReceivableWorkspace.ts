@@ -16,13 +16,14 @@ import { requestErrorMessage } from '../../utils/requestError'
 import { excelErrorMessage } from '../../utils/archiveFiles'
 import { useReceivableBatch } from './useReceivableBatch'
 import { sumMoney } from '../../utils/receivableTotals'
+import { receivableMoneyKeys } from '../../utils/receivableColumnDefinitions'
 
 export const receivablePermission = 'charging/FinanceReceivable'
 export function useReceivableWorkspace() {
   const { t } = useI18n()
   const archive = useFinanceSpaceScope()
   const table = ref<{ reload: () => void }>()
-  const terms = ref<Query['terms']>([])
+  const terms = ref<NonNullable<Query['terms']>>([])
   const status = ref('ALL')
   const open = ref(false),
     loading = ref(false),
@@ -31,8 +32,10 @@ export function useReceivableWorkspace() {
     exporting = ref(false)
   const detail = ref<Receivable>()
   const pageRows = ref<Receivable[]>([])
+  const pageOffset = ref(0)
   const adjusting = ref(false)
   const splitting = ref(false)
+  const detailTab = ref('amount')
   const actionTarget = ref<{ row: Receivable; action: ReceivableAction }>()
   let detailToken = 0,
     disposed = false
@@ -62,11 +65,16 @@ export function useReceivableWorkspace() {
   const batch = useReceivableBatch(archive.projectId, params, reload)
   const totals = computed(() =>
     Object.fromEntries(
-      ['actualReceivableAmount', 'paidAmount', 'arrears'].map((key) => [
+      receivableMoneyKeys.map((key) => [
         key,
-        sumMoney(pageRows.value.map((row) => String(row[key as keyof Receivable] ?? '0')))
+        pageRows.value.some((row) => row[key] != null)
+          ? sumMoney(pageRows.value.map((row) => String(row[key] ?? '0')))
+          : '—'
       ])
     )
+  )
+  const calculatedDates = computed(() =>
+    [...new Set(pageRows.value.map((row) => row.calculatedAsOfDate).filter(Boolean))].sort().join(' / ')
   )
   let listToken = 0
   watch(
@@ -83,16 +91,21 @@ export function useReceivableWorkspace() {
     pageRows.value = []
     batch.clear()
     const response = await queryReceivables(archive.projectId.value, query, config?.signal)
-    if (!disposed && token === listToken) pageRows.value = response.result.data
+    if (!disposed && token === listToken) {
+      pageRows.value = response.result.data
+      pageOffset.value =
+        (response.result.pageIndex ?? query.pageIndex ?? 0) * (response.result.pageSize ?? query.pageSize ?? 12)
+    }
     return response
   }
-  async function select(row: Pick<Receivable, 'id'>, forAdjustment: boolean | 'SPLIT' = false) {
+  async function select(row: Pick<Receivable, 'id'>, forAdjustment: boolean | 'SPLIT' | 'LOG' = false) {
     const project = archive.projectId.value,
       token = ++detailToken
     if (!project) return
     open.value = true
     adjusting.value = forAdjustment === true
     splitting.value = forAdjustment === 'SPLIT'
+    detailTab.value = forAdjustment === 'LOG' ? 'logs' : 'amount'
     loading.value = true
     failed.value = false
     detail.value = undefined
@@ -173,6 +186,7 @@ export function useReceivableWorkspace() {
     detail,
     adjusting,
     splitting,
+    detailTab,
     actionTarget,
     saving,
     exporting,
@@ -184,6 +198,8 @@ export function useReceivableWorkspace() {
     exportRows,
     batch,
     totals,
-    pageRows
+    calculatedDates,
+    pageRows,
+    pageOffset
   }
 }

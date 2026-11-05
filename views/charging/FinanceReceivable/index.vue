@@ -10,6 +10,7 @@ import ReceivableChange from './ReceivableChange.vue'
 import ReceivableAdjustment from './ReceivableAdjustment.vue'
 import ReceivableSplit from './ReceivableSplit.vue'
 import HistoricalImports from './HistoricalImports.vue'
+import ReceivableChangeAudit from './ReceivableChangeAudit.vue'
 const { t } = useI18n()
 const state = useReceivableWorkspace()
 const {
@@ -30,12 +31,8 @@ const {
 } = state
 const { projectId, keyword, selectedId, selected, loading: treeLoading, failed: treeFailed } = archive
 const projectName = computed(() => archive.projects.value.find((project) => project.id === projectId.value)?.name || '')
-function refresh() {
-  void archive.loadTree()
-  state.reload()
-}
 function selectTree(keys: (string | number)[]) {
-  selectedId.value = keys.length ? String(keys[0]) : undefined
+  if (keys.length) selectedId.value = String(keys[0])
 }
 function adjustmentSaved() {
   close()
@@ -81,12 +78,12 @@ function adjustmentSaved() {
         </a-spin>
       </aside>
       <main class="subject-content">
-        <div class="subject-content-heading receivable-heading">
-          <div>
-            <h2>{{ t('Receivable.title') }}</h2>
-            <span class="subject-caption">{{ selected?.spaceLocation || t('Receivable.scopeHint') }}</span>
-          </div>
-          <a-space wrap>
+        <ReceivableTable :state="state">
+          <template #toolbar>
+            <ReceivableChangeAudit
+              :project-id="projectId"
+              @saved="state.reload()"
+            />
             <HistoricalImports
               :project-id="projectId"
               :project-name="projectName"
@@ -101,16 +98,8 @@ function adjustmentSaved() {
               <AIcon type="DownloadOutlined" />
               {{ t('Receivable.export') }}
             </j-permission-button>
-            <a-button
-              :disabled="!projectId"
-              :aria-label="t('Finance.refresh')"
-              @click="refresh"
-            >
-              <AIcon type="ReloadOutlined" />
-            </a-button>
-          </a-space>
-        </div>
-        <ReceivableTable :state="state" />
+          </template>
+        </ReceivableTable>
         <CloudEmpty
           v-if="!projectId"
           :description="t('ProjectContext.choose')"
@@ -123,6 +112,7 @@ function adjustmentSaved() {
       :detail="detail"
       :loading="loading"
       :failed="failed"
+      :initial-tab="state.detailTab.value"
       @close="close"
       @source="(id) => state.select({ id })"
     />

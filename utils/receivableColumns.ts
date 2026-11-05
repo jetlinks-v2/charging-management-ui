@@ -3,6 +3,8 @@ export interface ReceivableColumnPreference {
   width: number
 }
 export interface ReceivableColumnOption {
+  group?: 'identity' | 'amount' | 'payment' | 'billing' | 'record'
+  kind?: 'text' | 'money' | 'status' | 'date' | 'boolean' | 'period' | 'days' | 'price'
   key: string
   title: string
   width: number

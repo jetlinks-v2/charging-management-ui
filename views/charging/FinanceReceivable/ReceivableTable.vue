@@ -1,30 +1,32 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { TableSummary, TableSummaryRow, TableSummaryCell } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
-import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
-import type { Query } from '../../../api/archive'
-import type { Receivable, ReceivableAction } from '../../../api/financeReceivable'
-import {
-  receivablePermission,
-  type useReceivableWorkspace
-} from '../../../hooks/finance-receivable/useReceivableWorkspace'
+import ReceivableFilters from './ReceivableFilters.vue'
+import ReceivableCell from './ReceivableCell.vue'
+import type { Receivable } from '../../../api/financeReceivable'
+import { type useReceivableWorkspace } from '../../../hooks/finance-receivable/useReceivableWorkspace'
 import ReceivableBatchActions from './ReceivableBatchActions.vue'
 import ReceivableColumnSettings from './ReceivableColumnSettings.vue'
 import ReceivableRowActions from './ReceivableRowActions.vue'
 import ReceivableReview from './ReceivableReview.vue'
 import { useReceivableColumns } from '../../../hooks/finance-receivable/useReceivableColumns'
-import { receivableFields } from '../../../utils/receivableFields'
 const props = defineProps<{ state: ReturnType<typeof useReceivableWorkspace>; cashier?: boolean }>()
 const { t } = useI18n()
-const { archive, table, terms, params, status, request, select, actionTarget, notify } = props.state
+const { archive, table, params, request, select, actionTarget, notify } = props.state
 const columnState = useReceivableColumns()
 const { columns, scrollWidth } = columnState
 const review = ref<InstanceType<typeof ReceivableReview>>(),
   reviewBlocked = ref(false)
-const fields = computed(() => receivableFields(t))
-const filter = ({ filter }: ConditionFilterChangePayload) => {
-  terms.value = (filter.terms || []) as Query['terms']
-}
+const formulaKeys = [
+  'contractReceivableAmount',
+  'accruedReceivableAmount',
+  'actualReceivableAmount',
+  'incomeExcludingTax',
+  'outputTaxAmount',
+  'arrears',
+  'finalLateFeeAmount'
+]
 const selection = computed(() => ({
   selectedRowKeys: props.state.batch.selected.value.map((row) => row.id),
   onChange: (_keys: string[], rows: Receivable[]) => {
@@ -34,38 +36,33 @@ const selection = computed(() => ({
 }))
 </script>
 <template>
-  <a-radio-group
-    v-model:value="status"
-    class="receivable-status"
-    :aria-label="t('Setting.state')"
-  >
-    <a-radio-button
-      v-for="key in ['ALL', 'OPEN', 'CLOSED', 'FROZEN']"
-      :key="key"
-      :value="key"
-    >
-      {{ t('Receivable.status.' + key) }}
-    </a-radio-button>
-  </a-radio-group>
-  <div class="receivable-filterbar">
-    <ConditionFilter
-      :fields="fields"
-      @change="filter"
-    />
+  <ReceivableFilters :state="state" />
+  <div class="receivable-toolbar">
+    <div class="receivable-toolbar-actions">
+      <ReceivableBatchActions
+        v-if="!cashier && !reviewBlocked"
+        :state="state.batch"
+      />
+      <slot name="toolbar" />
+      <ReceivableReview
+        v-if="!cashier"
+        ref="review"
+        :project-id="archive.projectId.value"
+        :selected="state.batch.selected.value"
+        @lock="reviewBlocked = $event"
+        @saved="state.reload()"
+      />
+    </div>
     <ReceivableColumnSettings :state="columnState" />
   </div>
-  <ReceivableBatchActions
-    v-if="!cashier && !reviewBlocked"
-    :state="state.batch"
-  />
-  <ReceivableReview
-    v-if="!cashier"
-    ref="review"
-    :project-id="archive.projectId.value"
-    :selected="state.batch.selected.value"
-    @lock="reviewBlocked = $event"
-    @saved="state.reload()"
-  />
+  <div class="receivable-scope">
+    <span>
+      {{ t('ReceivableLedger.currentScope') }}{{ archive.selected.value?.spaceLocation || t('Archive.allSpaces') }}
+    </span>
+    <span v-if="state.pageRows.value.length">
+      {{ t('ReceivableLedger.amountAsOf') }}{{ state.calculatedDates.value }}
+    </span>
+  </div>
   <j-pro-table
     v-if="archive.projectId.value"
     ref="table"
@@ -83,115 +80,89 @@ const selection = computed(() => ({
     :row-selection="selection"
     @request-error="notify"
   >
-    <template #fullName="row">
-      <a-button
-        type="link"
-        class="receivable-house"
-        @click="select(row)"
-      >
-        {{ row.fullName }}
-      </a-button>
+    <template
+      v-for="option in columnState.options.value.filter((item) => item.key !== 'actions' && item.key !== 'rowNumber')"
+      :key="option.key"
+      #[option.key]="row"
+    >
+      <ReceivableCell
+        :row="row"
+        :column="option"
+        @detail="select(row)"
+      />
     </template>
-    <template #subjectName="row">
-      {{ row.subjectName }}
-      <small class="receivable-secondary">{{ row.customerNames?.join('、') || row.customerName }}</small>
-    </template>
-    <template #coverage="row">
-      <span class="receivable-date">{{ row.calcStartDate }}</span>
-      <small class="receivable-secondary receivable-date">～ {{ row.calcEndDate }}</small>
-    </template>
-    <template #actualReceivableAmount="row">
-      <span class="receivable-money">{{ row.actualReceivableAmount }}</span>
-    </template>
-    <template #paidAmount="row">
-      <span class="receivable-money">{{ row.paidAmount }}</span>
-    </template>
-    <template #arrears="row">
-      <strong class="receivable-money">{{ row.arrears }}</strong>
-    </template>
-    <template #state="row">
-      <a-tag :color="row.reviewState === 'APPROVED' ? 'green' : row.reviewState === 'REJECTED' ? 'red' : 'default'">
-        {{ t('ReceivableReview.state.' + (row.reviewState || 'PENDING')) }}
-      </a-tag>
-      <a-tag :color="row.frozen ? 'warning' : row.periodStatus === 'CLOSED' ? 'default' : 'processing'">
-        {{ t('Receivable.status.' + (row.frozen ? 'FROZEN' : row.periodStatus)) }}
-      </a-tag>
-      <small
-        v-if="row.financialClosed"
-        class="receivable-secondary"
-      >
-        {{ t('Receivable.financialClosed') }}
-      </small>
-    </template>
+    <template #rowNumber="{ index }">{{ state.pageOffset.value + index + 1 }}</template>
     <template #actions="row">
       <ReceivableRowActions
         :row="row"
         :readonly="cashier || reviewBlocked"
         @select="(mode) => select(row, mode)"
         @action="(action) => (actionTarget = { row, action })"
-        @review="(action) => review?.start([row], action)"
       />
+    </template>
+    <template #headerCell="{ column }">
+      <span>{{ column.title }}</span>
+      <a-tooltip
+        v-if="formulaKeys.includes(column.dataIndex)"
+        :title="t('ReceivableLedger.formulas.' + column.dataIndex)"
+      >
+        <AIcon
+          type="InfoCircleOutlined"
+          class="receivable-formula-icon"
+        />
+      </a-tooltip>
+    </template>
+    <template #summary>
+      <TableSummary v-if="state.pageRows.value.length">
+        <TableSummaryRow>
+          <TableSummaryCell :index="0" />
+          <TableSummaryCell
+            v-for="(column, index) in columns"
+            :key="column.dataIndex"
+            :index="index + 1"
+            :align="column.align"
+          >
+            <strong v-if="index === 0">{{ t('Receivable.pageTotal') }}</strong>
+            <strong v-else-if="Object.prototype.hasOwnProperty.call(state.totals.value, column.dataIndex)">
+              {{ state.totals.value[column.dataIndex] }}
+            </strong>
+          </TableSummaryCell>
+        </TableSummaryRow>
+      </TableSummary>
     </template>
     <template #emptyText><CloudEmpty :description="t('Receivable.empty')" /></template>
   </j-pro-table>
-  <div
-    v-if="state.pageRows.value.length"
-    class="receivable-totals"
-  >
-    <strong>{{ t('Receivable.pageTotal') }}</strong>
-    <span
-      v-for="key in ['actualReceivableAmount', 'paidAmount', 'arrears']"
-      :key="key"
-    >
-      {{ t('Receivable.' + key) }}
-      <b>{{ state.totals.value[key] }}</b>
-    </span>
-  </div>
 </template>
 <style scoped>
-.receivable-status {
-  margin-bottom: 16px;
-}
-.receivable-filterbar {
+.receivable-toolbar {
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
 }
-.receivable-filterbar > :first-child {
-  flex: 1;
-  min-width: 0;
-}
-.receivable-totals {
+.receivable-toolbar-actions {
   display: flex;
-  justify-content: flex-end;
-  align-items: baseline;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 14px 24px;
-  padding: 14px 8px;
-  font-size: 13px;
+  gap: 8px;
 }
-.receivable-totals b {
-  margin-left: 8px;
-  font-variant-numeric: tabular-nums;
-}
-.receivable-house {
-  padding: 0;
-  height: auto;
-  max-width: 100%;
-  white-space: normal;
-  text-align: left;
-}
-.receivable-money {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.receivable-date {
-  white-space: nowrap;
-}
-.receivable-secondary {
-  display: block;
+.receivable-scope {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   color: var(--ant-color-text-secondary, #595959);
-  margin-top: 4px;
+  font-size: 12px;
+  margin: 8px 0 12px;
+}
+.receivable-formula-icon {
+  margin-left: 5px;
+  color: var(--ant-color-text-secondary, #595959);
+  cursor: help;
+}
+:deep(.ant-table-summary) {
+  background: var(--ant-color-fill-alter, #fafafa);
+  font-variant-numeric: tabular-nums;
 }
 </style>

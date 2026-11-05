@@ -19,6 +19,7 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
   const open = ref(false),
     historyOpen = ref(false),
     busy = ref(false)
+  const historyStatus = ref('ALL')
   const table = ref<{ reload: () => void }>()
   const selected = ref<HistoricalImportRecord>()
   const params = computed(() => ({ projectId: props.projectId, open: historyOpen.value }))
@@ -59,7 +60,12 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
       const result = await importHistorical(project, file)
       if (disposed || token !== generation) return
       table.value?.reload()
-      if (result.status === 'SUCCESS') {
+      if (result.status === 'PENDING') {
+        onlyMessage(t('HistoricalAudit.staged', { count: result.totalCount }), 'success')
+        open.value = false
+        historyStatus.value = 'PENDING'
+        historyOpen.value = true
+      } else if (result.status === 'SUCCESS') {
         onlyMessage(t('Historical.succeeded', { count: result.successCount }), 'success')
         open.value = false
         saved()
@@ -70,6 +76,10 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
     } finally {
       if (!disposed && token === generation) busy.value = false
     }
+  }
+  function showHistory(status: string) {
+    historyStatus.value = status
+    historyOpen.value = true
   }
   function request(query: Query, options?: { signal: AbortSignal }) {
     if (!props.projectId || !historyOpen.value)
@@ -95,5 +105,18 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
     disposed = true
     ++generation
   })
-  return { open, historyOpen, busy, table, params, selected, template, upload, request, notify }
+  return {
+    open,
+    historyOpen,
+    historyStatus,
+    showHistory,
+    busy,
+    table,
+    params,
+    selected,
+    template,
+    upload,
+    request,
+    notify
+  }
 }

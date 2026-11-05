@@ -24,8 +24,23 @@ export type ReceivableReviewResult = Pick<
 export interface Receivable {
   id: string
   projectId: string
+  projectName?: string
   spaceId: string
   fullName: string
+  price?: string
+  usageValue?: string
+  incomeExcludingTax?: string
+  outputTaxAmount?: string
+  paidDate?: string
+  collectionDays?: number
+  overdueDays?: number
+  overdueMonths?: number
+  collectionStatus?: 'PAID' | 'PARTIAL' | 'OVERDUE' | 'NOT_DUE' | 'PENDING'
+  payStatus?: 'PAID' | 'PARTIAL' | 'UNPAID'
+  chargeLocked?: boolean
+  deletedFlag?: boolean
+  taskName?: string
+  createTime?: number
   customerRelationshipId: string
   customerId: string
   customerIds: string[]
@@ -174,7 +189,7 @@ export const previewAdjustment = (project: string, key: string, input: Adjustmen
     .then(checked)
 export const submitAdjustment = (project: string, key: string, input: AdjustmentInput, token: string) =>
   request
-    .post<Receivable>(`${base(project)}/${id(key)}/adjustment`, { input, token }, { hiddenError: true })
+    .post<ReceivableChangeRecord>(`${base(project)}/${id(key)}/adjustment`, { input, token }, { hiddenError: true })
     .then(checked)
 
 export interface SplitInput {
@@ -199,13 +214,66 @@ export const getSplitOptions = (project: string, key: string) =>
 export const previewSplit = (project: string, key: string, input: SplitInput) =>
   request.post<SplitPreview>(`${base(project)}/${id(key)}/split/_preview`, input, { hiddenError: true }).then(checked)
 export const submitSplit = (project: string, key: string, input: SplitInput, token: string) =>
-  request.post<Receivable[]>(`${base(project)}/${id(key)}/split`, { input, token }, { hiddenError: true }).then(checked)
+  request
+    .post<ReceivableChangeRecord>(`${base(project)}/${id(key)}/split`, { input, token }, { hiddenError: true })
+    .then(checked)
+
+export interface ReceivableChangeRecord {
+  id: string
+  version: number
+  receivableId: string
+  sourceVersion: number
+  fullName: string
+  customerName: string
+  subjectName: string
+  operation: 'ADJUST' | 'SPLIT'
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  reason: string
+  applicantName: string
+  createTime: number
+  reviewReason?: string
+  reviewedName?: string
+  reviewedAt?: number
+}
+export interface ReceivableChangeDetail {
+  record: ReceivableChangeRecord
+  before: Receivable
+  input: AdjustmentInput | SplitInput
+  preview: {
+    delta?: string
+    before?: Record<string, string>
+    after?: Record<string, string>
+    total?: string
+    parts?: SplitPreview['parts']
+  }
+}
+export const queryReceivableChanges = (project: string, query: Query, signal?: AbortSignal) =>
+  request
+    .post<Page<ReceivableChangeRecord>>(`${base(project)}/changes/_query`, query, { hiddenError: true, signal })
+    .then(pageResponse)
+export const getReceivableChange = (project: string, key: string) =>
+  request.get<ReceivableChangeDetail>(`${base(project)}/changes/${id(key)}`, {}, { hiddenError: true }).then(checked)
+export const decideReceivableChange = (
+  project: string,
+  row: BillSelection,
+  action: 'approve' | 'reject',
+  reason: string
+) =>
+  request
+    .post<ReceivableChangeRecord>(
+      `${base(project)}/changes/${id(row.id)}/_${action}`,
+      { version: row.version, reason },
+      { hiddenError: true }
+    )
+    .then(checked)
 
 export interface HistoricalImportRecord {
   id: string
   projectId: string
   fileName: string
-  status: 'PROCESSING' | 'SUCCESS' | 'FAILED'
+  status: 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'PENDING' | 'APPROVED' | 'REJECTED'
+  version: number
+  rejectedCount?: number
   totalCount: number
   successCount: number
   errorCount: number
@@ -227,6 +295,52 @@ export const queryHistoricalImports = (project: string, query: Query, signal?: A
   request
     .post<Page<HistoricalImportRecord>>(`${base(project)}/imports/_query`, query, { hiddenError: true, signal })
     .then(pageResponse)
+
+export interface HistoricalImportLine {
+  id: string
+  version: number
+  lineNumber: number
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  reviewReason?: string
+  reviewedName?: string
+  reviewedAt?: number
+  receivable: Receivable
+}
+export const queryHistoricalImportLines = (project: string, recordId: string, query: Query, signal?: AbortSignal) =>
+  request
+    .post<Page<HistoricalImportLine>>(`${base(project)}/imports/${id(recordId)}/lines/_query`, query, {
+      hiddenError: true,
+      signal
+    })
+    .then(pageResponse)
+/** 批次与明细审核均使用当前版本。服务器以事务保证一批失败不留下部分正式应收。 */
+export const decideHistoricalImports = (
+  project: string,
+  action: 'approve' | 'reject',
+  records: BillSelection[],
+  reason: string
+) =>
+  request
+    .post<HistoricalImportRecord[]>(
+      `${base(project)}/imports/_${action}`,
+      { records: records.map(({ id, version }) => ({ id, version })), reason },
+      { hiddenError: true }
+    )
+    .then(checked)
+export const decideHistoricalImportLines = (
+  project: string,
+  record: BillSelection,
+  action: 'approve' | 'reject',
+  items: BillSelection[],
+  reason: string
+) =>
+  request
+    .post<HistoricalImportRecord>(
+      `${base(project)}/imports/${id(record.id)}/_${action}`,
+      { version: record.version, items: items.map(({ id, version }) => ({ id, version })), reason },
+      { hiddenError: true }
+    )
+    .then(checked)
 
 export interface BillSelection {
   id: string
