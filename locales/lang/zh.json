@@ -574,7 +574,10 @@
     "noWrites": "本批次未写入任何账单，请修正后重新上传。",
     "result": "导入结果",
     "source": "历史应收",
-    "contractCode": "合同编号"
+    "contractCode": "合同编号",
+    "dropFile": "点击或拖拽 Excel 文件至此",
+    "removeFile": "移除文件",
+    "importStart": "开始导入"
   },
   "Notice": {
     "title": "催缴通知单",

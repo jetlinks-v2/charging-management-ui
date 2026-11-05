@@ -574,7 +574,10 @@
     "noWrites": "No bills were written for this batch. Correct the file and upload again.",
     "result": "Import result",
     "source": "Historical receivable",
-    "contractCode": "Contract number"
+    "contractCode": "Contract number",
+    "dropFile": "Click or drag an Excel file here",
+    "removeFile": "Remove file",
+    "importStart": "Start import"
   },
   "Notice": {
     "title": "Payment reminder",

@@ -6,6 +6,7 @@ export interface FinanceSpace {
   name: string
   spaceTypeName?: string
   spaceLocation?: string
+  leaf: boolean
   children?: FinanceSpace[]
 }
 

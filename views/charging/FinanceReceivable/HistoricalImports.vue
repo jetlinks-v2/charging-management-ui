@@ -2,14 +2,12 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useHistoricalImport } from '../../../hooks/finance-receivable/useHistoricalImport'
-import ArchiveImportDialog from '../components/ArchiveImportDialog.vue'
+import HistoricalImportDialog from './HistoricalImportDialog.vue'
 const props = defineProps<{ projectId: string; projectName: string }>()
 const emit = defineEmits<{ saved: [] }>()
 const { t } = useI18n()
-const { open, historyOpen, busy, table, params, selected, template, upload, request, notify } = useHistoricalImport(
-  props,
-  () => emit('saved')
-)
+const { open, historyOpen, busy, table, params, selected, template, upload, request, notify } =
+  useHistoricalImport(props, () => emit('saved'))
 const columns = computed(() => [
   { title: t('Subject.importStatus'), dataIndex: 'status', width: 110, scopedSlots: true },
   { title: t('Subject.fileName'), dataIndex: 'fileName', width: 240, ellipsis: true },
@@ -39,14 +37,10 @@ const columns = computed(() => [
       {{ t('Historical.title') }}
     </j-permission-button>
   </a-space>
-  <ArchiveImportDialog
+  <HistoricalImportDialog
     :open="open"
     :project-name="projectName"
-    kind="house"
     :busy="busy"
-    :title="t('Historical.title')"
-    :guide-text="t('Historical.guide')"
-    :file-hint="t('Historical.fileHint')"
     @close="open = false"
     @template="template"
     @upload="upload"
@@ -80,16 +74,15 @@ const columns = computed(() => [
       @request-error="notify"
     >
       <template #status="row">
-        <a-tag :color="row.status === 'SUCCESS' ? 'success' : row.status === 'FAILED' ? 'error' : 'processing'">
+        <a-tag
+          :color="row.status === 'SUCCESS' ? 'success' : row.status === 'FAILED' ? 'error' : 'processing'"
+        >
           {{ t('Subject.importState.' + row.status) }}
         </a-tag>
       </template>
       <template #createTime="row">{{ new Date(row.createTime).toLocaleString() }}</template>
       <template #actions="row">
-        <a-button
-          type="link"
-          @click="selected = row"
-        >
+        <a-button type="link" @click="selected = row">
           {{ t('Finance.detail') }}
         </a-button>
       </template>
@@ -105,28 +98,30 @@ const columns = computed(() => [
     @cancel="selected = undefined"
   >
     <template v-if="selected">
-      <a-descriptions
-        :column="1"
-        size="small"
-      >
+      <a-descriptions :column="1" size="small">
         <a-descriptions-item :label="t('Subject.fileName')">{{ selected.fileName }}</a-descriptions-item>
         <a-descriptions-item :label="t('Subject.importStatus')">
           <a-tag
-            :color="selected.status === 'FAILED' ? 'error' : selected.status === 'SUCCESS' ? 'success' : 'processing'"
+            :color="
+              selected.status === 'FAILED'
+                ? 'error'
+                : selected.status === 'SUCCESS'
+                  ? 'success'
+                  : 'processing'
+            "
           >
             {{ t('Subject.importState.' + selected.status) }}
           </a-tag>
         </a-descriptions-item>
         <a-descriptions-item :label="t('Subject.totalRows')">{{ selected.totalCount }}</a-descriptions-item>
-        <a-descriptions-item :label="t('Subject.successRows')">{{ selected.successCount }}</a-descriptions-item>
+        <a-descriptions-item :label="t('Subject.successRows')">{{
+          selected.successCount
+        }}</a-descriptions-item>
         <a-descriptions-item :label="t('Subject.finishTime')">
           {{ selected.finishTime ? new Date(selected.finishTime).toLocaleString() : '—' }}
         </a-descriptions-item>
       </a-descriptions>
-      <div
-        v-if="selected.errorMessage"
-        class="history-error"
-      >
+      <div v-if="selected.errorMessage" class="history-error">
         <strong>{{ t('Subject.failureDetails') }}</strong>
         <p>{{ selected.errorMessage }}</p>
         <small>{{ t('Historical.noWrites') }}</small>
