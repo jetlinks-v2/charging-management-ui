@@ -1,0 +1,63 @@
+.handover-workspace,
+.handover-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.handover-workspace {
+  padding: 20px;
+  background: var(--ant-color-bg-container, #fff);
+  border-radius: 8px;
+}
+.handover-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.handover-form {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 20px;
+}
+.handover-money {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.handover-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+.handover-status {
+  margin-bottom: 20px;
+}
+.handover-status-filter {
+  width: 160px;
+}
+.handover-spin {
+  display: block;
+  min-height: 240px;
+}
+@media (max-width: 600px) {
+  .handover-workspace {
+    padding: 12px;
+  }
+  .handover-toolbar {
+    align-items: flex-start;
+  }
+  .handover-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .handover-source-type {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .handover-content .ant-descriptions-item {
+    overflow-wrap: anywhere;
+  }
+}

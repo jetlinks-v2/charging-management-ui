@@ -1,0 +1,29 @@
+.carry-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.carry-heading h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.carry-heading p {
+  color: var(--ink-3, #595959);
+  margin: 0;
+  line-height: 1.7;
+}
+.carry-plan-name.ant-btn {
+  padding-left: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.carry-zone {
+  display: block;
+  color: var(--ink-3, #595959);
+  margin-top: 4px;
+}

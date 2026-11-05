@@ -1,0 +1,63 @@
+import { request as hostRequest, type Request } from '@jetlinks-web/core'
+import { checked, type Page } from './archive'
+import { excelResponse } from '../utils/archiveFiles'
+const request: Pick<Request, 'post'> = hostRequest
+export type ReceivedGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'METHOD' | 'SOURCE'
+export type ReceivedSource = 'RECEIVABLE' | 'TEMPORARY' | 'REFUND' | 'ADVANCE' | 'DEPOSIT'
+export interface ReceivedInput {
+  projectIds: string[]
+  spaceIds: string[]
+  subjectIds: string[]
+  paymentMethods: string[]
+  sourceTypes: ReceivedSource[]
+  customerName?: string
+  fullName?: string
+  paymentNo?: string
+  collectorName?: string
+  receivedDateStart?: string
+  receivedDateEnd?: string
+  groupBy: ReceivedGroup
+  pageIndex: number
+  pageSize: number
+}
+export interface ReceivedAmounts {
+  incomeAmount: string
+  refundAmount: string
+  netAmount: string
+  currentPeriodAmount: string | null
+  otherPeriodAmount: string | null
+}
+export interface ReceivedRow {
+  id?: string
+  sourceId?: string
+  projectId?: string
+  projectName?: string
+  spaceId?: string
+  fullName?: string
+  customerName?: string
+  subjectId?: string
+  subjectName?: string
+  receivedAt?: string
+  calcStartDate?: string
+  calcEndDate?: string
+  method?: string
+  methodText?: string
+  sourceType?: ReceivedSource
+  collectorName?: string
+  remark?: string
+  rowCount: number
+  amounts: ReceivedAmounts
+}
+export interface ReceivedReport {
+  groupBy: ReceivedGroup
+  periodEnabled: boolean
+  summary: ReceivedAmounts
+  page: Page<ReceivedRow>
+}
+const base = '/property/finance/reports/received'
+export const queryReceivedReport = (input: ReceivedInput, signal?: AbortSignal) =>
+  request.post<ReceivedReport>(`${base}/_query`, input, { hiddenError: true, signal }).then(checked)
+export const exportReceivedReport = (input: ReceivedInput, format: 'excel' | 'pdf') =>
+  request
+    .post<Blob>(`${base}/_export/${format}`, input, { hiddenError: true, responseType: 'blob' })
+    .then(excelResponse)

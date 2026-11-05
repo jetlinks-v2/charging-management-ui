@@ -1,0 +1,51 @@
+.setting-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.setting-target {
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+}
+.setting-target-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.setting-target-heading strong {
+  overflow-wrap: anywhere;
+}
+.setting-target-heading p {
+  margin: 6px 0 0;
+  color: var(--ant-color-text-secondary, #595959);
+}
+.setting-full {
+  width: 100%;
+}
+.setting-help {
+  color: var(--ant-color-text-secondary, #595959);
+  line-height: 1.7;
+  margin: 8px 0 0;
+}
+.setting-rule-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.setting-rule-summary strong {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.setting-formula {
+  margin: 12px 0 18px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 560px) {
+  .setting-form .finance-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,120 @@
+.document-workspace {
+  margin-top: 16px;
+  padding: 20px;
+  background: var(--panel-background, #fff);
+  border: 1px solid var(--line, #f0f0f0);
+  border-radius: 8px;
+}
+.document-toolbar,
+.document-source-filters,
+.document-line-heading,
+.document-amount-band,
+.document-totals {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.document-toolbar,
+.document-source-filters {
+  margin-bottom: 16px;
+}
+.document-source-filters .ant-input-search {
+  max-width: 340px;
+}
+.document-workspace .ant-alert {
+  margin-bottom: 16px;
+}
+.document-editor {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.document-editor > *,
+.document-grid > * {
+  min-width: 0;
+}
+.document-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+.document-grid .ant-picker,
+.document-grid .ant-input-number {
+  width: 100%;
+}
+.document-line-heading {
+  margin-bottom: 16px;
+  color: var(--ant-color-text-secondary, #595959);
+}
+.document-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.document-selected .ant-tag {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.document-money {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.document-amount-band {
+  padding: 4px 0 16px;
+  border-bottom: 1px solid var(--line, #f0f0f0);
+}
+.document-amount-band strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 30px;
+  font-weight: 600;
+}
+.document-amount-band span,
+.document-editor small,
+.document-workspace small {
+  color: var(--ant-color-text-secondary, #595959);
+}
+.document-workspace small,
+.document-editor small {
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.document-totals {
+  justify-content: flex-end;
+  margin-top: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.document-number {
+  padding: 0;
+  height: auto;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.document-remark {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.document-editor .ant-spin-nested-loading {
+  min-height: 160px;
+}
+@media (max-width: 640px) {
+  .document-workspace {
+    padding: 12px;
+  }
+  .document-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .document-source-filters .ant-input-search {
+    max-width: none;
+  }
+  .document-editor .ant-steps {
+    flex-wrap: wrap;
+  }
+}

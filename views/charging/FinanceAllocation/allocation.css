@@ -1,0 +1,42 @@
+.allocation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+}
+.allocation-form,
+.allocation-sections {
+  display: grid;
+  gap: 20px;
+}
+.allocation-form .ant-picker,
+.allocation-form .ant-input-number {
+  width: 100%;
+}
+.allocation-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.allocation-range {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.allocation-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 0;
+}
+.allocation-grid .ant-form-item {
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .allocation-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .allocation-form,
+  .allocation-sections {
+    gap: 16px;
+  }
+}
