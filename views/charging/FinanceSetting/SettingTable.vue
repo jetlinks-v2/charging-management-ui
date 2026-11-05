@@ -13,7 +13,14 @@ const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'fullName', width: 220, scopedSlots: true },
   { title: t('Setting.subject'), dataIndex: 'subjectName', width: 120 },
   { title: t('Setting.standard'), dataIndex: 'standardName', width: 180, scopedSlots: true },
-  { title: t('Setting.price'), dataIndex: 'price', width: 100, align: 'right', scopedSlots: true },
+  {
+    title: t('Setting.price'),
+    dataIndex: 'price',
+    width: 120,
+    align: 'right',
+    className: 'setting-price-column',
+    scopedSlots: true
+  },
   { title: t('Setting.formula'), dataIndex: 'formula', width: 200, scopedSlots: true },
   { title: t('Setting.customer'), dataIndex: 'customerName', width: 160, scopedSlots: true },
   { title: t('Setting.validity'), dataIndex: 'validity', width: 200, scopedSlots: true },
@@ -59,7 +66,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
     :pagination="{ pageSize: 12 }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 1450 }"
+    :scroll="{ x: 1470 }"
     @request-error="notify"
   >
     <template #fullName="row">
@@ -194,6 +201,9 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 .setting-price {
   font-variant-numeric: tabular-nums;
+}
+:deep(th.setting-price-column) {
+  white-space: nowrap;
 }
 .setting-formula-text {
   display: block;
