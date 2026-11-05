@@ -43,6 +43,7 @@ export interface TaxImportRecord {
   successCount: number
   errorCount?: number
   errorMessage?: string
+  finishTime?: number
   createTime: number
   modifierName: string
 }
@@ -63,7 +64,9 @@ function queryResponse<T>(response: { success: boolean; result: T; message?: str
   return response
 }
 export const queryTaxItems = (project: string, query: Query, signal?: AbortSignal) =>
-  request.post<Page<TaxItem>>(`${base(project)}/_query`, query, { signal, hiddenError: true }).then(queryResponse)
+  request
+    .post<Page<TaxItem>>(`${base(project)}/_query`, query, { signal, hiddenError: true })
+    .then(queryResponse)
 export const getTaxItem = (project: string, key: string) =>
   request.get<TaxItem>(`${base(project)}/${id(key)}`, {}, { hiddenError: true }).then(checked)
 export const saveTaxItem = (project: string, key: string | undefined, input: TaxInput) =>

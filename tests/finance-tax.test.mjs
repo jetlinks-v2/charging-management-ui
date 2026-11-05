@@ -29,10 +29,13 @@ async function load(entry) {
       {
         name: 'tax-test-dependencies',
         setup(builder) {
-          builder.onResolve({ filter: /api\/finance|project\/useProjectContext|@jetlinks-web|vue-i18n/ }, (args) => ({
-            path: args.path,
-            namespace: 'mock'
-          }))
+          builder.onResolve(
+            { filter: /api\/finance|project\/useProjectContext|@jetlinks-web|vue-i18n/ },
+            (args) => ({
+              path: args.path,
+              namespace: 'mock'
+            })
+          )
           builder.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
             contents: args.path.includes('project/useProjectContext')
               ? 'export const useProjectContext = () => globalThis.__taxContext; export const useProjectSwitchGuard = fn => { globalThis.__taxGuard = fn }'
@@ -40,7 +43,9 @@ async function load(entry) {
                 ? 'export const useI18n = () => ({ t: (key, params) => key + (params ? JSON.stringify(params) : "") })'
                 : args.path.includes('api/finance')
                   ? apiNames
-                      .map((name) => `export const ${name} = (...args) => globalThis.__taxApi.${name}(...args)`)
+                      .map(
+                        (name) => `export const ${name} = (...args) => globalThis.__taxApi.${name}(...args)`
+                      )
                       .join('\n')
                   : 'export const onlyMessage = (message,type) => globalThis.__taxMessages.push({message,type}); export const downloadFileByUrl = () => {}'
           }))
@@ -145,6 +150,48 @@ test('upload requires one company and leaves parsing to backend', async () => {
   const { scope, catalog } = setup()
   assert.equal(await catalog.upload({ name: 'tax.xlsx', size: 12 }), false)
   assert.match(globalThis.__taxMessages[0].message, /chooseCompany/)
+  scope.stop()
+})
+
+test('choosing an import file does not write until confirmation, and failed import retains the file', async () => {
+  const writes = []
+  const { scope, catalog } = setup({
+    importTaxItems: async (...args) => {
+      writes.push(args)
+      throw new Error('第3行：税率无效')
+    }
+  })
+  catalog.companyId.value = 'company-filter'
+  catalog.startImport()
+  catalog.importCompanyId.value = 'company-import'
+  const file = { name: 'tax.xlsx', size: 100 }
+  assert.equal(catalog.chooseFile(file), false)
+  assert.equal(writes.length, 0)
+  assert.equal(globalThis.__taxGuard(), false)
+  await catalog.submitImport()
+  assert.deepEqual(writes[0], ['project-a', 'company-import', file])
+  assert.equal(catalog.importOpen.value, true)
+  assert.equal(catalog.importFile.value, file)
+  assert.match(globalThis.__taxMessages.at(-1).message, /第3行/)
+  scope.stop()
+})
+
+test('successful import closes the modal and project changes discard the previous import context', async () => {
+  const { scope, catalog } = setup({ importTaxItems: async () => ({ count: 2 }) })
+  catalog.startImport()
+  catalog.importCompanyId.value = 'company'
+  catalog.chooseFile({ name: 'tax.xlsx', size: 100 })
+  await catalog.submitImport()
+  assert.equal(catalog.importOpen.value, false)
+  assert.equal(catalog.importFile.value, undefined)
+  catalog.startImport()
+  catalog.importCompanyId.value = 'old-company'
+  catalog.chooseFile({ name: 'old.xlsx', size: 100 })
+  globalThis.__taxContext.projectId.value = 'project-b'
+  await flush()
+  assert.equal(catalog.importOpen.value, false)
+  assert.equal(catalog.importCompanyId.value, undefined)
+  assert.equal(catalog.importFile.value, undefined)
   scope.stop()
 })
 test('form converts percent to decimal and submits only writable fields', async () => {

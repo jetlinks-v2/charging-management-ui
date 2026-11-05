@@ -32,10 +32,18 @@
             "en": "Tax accounts"
           }
         },
-        "showPage": ["property-finance-company"],
+        "showPage": ["property-finance-project-company", "property-finance-recorded"],
         "permissions": [
           {
             "permission": "property-finance-company",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-project-company",
+            "actions": ["query"]
+          },
+          {
+            "permission": "property-finance-recorded",
             "actions": ["query"]
           }
         ],
@@ -56,47 +64,7 @@
             ]
           },
           {
-            "id": "delete",
-            "name": "删除",
-            "i18nMessages": {
-              "zh_CN": "删除",
-              "en_US": "Delete",
-              "en": "Delete"
-            },
-            "permissions": [
-              {
-                "permission": "property-finance-company",
-                "actions": ["delete"]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "charging-FinanceProject",
-        "code": "charging/FinanceProject",
-        "name": "基础资料设置",
-        "url": "/charging/finance/settings",
-        "owner": "app",
-        "sortIndex": 2,
-        "icon": "BankOutlined",
-        "i18nMessages": {
-          "name": {
-            "zh_CN": "基础资料设置",
-            "en_US": "Project billing settings",
-            "en": "Project billing settings"
-          }
-        },
-        "showPage": ["property-finance-project-company"],
-        "permissions": [
-          {
-            "permission": "property-finance-project-company",
-            "actions": ["query"]
-          }
-        ],
-        "buttons": [
-          {
-            "id": "save",
+            "id": "link",
             "name": "关联及默认设置",
             "i18nMessages": {
               "zh_CN": "关联及默认设置",
@@ -107,6 +75,26 @@
               {
                 "permission": "property-finance-project-company",
                 "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "recordedSave",
+            "name": "维护入账信息",
+            "permissions": [
+              {
+                "permission": "property-finance-recorded",
+                "actions": ["save"]
+              }
+            ]
+          },
+          {
+            "id": "recordedDelete",
+            "name": "删除",
+            "permissions": [
+              {
+                "permission": "property-finance-recorded",
+                "actions": ["delete"]
               }
             ]
           }
@@ -166,55 +154,6 @@
               {
                 "permission": "property-finance-tax",
                 "actions": ["import"]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "charging-FinanceRecorded",
-        "code": "charging/FinanceRecorded",
-        "name": "入账信息设置",
-        "url": "/charging/finance/recorded",
-        "owner": "app",
-        "sortIndex": 4,
-        "icon": "BankOutlined",
-        "i18nMessages": {
-          "name": {
-            "zh_CN": "入账信息设置",
-            "en_US": "Posting settings",
-            "en": "Posting settings"
-          }
-        },
-        "showPage": ["property-finance-recorded"],
-        "permissions": [
-          {
-            "permission": "property-finance-recorded",
-            "actions": ["query"]
-          },
-          {
-            "permission": "property-finance-project-company",
-            "actions": ["query"]
-          }
-        ],
-        "buttons": [
-          {
-            "id": "save",
-            "name": "维护入账信息",
-            "permissions": [
-              {
-                "permission": "property-finance-recorded",
-                "actions": ["save"]
-              }
-            ]
-          },
-          {
-            "id": "delete",
-            "name": "删除",
-            "permissions": [
-              {
-                "permission": "property-finance-recorded",
-                "actions": ["delete"]
               }
             ]
           }

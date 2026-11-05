@@ -18,7 +18,7 @@ import {
   type RecordedBankOption
 } from '../../api/financeRecorded'
 import { requestErrorMessage } from '../../utils/requestError'
-export const recordedPermission = 'charging/FinanceRecorded'
+export const recordedPermission = 'charging/FinanceCompany'
 export function useRecorded() {
   const { t } = useI18n()
   const context = useProjectContext()

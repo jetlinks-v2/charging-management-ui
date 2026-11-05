@@ -10,14 +10,13 @@ import {
   setTaxItemState,
   deleteTaxItems,
   getTaxTemplate,
-  importTaxItems,
   type TaxItem,
   type TaxInput
 } from '../../api/financeTax'
 import type { Query } from '../../api/archive'
 import { requestErrorMessage } from '../../utils/requestError'
-import { validateImportFile } from '../../utils/archiveImport'
 import { excelErrorMessage } from '../../utils/archiveFiles'
+import { useTaxImport } from './useTaxImport'
 export const taxPermission = 'charging/FinanceTax'
 
 /** 统一项目与公司归属、请求竞态和写入守卫，组件只负责布局及事件分发。 */
@@ -61,6 +60,7 @@ export function useTaxCatalog() {
     selected.value = []
     table.value?.reload()
   }
+  const taxImport = useTaxImport(context.projectId, companyId, busy, reload)
   async function loadCompanies() {
     const token = ++generation
     companies.value = []
@@ -129,11 +129,15 @@ export function useTaxCatalog() {
     )
   }
   const toggle = (row: TaxItem) =>
-    run(() => setTaxItemState(context.projectId.value, row), t('FinanceTax.stateSaved', { name: row.goodsName }))
+    run(
+      () => setTaxItemState(context.projectId.value, row),
+      t('FinanceTax.stateSaved', { name: row.goodsName })
+    )
   const remove = (rows: TaxItem[]) =>
     run(() => deleteTaxItems(context.projectId.value, rows), t('FinanceTax.deleted', { count: rows.length }))
   async function request(query: Query, input?: { signal: AbortSignal }) {
-    if (!context.projectId.value) return { success: true, result: { data: [], total: 0, pageIndex: 0, pageSize: 12 } }
+    if (!context.projectId.value)
+      return { success: true, result: { data: [], total: 0, pageIndex: 0, pageSize: 12 } }
     const { projectId: _projectId, ...body } = query as Query & { projectId?: string }
     return queryTaxItems(context.projectId.value, body, input?.signal)
   }
@@ -154,29 +158,7 @@ export function useTaxCatalog() {
       busy.value = false
     }
   }
-  async function upload(file: File) {
-    if (busy.value || !companyId.value) {
-      onlyMessage(t('FinanceTax.chooseCompany'), 'warning')
-      return false
-    }
-    const invalid = validateImportFile(file)
-    if (invalid) {
-      onlyMessage(t('Archive.' + (invalid === 'format' ? 'importFormat' : 'importSize')), 'error')
-      return false
-    }
-    busy.value = true
-    try {
-      const result = await importTaxItems(context.projectId.value, companyId.value, file)
-      onlyMessage(t('FinanceTax.imported', { count: result.count }), 'success')
-      reload()
-    } catch (cause) {
-      onlyMessage(await excelErrorMessage(cause, t('FinanceTax.failed')), 'error')
-    } finally {
-      busy.value = false
-    }
-    return false
-  }
-  useProjectSwitchGuard(() => !busy.value && (!open.value || readOnly.value))
+  useProjectSwitchGuard(() => !busy.value && !taxImport.importOpen.value && (!open.value || readOnly.value))
   watch(
     context.projectId,
     () => {
@@ -225,7 +207,7 @@ export function useTaxCatalog() {
     remove,
     request,
     template,
-    upload,
+    ...taxImport,
     notify,
     retry: () => select(activeId, readOnly.value)
   }

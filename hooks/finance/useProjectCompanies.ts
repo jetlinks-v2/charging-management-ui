@@ -10,7 +10,7 @@ import {
   type ProjectCompany
 } from '../../api/finance'
 import { requestErrorMessage } from '../../utils/requestError'
-export const projectCompanyPermission = 'charging/FinanceProject'
+export const projectCompanyPermission = 'charging/FinanceCompany'
 export function useProjectCompanies() {
   const { t } = useI18n()
   const context = useProjectContext()
@@ -83,5 +83,16 @@ export function useProjectCompanies() {
     disposed = true
     generation++
   })
-  return { projectId: context.projectId, rows, loading, failed, busy, picker, reload, bind, setDefault, unbind }
+  return {
+    projectId: context.projectId,
+    rows,
+    loading,
+    failed,
+    busy,
+    picker,
+    reload,
+    bind,
+    setDefault,
+    unbind
+  }
 }

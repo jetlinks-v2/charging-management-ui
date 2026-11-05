@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed, watch, onScopeDispose } from 'vue'
-import { useProjectContext } from '../../../hooks/project/useProjectContext'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { TableColumnsType } from 'ant-design-vue'
-import { getProjectCompany, createProjectCompany, type ProjectCompany } from '../../../api/finance'
+import type { ProjectCompany } from '../../../api/finance'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import { useProjectCompanies, projectCompanyPermission } from '../../../hooks/finance/useProjectCompanies'
-import { useCompanyCatalog } from '../../../hooks/finance/useCompanyCatalog'
+import { useProjectCompanyEditor } from '../../../hooks/finance/useProjectCompanyEditor'
 import CompanyDrawer from '../FinanceCompany/CompanyDrawer.vue'
 import CompanyPicker from './CompanyPicker.vue'
 const { t } = useI18n()
-const { projectId, rows, loading, failed, busy, picker, reload, bind, setDefault, unbind } = useProjectCompanies()
+const { projectId, rows, loading, failed, busy, picker, reload, bind, setDefault, unbind } =
+  useProjectCompanies()
 const {
   open,
   detail,
@@ -22,18 +22,7 @@ const {
   close,
   retry,
   save: saveCompany
-} = useCompanyCatalog(
-  (id) => getProjectCompany(projectId.value, id),
-  async (_id, input) => {
-    const result = await createProjectCompany(projectId.value, input)
-    await reload()
-    return { company: result.company, banks: input.banks }
-  }
-)
-watch(projectId, close)
-const { guard } = useProjectContext()
-const releaseGuard = guard(() => !open.value || readOnly.value)
-onScopeDispose(releaseGuard)
+} = useProjectCompanyEditor(projectId, rows, reload)
 const columns = computed<TableColumnsType<ProjectCompany>>(() => [
   { title: t('Finance.companyName'), dataIndex: ['company', 'companyName'], width: 280 },
   { title: t('Finance.taxNumber'), dataIndex: ['company', 'taxNumber'], width: 220 },
@@ -43,31 +32,24 @@ const columns = computed<TableColumnsType<ProjectCompany>>(() => [
 ])
 </script>
 <template>
-  <j-page-container>
+  <div class="project-company-page">
     <ProjectScopeBar>
-      <a-button
-        :disabled="!projectId || busy"
-        :loading="loading"
-        @click="reload"
-      >
-        <AIcon type="ReloadOutlined" />
-        {{ t('Finance.refresh') }}
-      </a-button>
       <j-permission-button
         :hasPermission="'charging/FinanceCompany:save'"
+        type="primary"
         :disabled="!projectId || busy"
         @click="select(undefined, false)"
       >
-        {{ t('Finance.createAndBind') }}
+        <AIcon type="PlusOutlined" />
+        {{ t('Finance.createCompany') }}
       </j-permission-button>
       <j-permission-button
-        :hasPermission="`${projectCompanyPermission}:save`"
-        type="primary"
+        :hasPermission="`${projectCompanyPermission}:link`"
         :disabled="!projectId || busy"
         @click="picker = true"
       >
         <AIcon type="LinkOutlined" />
-        {{ t('Finance.bind') }}
+        {{ t('Finance.bindExisting') }}
       </j-permission-button>
     </ProjectScopeBar>
     <div class="finance-workspace finance-project-content">
@@ -77,7 +59,10 @@ const columns = computed<TableColumnsType<ProjectCompany>>(() => [
       />
       <template v-else>
         <div class="finance-section-title">
-          <h3>{{ t('Finance.bound') }}</h3>
+          <div>
+            <h3>{{ t('Finance.bound') }}</h3>
+            <p class="company-sharing-hint">{{ t('Finance.sharedHelp') }}</p>
+          </div>
           <a-tooltip :title="t('Finance.defaultHelp')"><AIcon type="QuestionCircleOutlined" /></a-tooltip>
         </div>
         <a-table
@@ -108,8 +93,17 @@ const columns = computed<TableColumnsType<ProjectCompany>>(() => [
                   {{ t('Finance.detail') }}
                 </a-button>
                 <j-permission-button
+                  :hasPermission="'charging/FinanceCompany:save'"
+                  type="link"
+                  size="small"
+                  :disabled="busy"
+                  @click="select((record as ProjectCompany).relation.id, false)"
+                >
+                  {{ t('Finance.edit') }}
+                </j-permission-button>
+                <j-permission-button
                   v-if="!record.relation.defaultKey"
-                  :hasPermission="`${projectCompanyPermission}:save`"
+                  :hasPermission="`${projectCompanyPermission}:link`"
                   type="link"
                   size="small"
                   :disabled="busy"
@@ -123,7 +117,7 @@ const columns = computed<TableColumnsType<ProjectCompany>>(() => [
                   @confirm="unbind(record as ProjectCompany)"
                 >
                   <j-permission-button
-                    :hasPermission="`${projectCompanyPermission}:save`"
+                    :hasPermission="`${projectCompanyPermission}:link`"
                     type="link"
                     danger
                     size="small"
@@ -151,10 +145,23 @@ const columns = computed<TableColumnsType<ProjectCompany>>(() => [
       :open="open"
       :detail="detail"
       :state="{ loading: detailLoading, failed: detailFailed, saving, readOnly }"
+      :shared="true"
       @close="close"
       @retry="retry"
       @save="saveCompany"
     />
-  </j-page-container>
+  </div>
 </template>
 <style src="../finance.css"></style>
+<style scoped>
+.project-company-page {
+  min-width: 0;
+}
+.company-sharing-hint {
+  margin: 8px 0 0;
+  color: var(--ink-3, #595959);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+</style>

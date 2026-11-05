@@ -21,11 +21,32 @@ const changedFields = [
 export function useTaxHistory(props: { open: boolean; projectId: string; taxId?: string }) {
   const { t } = useI18n()
   const table = ref<{ reload: () => void }>()
-  const params = computed(() => ({ open: props.open, projectId: props.projectId, taxId: props.taxId }))
+  const companyFilter = ref<string>()
+  const statusFilter = ref<string>()
+  const params = computed(() => ({
+    open: props.open,
+    projectId: props.projectId,
+    taxId: props.taxId,
+    companyId: companyFilter.value,
+    status: statusFilter.value
+  }))
   const request = async (query: Query) => {
     if (!props.open || !props.projectId) return { success: true, result: { data: [], total: 0 } }
-    const body: Query = { pageIndex: query.pageIndex, pageSize: query.pageSize, terms: [] }
-    return props.taxId ? queryTaxLogs(props.projectId, props.taxId, body) : queryTaxImports(props.projectId, body)
+    const body: Query = {
+      pageIndex: query.pageIndex,
+      pageSize: query.pageSize,
+      terms: props.taxId
+        ? []
+        : [
+            ...(companyFilter.value
+              ? [{ column: 'companyId', termType: 'eq', value: companyFilter.value }]
+              : []),
+            ...(statusFilter.value ? [{ column: 'status', termType: 'eq', value: statusFilter.value }] : [])
+          ]
+    }
+    return props.taxId
+      ? queryTaxLogs(props.projectId, props.taxId, body)
+      : queryTaxImports(props.projectId, body)
   }
   const failure = (row: TaxImportRecord) => onlyMessage(row.errorMessage || t('FinanceTax.failed'), 'error')
   // 审计展示业务字段差异，避免把持久化JSON或内部字段名直接暴露给使用者。
@@ -58,5 +79,5 @@ export function useTaxHistory(props: { open: boolean; projectId: string; taxId?:
     }
   )
   const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('FinanceTax.failed')), 'error')
-  return { table, params, request, failure, changes, notify }
+  return { table, params, request, failure, changes, notify, companyFilter, statusFilter }
 }

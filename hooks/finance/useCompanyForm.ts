@@ -46,8 +46,7 @@ export function useCompanyForm(
           ['reviewer', 60, true],
           ['estateNo', 255, true],
           ['shop', 255, false],
-          ['legalPersonId', 90, false],
-          ['invoiceExtensionNumber', 32, false]
+          ['legalPersonId', 90, false]
         ]
       }
     ].map((section) => ({

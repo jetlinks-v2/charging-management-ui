@@ -6,6 +6,7 @@ import CompanyBanks from './CompanyBanks.vue'
 const props = defineProps<{
   open: boolean
   detail?: CompanyDetail
+  shared?: boolean
   state: { loading: boolean; failed: boolean; saving: boolean; readOnly: boolean }
 }>()
 const emit = defineEmits<{ close: []; retry: []; save: [CompanyInput] }>()
@@ -17,7 +18,7 @@ const { form, model, sections, submit } = useCompanyForm(props, (input) => emit(
     :open="open"
     :width="800"
     icon="BankOutlined"
-    :title="t('Finance.' + (state.readOnly ? 'detail' : detail ? 'edit' : 'create'))"
+    :title="t('Finance.' + (state.readOnly ? 'companyDetail' : detail ? 'editCompany' : 'createCompany'))"
     :sub="detail?.company.companyName"
     @update:open="emit('close')"
   >
@@ -39,6 +40,12 @@ const { form, model, sections, submit } = useCompanyForm(props, (input) => emit(
       layout="vertical"
       class="finance-company-form"
     >
+      <a-alert
+        v-if="shared && detail && !state.readOnly"
+        type="info"
+        show-icon
+        :message="t('Finance.sharedEditHelp')"
+      />
       <section
         v-for="section in sections"
         :key="section.title"

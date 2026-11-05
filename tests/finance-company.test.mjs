@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createRenderer, defineComponent, h, nextTick } from 'vue'
+import { createRenderer, defineComponent, h, nextTick, effectScope, ref } from 'vue'
 const require = createRequire(import.meta.url)
 async function load(path) {
   const result = await build({
@@ -17,18 +17,30 @@ async function load(path) {
       {
         name: 'finance-boundaries',
         setup(builder) {
-          builder.onResolve({ filter: /api\/finance|@jetlinks-web\/utils|vue-i18n/ }, (args) => ({
-            path: args.path,
-            namespace: 'mock'
-          }))
+          builder.onResolve(
+            { filter: /api\/finance|project\/useProjectContext|@jetlinks-web\/utils|vue-i18n/ },
+            (args) => ({
+              path: args.path,
+              namespace: 'mock'
+            })
+          )
           builder.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
-            contents: args.path.includes('api/')
-              ? ['getCompany', 'queryCompanies', 'saveCompany', 'deleteCompany']
-                  .map((name) => `export const ${name}=(...args)=>globalThis.__financeApi.${name}(...args)`)
-                  .join('\n')
-              : args.path === 'vue-i18n'
-                ? 'export const useI18n=()=>({t:key=>key})'
-                : 'export const onlyMessage=()=>{}'
+            contents: args.path.includes('project/useProjectContext')
+              ? 'export const useProjectContext=()=>globalThis.__financeContext'
+              : args.path.includes('api/')
+                ? [
+                    'getCompany',
+                    'queryCompanies',
+                    'saveCompany',
+                    'deleteCompany',
+                    'getProjectCompany',
+                    'createProjectCompany'
+                  ]
+                    .map((name) => `export const ${name}=(...args)=>globalThis.__financeApi.${name}(...args)`)
+                    .join('\n')
+                : args.path === 'vue-i18n'
+                  ? 'export const useI18n=()=>({t:key=>key})'
+                  : 'export const onlyMessage=()=>{}'
           }))
         }
       }
@@ -40,6 +52,7 @@ async function load(path) {
 }
 const { useCompanyCatalog } = await load('../hooks/finance/useCompanyCatalog.ts')
 const { companyInput } = await load('../utils/companyInput.ts')
+const { useProjectCompanyEditor } = await load('../hooks/finance/useProjectCompanyEditor.ts')
 const deferred = () => {
   let resolve
   const promise = new Promise((r) => (resolve = r))
@@ -77,6 +90,36 @@ function mount(api = {}) {
   app.mount({})
   return { state, unmount: () => app.unmount() }
 }
+
+test('editing a linked company updates the company ID and never creates another company', async () => {
+  const writes = []
+  globalThis.__financeContext = { guard: () => () => {} }
+  globalThis.__financeApi = {
+    getProjectCompany: async () => detail('company-id'),
+    saveCompany: async (...args) => {
+      writes.push(['update', ...args])
+      return detail('company-id')
+    },
+    createProjectCompany: async (...args) => {
+      writes.push(['create', ...args])
+      throw new Error('must not create')
+    }
+  }
+  const scope = effectScope()
+  const rows = ref([{ relation: { id: 'relation-id' }, company: { id: 'company-id' } }])
+  const editor = scope.run(() => useProjectCompanyEditor(ref('project-id'), rows, async () => {}))
+  await editor.select('relation-id', false)
+  await editor.save({ companyName: 'Updated company', version: 2, banks: [] })
+  assert.equal(writes.length, 1)
+  assert.equal(writes[0][0], 'update')
+  assert.equal(writes[0][1], 'company-id')
+  await editor.select('relation-id', false)
+  rows.value = []
+  await editor.save({ companyName: 'No longer linked', version: 2, banks: [] })
+  assert.equal(writes.length, 1)
+  assert.equal(editor.open.value, true)
+  scope.stop()
+})
 test('late company details cannot replace a newer selection or reopen a closed drawer', async () => {
   const a = deferred(),
     b = deferred()
