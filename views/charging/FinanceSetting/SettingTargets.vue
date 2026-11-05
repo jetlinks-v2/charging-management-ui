@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { HouseCustomer } from '../../../api/financeSetting'
 import { useSettingTargetList, type SettingTargetListState } from '../../../hooks/finance-setting/useSettingTargetList'
 const props = defineProps<{ state: SettingTargetListState }>()
 const emit = defineEmits<{ choose: [] }>()
@@ -77,7 +78,7 @@ const columns = computed(() => [
             :aria-label="record.context.house.fullName + ' ' + t('Setting.customer')"
             :placeholder="t(record.context.customers.length ? 'Setting.chooseCustomer' : 'Setting.noHouseCustomers')"
             :options="
-              record.context.customers.map((row) => ({
+              record.context.customers.map((row: HouseCustomer) => ({
                 value: row.relationshipId,
                 label: row.name + (row.telephone ? ' · ' + row.telephone : '')
               }))

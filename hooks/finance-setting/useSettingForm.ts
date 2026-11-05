@@ -1,4 +1,4 @@
-import { computed, onScopeDispose, reactive, ref, watch } from 'vue'
+import { onScopeDispose, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import type { FormInstance } from 'ant-design-vue'
@@ -38,24 +38,6 @@ export function useSettingForm(
   })
   const model = reactive<SettingInput>(defaults())
   const rules = ref<SettingInput[]>([model])
-  const standard = computed(() => props.options.standards.find((row) => row.id === model.standardId))
-  const subjectOptions = computed(() =>
-    props.options.projectSubjects.map((row) => ({
-      value: row.id,
-      label:
-        props.options.standards.find((std) => std.subjectId === row.subjectId)?.subjectName || t('Setting.noStandard')
-    }))
-  )
-  const availableStandards = computed(() => {
-    const subject = props.options.projectSubjects.find((row) => row.id === model.projectSubjectId)
-    return props.options.standards.filter((row) => row.subjectId === subject?.subjectId)
-  })
-  const editableVariables = computed(
-    () =>
-      standard.value?.variablesSnapshot.filter(
-        (row) => !['STANDARD_PRICE', 'BILLING_AREA', 'PERIOD_MONTHS'].includes(row.variableCode)
-      ) || []
-  )
   let token = 0,
     disposed = false
   const notify = (error: unknown) => onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
@@ -138,13 +120,6 @@ export function useSettingForm(
     },
     { immediate: true }
   )
-  function changeSubject() {
-    model.standardId = ''
-    model.variableValues = {}
-  }
-  function changeStandard() {
-    model.variableValues = {}
-  }
   async function submit() {
     if (loadingHouse.value || props.readOnly) return
     try {
@@ -247,13 +222,7 @@ export function useSettingForm(
     targets,
     pickerOpen,
     loadingHouse,
-    standard,
-    subjectOptions,
-    availableStandards,
-    editableVariables,
     addHouse,
-    changeSubject,
-    changeStandard,
     submit
   }
 }

@@ -10,15 +10,15 @@ const props = defineProps<{ state: ReturnType<typeof useSettingWorkspace> }>()
 const { t } = useI18n()
 const { archive, table, terms, params, request, select, remove, generate, stopTarget, notify } = props.state
 const columns = computed(() => [
-  { title: t('Setting.house'), dataIndex: 'fullName', width: 240, scopedSlots: true },
-  { title: t('Setting.subject'), dataIndex: 'subjectName', width: 140 },
-  { title: t('Setting.standard'), dataIndex: 'standardName', width: 190, scopedSlots: true },
-  { title: t('Setting.customer'), dataIndex: 'customerName', width: 180, scopedSlots: true },
-  { title: t('Setting.validity'), dataIndex: 'validity', width: 210, scopedSlots: true },
-  { title: t('Setting.price'), dataIndex: 'price', width: 110, align: 'right', scopedSlots: true },
-  { title: t('Setting.formula'), dataIndex: 'formula', width: 220, scopedSlots: true },
-  { title: t('Setting.state'), dataIndex: 'status', width: 130, scopedSlots: true },
-  { title: t('Finance.actions'), dataIndex: 'actions', width: 160, fixed: 'right', scopedSlots: true }
+  { title: t('Setting.house'), dataIndex: 'fullName', width: 220, scopedSlots: true },
+  { title: t('Setting.subject'), dataIndex: 'subjectName', width: 120 },
+  { title: t('Setting.standard'), dataIndex: 'standardName', width: 180, scopedSlots: true },
+  { title: t('Setting.price'), dataIndex: 'price', width: 100, align: 'right', scopedSlots: true },
+  { title: t('Setting.formula'), dataIndex: 'formula', width: 200, scopedSlots: true },
+  { title: t('Setting.customer'), dataIndex: 'customerName', width: 160, scopedSlots: true },
+  { title: t('Setting.validity'), dataIndex: 'validity', width: 200, scopedSlots: true },
+  { title: t('Setting.state'), dataIndex: 'status', width: 120, scopedSlots: true },
+  { title: t('Finance.actions'), dataIndex: 'actions', width: 150, fixed: 'right', scopedSlots: true }
 ])
 const fields = computed(() =>
   ['fullName', 'subjectName', 'standardName', 'customerName'].map((key) => ({
@@ -59,7 +59,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
     :pagination="{ pageSize: 12 }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 1640 }"
+    :scroll="{ x: 1450 }"
     @request-error="notify"
   >
     <template #fullName="row">
@@ -197,7 +197,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 .setting-formula-text {
   display: block;
-  max-width: 220px;
+  max-width: 200px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

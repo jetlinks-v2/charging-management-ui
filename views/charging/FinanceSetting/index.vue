@@ -75,7 +75,7 @@ function selectTree(keys: (string | number)[]) {
       </aside>
       <main class="subject-content">
         <div class="subject-content-heading setting-heading">
-          <div>
+          <div class="setting-scope-context">
             <strong class="setting-scope">
               {{ selected?.spaceLocation || selected?.name || t('Archive.allSpaces') }}
             </strong>
@@ -146,7 +146,7 @@ function selectTree(keys: (string | number)[]) {
   flex-wrap: wrap;
   align-items: center;
 }
-.setting-heading > div {
+.setting-scope-context {
   flex: 1;
   min-width: 180px;
 }

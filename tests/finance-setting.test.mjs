@@ -403,7 +403,12 @@ test('批量选房保留跨页选择，排除已加入房屋并限制数量，�
 })
 
 test('已选房屋分页保留收费对象，全部客户操作按各自房屋匹配且保存中不可改动', async () => {
-  const draft = reactive({ targets: Array.from({ length: 6 }, (_, i) => ({ context: context(String(i), 2), relationshipIds: [] })), busy: false, batch: true, canChoose: true })
+  const draft = reactive({
+    targets: Array.from({ length: 6 }, (_, i) => ({ context: context(String(i), 2), relationshipIds: [] })),
+    busy: false,
+    batch: true,
+    canChoose: true
+  })
   const { state, unmount } = mount(() => useSettingTargetList(() => draft))
   assert.equal(state.pending.value, 6)
   state.pagination.value.onChange(2)
@@ -411,11 +416,14 @@ test('已选房屋分页保留收费对象，全部客户操作按各自房屋�
   assert.deepEqual(draft.targets[5].relationshipIds, ['5-0', '5-1'])
   assert.equal(state.pending.value, 0)
   draft.busy = true
-  state.removeHouse('5'); assert.equal(draft.targets.length, 6)
+  state.removeHouse('5')
+  assert.equal(draft.targets.length, 6)
   draft.targets[0].relationshipIds = []
-  state.selectAllCustomers(); assert.deepEqual(draft.targets[0].relationshipIds, [])
+  state.selectAllCustomers()
+  assert.deepEqual(draft.targets[0].relationshipIds, [])
   draft.busy = false
-  state.removeHouse('5'); await nextTick()
+  state.removeHouse('5')
+  await nextTick()
   assert.equal(state.page.value, 1)
   assert.deepEqual(draft.targets[4].relationshipIds, ['4-0', '4-1'])
   unmount()
