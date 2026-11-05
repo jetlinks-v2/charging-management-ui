@@ -93,6 +93,7 @@ function ruleKeys(rule: SettingInput) {
           :model="rule"
           :index="index"
           :options="options"
+          :houses="targets.map((target) => target.context.house)"
           :locked-subject="!!detail"
           :removable="!detail && rules.length > 1"
           @remove="rules.splice(index, 1)"

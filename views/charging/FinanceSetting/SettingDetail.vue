@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ChargeSetting } from '../../../api/financeSetting'
+import { settingFormulaValues, settlementMonths } from '../../../utils/settingFormulaValues'
 const props = defineProps<{ detail: ChargeSetting }>()
 const { t } = useI18n()
 const items = computed(() => [
@@ -26,14 +27,13 @@ const house = computed(() => [
 ])
 const rule = computed(() => props.detail.snapshot.standard)
 const variables = computed(() =>
-  rule.value.variablesSnapshot.map((row) => ({
-    label: row.variableName,
-    value:
-      row.variableCode === 'PERIOD_MONTHS'
-        ? t('Setting.periodCalculated')
-        : props.detail.snapshot.values[row.variableCode] || '—'
+  settingFormulaValues(rule.value, props.detail.snapshot.house, props.detail.snapshot.values).map((row) => ({
+    label: row.name,
+    value: row.value
   }))
 )
+const months = computed(() => settlementMonths(rule.value.settlementMethod))
+const hasPeriod = computed(() => rule.value.variablesSnapshot.some((row) => row.variableCode === 'PERIOD_MONTHS'))
 </script>
 <template>
   <div class="setting-detail">
@@ -68,12 +68,18 @@ const variables = computed(() =>
       <p class="setting-formula">{{ rule.formulaDisplay }}</p>
       <KvGrid
         :items="[
-          { label: t('Standard.price'), value: rule.price || '—' },
+          { label: t('Standard.price'), value: rule.price ?? '—' },
           { label: t('Standard.settlementMethod'), value: t('Setting.' + rule.settlementMethod) },
           ...variables
         ]"
         :gap="20"
       />
+      <p
+        v-if="months && hasPeriod"
+        class="setting-help"
+      >
+        {{ t('Setting.periodHint', { months }) }}
+      </p>
     </SectionCard>
     <SectionCard
       v-if="detail.remark"
@@ -100,6 +106,11 @@ const variables = computed(() =>
   margin: 0 0 20px;
   overflow-wrap: anywhere;
   line-height: 1.8;
+}
+.setting-help {
+  margin: 16px 0 0;
+  color: var(--ant-color-text-secondary, #595959);
+  line-height: 1.7;
 }
 @media (max-width: 560px) {
   .setting-detail :deep(.kv-grid) {

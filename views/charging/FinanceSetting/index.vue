@@ -49,16 +49,10 @@ function selectTree(keys: (string | number)[]) {
           :aria-label="t('Archive.searchSpace')"
           allow-clear
         />
-        <a-button
-          block
-          :type="selectedId ? 'text' : 'primary'"
-          :ghost="!selectedId"
-          class="setting-all"
-          @click="selectedId = undefined"
+        <a-spin
+          :spinning="treeLoading"
+          class="setting-tree"
         >
-          {{ t('Archive.allSpaces') }}
-        </a-button>
-        <a-spin :spinning="treeLoading">
           <a-tree
             v-if="tree.length"
             :tree-data="tree"
@@ -75,11 +69,6 @@ function selectTree(keys: (string | number)[]) {
       </aside>
       <main class="subject-content">
         <div class="subject-content-heading setting-heading">
-          <div class="setting-scope-context">
-            <strong class="setting-scope">
-              {{ selected?.spaceLocation || selected?.name || t('Archive.allSpaces') }}
-            </strong>
-          </div>
           <a-space wrap>
             <a-button
               :disabled="!projectId"
@@ -145,13 +134,7 @@ function selectTree(keys: (string | number)[]) {
 .setting-heading {
   flex-wrap: wrap;
   align-items: center;
-}
-.setting-scope-context {
-  flex: 1;
-  min-width: 180px;
-}
-.setting-scope {
-  overflow-wrap: anywhere;
+  justify-content: flex-end;
 }
 .subject-content {
   gap: 16px;
@@ -162,8 +145,8 @@ function selectTree(keys: (string | number)[]) {
 .subject-content :deep(.jtable-body-spin) {
   flex: 0 1 auto;
 }
-.setting-all {
-  margin: 12px 0;
+.setting-tree {
+  margin-top: 12px;
 }
 .subject-categories :deep(.ant-spin-container) {
   min-height: 260px;

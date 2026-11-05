@@ -428,6 +428,8 @@
     "MONTHLY": "按月结算",
     "QUARTERLY": "按季结算",
     "periodCalculated": "按实际账期计算",
+    "periodHint": "完整账期按{months}个月计算，不足整期按实际日期折算。",
+    "previewHouse": "查看房屋取值",
     "trustedHint": "单价取自收费标准，计费面积取自房屋资料，账期月数按实际日期计算。",
     "saveAndGenerate": "保存并生成应收",
     "saved": "已保存{count}条设置，生成{generated}笔应收",

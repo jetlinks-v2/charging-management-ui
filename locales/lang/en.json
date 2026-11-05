@@ -428,6 +428,8 @@
     "MONTHLY": "Monthly",
     "QUARTERLY": "Quarterly",
     "periodCalculated": "Calculated for each billing period",
+    "periodHint": "A complete period uses {months} month(s); partial periods are prorated by actual dates.",
+    "previewHouse": "View values for house",
     "trustedHint": "Price comes from the standard, area from the house, and months from actual dates.",
     "saveAndGenerate": "Save and generate bills",
     "saved": "Saved {count} settings and generated {generated} bills",

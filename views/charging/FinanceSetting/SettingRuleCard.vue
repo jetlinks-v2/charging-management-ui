@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { SettingInput, SettingOptions } from '../../../api/financeSetting'
+import type { HouseInfo, SettingInput, SettingOptions } from '../../../api/financeSetting'
+import { settingFormulaValues, settlementMonths } from '../../../utils/settingFormulaValues'
 const props = defineProps<{
   model: SettingInput
   index: number
   options: SettingOptions
+  houses: HouseInfo[]
   lockedSubject: boolean
   removable: boolean
 }>()
@@ -26,11 +28,16 @@ const availableStandards = computed(() =>
       props.options.projectSubjects.find((subject) => subject.id === props.model.projectSubjectId)?.subjectId
   )
 )
-const editableVariables = computed(
-  () =>
-    standard.value?.variablesSnapshot.filter(
-      (row) => !['STANDARD_PRICE', 'BILLING_AREA', 'PERIOD_MONTHS'].includes(row.variableCode)
-    ) || []
+const previewSpaceId = ref('')
+const previewHouse = computed(
+  () => props.houses.find((house) => house.spaceId === previewSpaceId.value) || props.houses[0]
+)
+const variables = computed(() =>
+  standard.value ? settingFormulaValues(standard.value, previewHouse.value, props.model.variableValues) : []
+)
+const months = computed(() => standard.value && settlementMonths(standard.value.settlementMethod))
+const previewByHouse = computed(
+  () => props.houses.length > 1 && variables.value.some((row) => row.code === 'BILLING_AREA')
 )
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t('Setting.' + key) }) }]
 function changeSubject() {
@@ -127,19 +134,40 @@ function changeStandard() {
         <span>{{ t('Setting.' + standard.settlementMethod) }}</span>
       </div>
       <p class="setting-formula">{{ standard.formulaDisplay }}</p>
+      <a-form-item
+        v-if="previewByHouse"
+        :label="t('Setting.previewHouse')"
+      >
+        <a-select
+          :value="previewHouse?.spaceId"
+          :options="houses.map((house) => ({ value: house.spaceId, label: house.fullName }))"
+          show-search
+          option-filter-prop="label"
+          @update:value="previewSpaceId = String($event)"
+        />
+      </a-form-item>
       <div
-        v-if="editableVariables.length"
+        v-if="variables.length"
         class="finance-form-grid"
       >
         <a-form-item
-          v-for="variable in editableVariables"
-          :key="variable.variableCode"
-          :name="['rules', index, 'variableValues', variable.variableCode]"
-          :label="variable.variableName"
-          :rules="[{ required: true, message: t('Finance.required', { field: variable.variableName }) }]"
+          v-for="variable in variables"
+          :key="variable.code"
+          :name="variable.readonly ? undefined : ['rules', index, 'variableValues', variable.code]"
+          :label="variable.name"
+          :rules="
+            variable.readonly ? [] : [{ required: true, message: t('Finance.required', { field: variable.name }) }]
+          "
         >
+          <a-input
+            v-if="variable.readonly"
+            :value="variable.value"
+            class="setting-variable-value"
+            disabled
+          />
           <a-input-number
-            v-model:value="model.variableValues[variable.variableCode]"
+            v-else
+            v-model:value="model.variableValues[variable.code]"
             string-mode
             :min="0"
             :precision="6"
@@ -147,7 +175,12 @@ function changeStandard() {
           />
         </a-form-item>
       </div>
-      <p class="setting-help">{{ t('Setting.trustedHint') }}</p>
+      <p
+        v-if="months && variables.some((row) => row.code === 'PERIOD_MONTHS')"
+        class="setting-help"
+      >
+        {{ t('Setting.periodHint', { months }) }}
+      </p>
     </div>
     <a-form-item
       :name="['rules', index, 'remark']"
