@@ -15,6 +15,7 @@ const names = [
   'stopSetting',
   'generateSetting',
   'getSettingHouse',
+  'querySettingHouses',
   'queryBillingTasks',
   'retryBillingTask'
 ]
@@ -58,6 +59,8 @@ async function load(path) {
 }
 const { useSettingWorkspace } = await load('../hooks/finance-setting/useSettingWorkspace.ts')
 const { useSettingForm } = await load('../hooks/finance-setting/useSettingForm.ts')
+const { useSettingTargetList } = await load('../hooks/finance-setting/useSettingTargetList.ts')
+const { useSettingHousePicker } = await load('../hooks/finance-setting/useSettingHousePicker.ts')
 const { useBillingTasks } = await load('../hooks/finance-setting/useBillingTasks.ts')
 const context = (space = 'room', count = 1) => ({
   house: { spaceId: space, fullName: space, billingArea: '100.25' },
@@ -264,5 +267,156 @@ test('任务重试失败不误报成功，重试沿用项目和原任务身份�
   assert.equal(reloads, 1)
   assert.equal(globalThis.__settingMessages.at(-1)[0], 'Setting.taskRetryQueued')
   assert.equal(state.retrying.value, '')
+  unmount()
+})
+
+test('单房多标准全部走原子批量接口，末项失败保持表单且不刷新', async () => {
+  let batches = 0,
+    singles = 0,
+    reloads = 0
+  const { state, unmount } = mount(useSettingWorkspace, {
+    batchSettings: async (_project, inputs) => {
+      batches++
+      assert.equal(inputs.length, 2)
+      throw new Error('第二项冲突')
+    },
+    saveSetting: async () => {
+      singles++
+    }
+  })
+  state.table.value = { reload: () => reloads++ }
+  await state.select(undefined, false)
+  await state.save([{ standardId: 'one' }, { standardId: 'two' }])
+  assert.equal(batches, 1)
+  assert.equal(singles, 0)
+  assert.equal(reloads, 0)
+  assert.equal(state.open.value, true)
+  unmount()
+})
+const otherOptions = {
+  projectSubjects: [...options.projectSubjects, { id: 'issued2', subjectId: 'sub2' }],
+  standards: [...options.standards, { ...standard, id: 'std2', subjectId: 'sub2' }]
+}
+function fillRule(rule, second = false) {
+  Object.assign(rule, {
+    projectSubjectId: second ? 'issued2' : 'issued',
+    standardId: second ? 'std2' : 'std',
+    effectiveStartDate: '2024-02-01',
+    variableValues: { BILLING_PERSON: '2', STANDARD_PRICE: '0.01' }
+  })
+}
+test('多房多标准生成交叉组合，每条保留明确客户且不提交可信变量', async () => {
+  const emitted = []
+  const props = reactive({ projectId: 'a', options: otherOptions, mode: 'batch', readOnly: false })
+  const { state, unmount } = mount(() => useSettingForm(props, (inputs) => emitted.push(inputs)))
+  fillRule(state.model)
+  state.addRule()
+  fillRule(state.rules.value[1], true)
+  await state.addHouses(['a', 'b', 'a'])
+  await state.submit()
+  assert.equal(emitted[0].length, 4)
+  assert.deepEqual(
+    emitted[0].map((r) => [r.spaceId, r.standardId]),
+    [
+      ['a', 'std'],
+      ['b', 'std'],
+      ['a', 'std2'],
+      ['b', 'std2']
+    ]
+  )
+  assert.deepEqual(emitted[0][3].customerRelationshipIds, ['b-0'])
+  assert.deepEqual(emitted[0][3].variableValues, { BILLING_PERSON: '2' })
+  unmount()
+})
+test('末条标准缺失变量或同科目日期重叠时整批不提交，客户必须是当前关联', async () => {
+  const emitted = []
+  const props = reactive({ projectId: 'a', options: otherOptions, mode: 'single', readOnly: false })
+  const { state, unmount } = mount(() => useSettingForm(props, (inputs) => emitted.push(inputs)))
+  fillRule(state.model)
+  state.addRule()
+  fillRule(state.rules.value[1], true)
+  await state.addHouse('a')
+  state.rules.value[1].variableValues = {}
+  await state.submit()
+  assert.equal(emitted.length, 0)
+  fillRule(state.rules.value[1])
+  await state.submit()
+  assert.equal(emitted.length, 0)
+  assert.equal(globalThis.__settingMessages.at(-1)[0], 'Setting.overlappingRules')
+  fillRule(state.rules.value[1], true)
+  state.targets.value[0].relationshipIds = ['unrelated']
+  await state.submit()
+  assert.equal(emitted.length, 0)
+  state.targets.value[0].relationshipIds = ['a-0']
+  await state.submit()
+  assert.equal(emitted[0].length, 2)
+  unmount()
+})
+test('多选房屋来源任一失败不部分加入，200条上限在提交前检查', async () => {
+  const emitted = []
+  const props = reactive({ projectId: 'a', options, mode: 'batch', readOnly: false })
+  const { state, unmount } = mount(() => useSettingForm(props, (inputs) => emitted.push(inputs)), {
+    getSettingHouse: async (_p, id) => {
+      if (id === 'bad') throw new Error('来源失败')
+      return context(id)
+    }
+  })
+  await state.addHouse('original')
+  await state.addHouses(['good', 'bad'])
+  assert.deepEqual(
+    state.targets.value.map((r) => r.context.house.spaceId),
+    ['original']
+  )
+  assert.match(globalThis.__settingMessages.at(-1)[0], /bad/)
+  fillRule(state.model)
+  state.targets.value = Array.from({ length: 201 }, (_, i) => ({
+    context: context(String(i)),
+    relationshipIds: [i + '-0']
+  }))
+  await state.submit()
+  assert.equal(emitted.length, 0)
+  assert.equal(globalThis.__settingMessages.at(-1)[0], 'Setting.batchLimit')
+  unmount()
+})
+test('批量选房保留跨页选择，排除已加入房屋并限制数量，旧项目响应不能覆盖新项目', async () => {
+  const pending = deferred()
+  const props = reactive({ projectId: 'a', selectedIds: ['existing'], limit: 3 })
+  const { state, unmount } = mount(() => useSettingHousePicker(props), {
+    querySettingHouses: async (project, query) =>
+      project === 'a' && query.pageIndex === 1 ? pending.promise : { data: [{ spaceId: project }], total: 16 }
+  })
+  await nextTick()
+  state.select(['existing', 'one'])
+  assert.deepEqual(state.selected.value, ['one'])
+  const old = state.load(1)
+  state.select(['one', 'two'])
+  assert.deepEqual(state.selected.value, ['one', 'two'])
+  state.select(['one', 'two', 'three'])
+  assert.equal(state.selected.value.length, 2)
+  props.projectId = 'b'
+  await nextTick()
+  pending.resolve({ data: [{ spaceId: 'stale' }], total: 99 })
+  await old
+  assert.equal(state.rows.value[0].spaceId, 'b')
+  assert.equal(state.selected.value.length, 0)
+  unmount()
+})
+
+test('已选房屋分页保留收费对象，全部客户操作按各自房屋匹配且保存中不可改动', async () => {
+  const draft = reactive({ targets: Array.from({ length: 6 }, (_, i) => ({ context: context(String(i), 2), relationshipIds: [] })), busy: false, batch: true, canChoose: true })
+  const { state, unmount } = mount(() => useSettingTargetList(() => draft))
+  assert.equal(state.pending.value, 6)
+  state.pagination.value.onChange(2)
+  state.selectAllCustomers()
+  assert.deepEqual(draft.targets[5].relationshipIds, ['5-0', '5-1'])
+  assert.equal(state.pending.value, 0)
+  draft.busy = true
+  state.removeHouse('5'); assert.equal(draft.targets.length, 6)
+  draft.targets[0].relationshipIds = []
+  state.selectAllCustomers(); assert.deepEqual(draft.targets[0].relationshipIds, [])
+  draft.busy = false
+  state.removeHouse('5'); await nextTick()
+  assert.equal(state.page.value, 1)
+  assert.deepEqual(draft.targets[4].relationshipIds, ['4-0', '4-1'])
   unmount()
 })

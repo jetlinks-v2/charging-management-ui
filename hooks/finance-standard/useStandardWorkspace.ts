@@ -13,7 +13,7 @@ import {
   type StandardInput
 } from '../../api/financeStandard'
 import type { Query } from '../../api/archive'
-import { categoryTree } from '../finance-subject/categoryTree'
+import { categoryTree, categoryKeys, filterCategoryTree } from '../finance-subject/categoryTree'
 import { useProjectContext, useProjectSwitchGuard } from '../project/useProjectContext'
 import { requestErrorMessage } from '../../utils/requestError'
 import { excelErrorMessage } from '../../utils/archiveFiles'
@@ -41,6 +41,12 @@ export function useStandardWorkspace() {
     selectedSubject = ref(''),
     effectiveStatus = ref(''),
     terms = ref<Query['terms']>([])
+  const treeKeyword = ref(''),
+    treeExpandedKeys = ref<string[]>([])
+  const selectedSubjectInfo = computed(() => options.value.subjects.find((row) => row.id === selectedSubject.value))
+  const canCreate = computed(
+    () => !!context.projectId.value && !!selectedSubjectInfo.value && !metadataLoading.value && !metadataFailed.value
+  )
   const table = ref<{ reload: () => void }>(),
     open = ref(false),
     loading = ref(false),
@@ -91,6 +97,10 @@ export function useStandardWorkspace() {
         ? ['category:' + selectedCategory.value]
         : []
   )
+  const visibleTree = computed(() => filterCategoryTree(tree.value, treeKeyword.value))
+  const visibleExpandedKeys = computed(() =>
+    treeKeyword.value.trim() ? categoryKeys(visibleTree.value) : treeExpandedKeys.value
+  )
   function selectTree(keys: unknown[]) {
     const value = String(keys[0] || '')
     selectedSubject.value = value.startsWith('subject:') ? value.slice(8) : ''
@@ -110,7 +120,10 @@ export function useStandardWorkspace() {
     metadataLoading.value = true
     try {
       const result = await getStandardOptions(project)
-      if (!disposed && token === metadataToken) options.value = result
+      if (!disposed && token === metadataToken) {
+        options.value = result
+        treeExpandedKeys.value = categoryKeys(tree.value)
+      }
     } catch (cause) {
       if (token === metadataToken) {
         metadataFailed.value = true
@@ -122,6 +135,8 @@ export function useStandardWorkspace() {
   }
   async function select(key?: string, view = true) {
     if (!context.projectId.value) return
+    // 新标准从左侧已下发科目进入，避免在表单中另选科目造成范围错位。
+    if (!key && !canCreate.value) return
     const token = ++detailToken,
       project = context.projectId.value
     selectedId.value = key
@@ -216,6 +231,7 @@ export function useStandardWorkspace() {
     detail.value = undefined
     selectedCategory.value = ''
     selectedSubject.value = ''
+    treeKeyword.value = ''
     void metadata()
   })
   onMounted(() => {
@@ -229,8 +245,15 @@ export function useStandardWorkspace() {
   })
   return {
     projectId: context.projectId,
+    project: context.current,
     options,
     tree,
+    treeKeyword,
+    visibleTree,
+    visibleExpandedKeys,
+    treeExpandedKeys,
+    selectedSubjectInfo,
+    canCreate,
     metadataFailed,
     metadataLoading,
     selectedCategory,
@@ -241,6 +264,7 @@ export function useStandardWorkspace() {
     terms,
     table,
     params,
+    filters,
     open,
     loading,
     failed,

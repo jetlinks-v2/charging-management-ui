@@ -4,6 +4,8 @@ import type { ChargeSetting, SettingOptions, SettingInput } from '../../../api/f
 import { useSettingForm } from '../../../hooks/finance-setting/useSettingForm'
 import SettingDetail from './SettingDetail.vue'
 import SettingHousePicker from './SettingHousePicker.vue'
+import SettingRuleCard from './SettingRuleCard.vue'
+import SettingTargets from './SettingTargets.vue'
 const props = defineProps<{
   projectId: string
   detail?: ChargeSetting
@@ -17,27 +19,21 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ close: []; save: [SettingInput[]] }>()
 const { t } = useI18n()
-const {
-  form,
-  model,
-  targets,
-  pickerOpen,
-  loadingHouse,
-  standard,
-  subjectOptions,
-  availableStandards,
-  editableVariables,
-  addHouse,
-  changeSubject,
-  changeStandard,
-  submit
-} = useSettingForm(props, (inputs) => emit('save', inputs))
-const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t('Setting.' + key) }) }]
+const { form, rules, addRule, addHouses, addHouse, targets, pickerOpen, loadingHouse, submit } = useSettingForm(
+  props,
+  (inputs) => emit('save', inputs)
+)
+const keys = new WeakMap<SettingInput, number>()
+let sequence = 0
+function ruleKeys(rule: SettingInput) {
+  if (!keys.has(rule)) keys.set(rule, ++sequence)
+  return keys.get(rule)
+}
 </script>
 <template>
   <JlDrawerShell
     :open="true"
-    :width="820"
+    :width="920"
     icon="CalculatorOutlined"
     :title="
       t(
@@ -71,7 +67,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
     <a-form
       v-else
       ref="form"
-      :model="model"
+      :model="{ rules }"
       layout="vertical"
       :disabled="saving"
       class="setting-form"
@@ -80,171 +76,44 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         icon="HomeOutlined"
         :title="t('Setting.houseAndCustomer')"
       >
-        <div
-          v-for="(target, index) in targets"
-          :key="target.context.house.spaceId"
-          class="setting-target"
-        >
-          <div class="setting-target-heading">
-            <div>
-              <strong>{{ target.context.house.fullName }}</strong>
-              <p>{{ t('Setting.billingArea') }} {{ target.context.house.billingArea }} m²</p>
-            </div>
-            <a-button
-              v-if="mode === 'batch'"
-              type="text"
-              :aria-label="t('Setting.removeHouse')"
-              @click="targets.splice(index, 1)"
-            >
-              <AIcon type="CloseOutlined" />
-            </a-button>
-          </div>
-          <a-form-item
-            :label="t('Setting.customer')"
-            required
-          >
-            <a-select
-              v-model:value="target.relationshipIds"
-              mode="multiple"
-              :disabled="!target.context.customers.length"
-              show-search
-              option-filter-prop="label"
-              :placeholder="t('Setting.chooseCustomer')"
-              :options="
-                target.context.customers.map((row) => ({
-                  value: row.relationshipId,
-                  label: row.name + (row.telephone ? ' · ' + row.telephone : '')
-                }))
-              "
-            />
-            <span
-              v-if="!target.context.customers.length"
-              class="setting-help"
-            >
-              {{ t('Setting.noCustomers') }}
-            </span>
-          </a-form-item>
-        </div>
-        <a-button
-          v-if="!detail || mode === 'batch'"
-          :loading="loadingHouse"
-          :disabled="targets.length >= 200"
-          @click="pickerOpen = true"
-        >
-          <AIcon type="PlusOutlined" />
-          {{ t(targets.length && mode !== 'batch' ? 'Setting.changeHouse' : 'Setting.chooseHouse') }}
-        </a-button>
-        <a-spin v-else-if="loadingHouse" />
-      </SectionCard>
-      <SectionCard
-        icon="ProfileOutlined"
-        :title="t('Setting.chargeRule')"
-      >
-        <div class="finance-form-grid">
-          <a-form-item
-            name="projectSubjectId"
-            :label="t('Setting.subject')"
-            :rules="required('subject')"
-          >
-            <a-select
-              v-model:value="model.projectSubjectId"
-              :options="subjectOptions"
-              show-search
-              option-filter-prop="label"
-              :disabled="!!detail"
-              @change="changeSubject"
-            />
-          </a-form-item>
-          <a-form-item
-            name="standardId"
-            :label="t('Setting.standard')"
-            :rules="required('standard')"
-          >
-            <a-select
-              v-model:value="model.standardId"
-              :options="
-                availableStandards.map((row) => ({ value: row.id, label: row.standardName + ' · ' + row.standardCode }))
-              "
-              show-search
-              option-filter-prop="label"
-              :placeholder="t('Setting.chooseStandard')"
-              @change="changeStandard"
-            />
-          </a-form-item>
-          <a-form-item
-            name="effectiveStartDate"
-            :label="t('Setting.start')"
-            :rules="required('start')"
-          >
-            <a-date-picker
-              v-model:value="model.effectiveStartDate"
-              value-format="YYYY-MM-DD"
-              class="setting-full"
-            />
-          </a-form-item>
-          <a-form-item
-            name="effectiveEndDate"
-            :label="t('Setting.end')"
-          >
-            <a-date-picker
-              :value="model.effectiveEndDate || undefined"
-              value-format="YYYY-MM-DD"
-              :placeholder="t('Setting.unlimited')"
-              class="setting-full"
-              @update:value="model.effectiveEndDate = $event ? String($event) : null"
-            />
-          </a-form-item>
-        </div>
+        <SettingTargets
+          :state="{
+            targets,
+            busy: loadingHouse || saving,
+            batch: mode === 'batch',
+            canChoose: (!detail || mode === 'batch') && targets.length < Math.floor(200 / rules.length)
+          }"
+          @choose="pickerOpen = true"
+        />
         <p
-          v-if="standard"
+          v-if="targets.length"
           class="setting-help"
         >
-          {{ t('Setting.standardValidity') }}：{{ standard.executeDate || t('Standard.unlimitedStart') }} ～
-          {{ standard.cancelDate || t('Setting.unlimited') }}
+          {{ t('Setting.sharedPayers') }}
         </p>
       </SectionCard>
-      <SectionCard
-        v-if="standard"
-        icon="FunctionOutlined"
-        :title="t('Setting.formula')"
-      >
-        <div class="setting-rule-summary">
-          <strong>{{ standard.price }}</strong>
-          <span>{{ t('Setting.' + standard.settlementMethod) }}</span>
-        </div>
-        <p class="setting-formula">{{ standard.formulaDisplay }}</p>
-        <div
-          v-if="editableVariables.length"
-          class="finance-form-grid"
-        >
-          <a-form-item
-            v-for="variable in editableVariables"
-            :key="variable.variableCode"
-            :name="['variableValues', variable.variableCode]"
-            :label="variable.variableName"
-            :rules="[{ required: true, message: t('Finance.required', { field: variable.variableName }) }]"
-          >
-            <a-input-number
-              v-model:value="model.variableValues[variable.variableCode]"
-              string-mode
-              :min="0"
-              :precision="6"
-              class="setting-full"
-            />
-          </a-form-item>
-        </div>
-        <p class="setting-help">{{ t('Setting.trustedHint') }}</p>
-      </SectionCard>
-      <a-form-item
-        name="remark"
-        :label="t('Setting.remark')"
-      >
-        <a-textarea
-          v-model:value="model.remark"
-          :rows="2"
-          :maxlength="300"
+      <div class="setting-rules">
+        <SettingRuleCard
+          v-for="(rule, index) in rules"
+          :key="ruleKeys(rule)"
+          :model="rule"
+          :index="index"
+          :options="options"
+          :locked-subject="!!detail"
+          :removable="!detail && rules.length > 1"
+          @remove="rules.splice(index, 1)"
         />
-      </a-form-item>
+        <a-button
+          v-if="!detail"
+          block
+          type="dashed"
+          :disabled="(rules.length + 1) * Math.max(1, targets.length) > 200"
+          @click="addRule"
+        >
+          <AIcon type="PlusOutlined" />
+          {{ t('Setting.addRule') }}
+        </a-button>
+      </div>
     </a-form>
     <template #foot>
       <a-button
@@ -267,8 +136,12 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
       v-if="pickerOpen"
       :project-id="projectId"
       :busy="loadingHouse"
+      :multiple="mode === 'batch'"
+      :selected-ids="targets.map((target) => target.context.house.spaceId)"
+      :limit="Math.floor(200 / rules.length)"
       @close="pickerOpen = false"
       @pick="addHouse"
+      @pick-many="addHouses"
     />
   </JlDrawerShell>
 </template>

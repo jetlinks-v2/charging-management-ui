@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { StandardInput, StandardOptions, FormulaVariable } from '../../../api/financeStandard'
-import { useFormulaValidation } from '../../../hooks/finance-standard/useFormulaValidation'
+import StandardFormulaEditor from './StandardFormulaEditor.vue'
 const props = defineProps<{
   model: StandardInput
   options: StandardOptions
@@ -12,30 +11,57 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ method: [string] }>()
 const { t } = useI18n()
-const { checking, valid, check } = useFormulaValidation(
-  () => props.projectId,
-  () => props.model.formulaExpression,
-  () => props.display
-)
-const methodOptions = computed(() => props.options.billingMethods.map((row) => ({ value: row.value, label: row.text })))
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t('Standard.' + key) }) }]
-function insert(value: string) {
-  props.model.formulaExpression += value
-}
 </script>
 <template>
-  <div class="finance-form-grid">
-    <a-form-item
-      name="billingMethod"
-      :label="t('Standard.billingMethod')"
-      :rules="required('billingMethod')"
+  <a-form-item
+    name="billingMethod"
+    :label="t('Standard.billingMethod')"
+    :rules="required('billingMethod')"
+  >
+    <a-radio-group
+      :value="model.billingMethod"
+      button-style="solid"
+      @change="
+        (event) => {
+          model.billingMethod = event.target.value
+          emit('method', event.target.value)
+        }
+      "
     >
-      <a-select
-        v-model:value="model.billingMethod"
-        :options="methodOptions"
-        @change="(value) => emit('method', String(value))"
+      <a-radio-button
+        v-for="item in options.billingMethods"
+        :key="item.value"
+        :value="item.value"
+      >
+        {{ item.text }}
+      </a-radio-button>
+    </a-radio-group>
+  </a-form-item>
+  <a-form-item
+    name="formulaExpression"
+    :label="t('Standard.formulaExpression')"
+    :rules="required('formulaExpression')"
+  >
+    <div class="standard-formula-control">
+      <a-textarea
+        :value="display"
+        readonly
+        :auto-size="{ minRows: 1, maxRows: 4 }"
+        :aria-label="t('Standard.formulaExpression')"
       />
-    </a-form-item>
+      <StandardFormulaEditor
+        :expression="model.formulaExpression"
+        :project-id="projectId"
+        :variables="variables"
+        :default-expression="
+          options.billingMethods.find((row) => row.value === model.billingMethod)?.defaultExpression || ''
+        "
+        @confirm="model.formulaExpression = $event"
+      />
+    </div>
+  </a-form-item>
+  <div class="finance-form-grid standard-precision-grid">
     <a-form-item
       name="price"
       :label="t('Standard.price')"
@@ -51,60 +77,6 @@ function insert(value: string) {
         class="standard-full"
       />
     </a-form-item>
-  </div>
-  <a-form-item
-    name="formulaExpression"
-    :label="t('Standard.formulaExpression')"
-    :rules="required('formulaExpression')"
-  >
-    <div class="standard-formula-tools">
-      <a-space
-        wrap
-        :size="[6, 6]"
-      >
-        <a-button
-          v-for="item in props.options.variables.filter((item) => item.enabled)"
-          :key="item.variableCode"
-          size="small"
-          @click="insert('${' + item.variableCode + '}')"
-        >
-          {{ item.variableName }}
-        </a-button>
-        <a-button
-          v-for="operator in ['+', '-', '*', '/', '(', ')']"
-          :key="operator"
-          size="small"
-          @click="insert(operator)"
-        >
-          {{ operator }}
-        </a-button>
-      </a-space>
-    </div>
-    <a-textarea
-      v-model:value="model.formulaExpression"
-      :rows="3"
-      :maxlength="2000"
-      :placeholder="t('Standard.formulaPlaceholder')"
-      class="standard-formula-code"
-    />
-    <div class="standard-formula-preview">{{ display || t('Standard.formulaEmpty') }}</div>
-    <div class="standard-formula-check">
-      <span>{{ t('Standard.formulaHint') }}</span>
-      <a-button
-        size="small"
-        :loading="checking"
-        :disabled="!model.formulaExpression"
-        @click="check"
-      >
-        <AIcon
-          v-if="valid"
-          type="CheckCircleOutlined"
-        />
-        {{ t('Standard.validateFormula') }}
-      </a-button>
-    </div>
-  </a-form-item>
-  <div class="finance-form-grid">
     <a-form-item
       name="chargeRoundType"
       :label="t('Standard.chargeRoundType')"
@@ -125,40 +97,36 @@ function insert(value: string) {
         :options="props.options.mantissas.map((item) => ({ value: item.value, label: item.text }))"
       />
     </a-form-item>
-    <a-form-item
-      name="settlementMethod"
-      :label="t('Standard.settlementMethod')"
-      :rules="required('settlementMethod')"
-    >
-      <a-select
-        v-model:value="model.settlementMethod"
-        :options="props.options.settlementMethods.map((item) => ({ value: item.value, label: item.text }))"
-      />
-    </a-form-item>
   </div>
+  <a-form-item
+    name="settlementMethod"
+    :label="t('Standard.settlementMethod')"
+    :rules="required('settlementMethod')"
+  >
+    <a-radio-group
+      v-model:value="model.settlementMethod"
+      :options="options.settlementMethods.map((row) => ({ value: row.value, label: row.text }))"
+    />
+  </a-form-item>
 </template>
 <style scoped>
 .standard-full {
   width: 100%;
 }
-.standard-formula-tools {
-  margin-bottom: 10px;
-}
-.standard-formula-code {
-  font-family: ui-monospace, monospace;
-  font-size: 13px;
-}
-.standard-formula-preview {
-  padding: 10px 0;
-  color: var(--ink-2, #595959);
-  overflow-wrap: anywhere;
-}
-.standard-formula-check {
+.standard-formula-control {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  font-size: 12px;
-  color: var(--ink-3, #737373);
+}
+.standard-formula-control :deep(textarea) {
+  flex: 1;
+}
+.standard-precision-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 600px) {
+  .standard-precision-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

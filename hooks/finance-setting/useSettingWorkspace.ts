@@ -120,7 +120,7 @@ export function useSettingWorkspace() {
     try {
       const project = archive.projectId.value
       const results =
-        mode.value === 'batch'
+        mode.value === 'batch' || (!detail.value && inputs.length > 1)
           ? await batchSettings(project, inputs)
           : [
               await saveSetting(

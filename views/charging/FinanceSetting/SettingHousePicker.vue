@@ -1,51 +1,45 @@
 <script setup lang="ts">
-import { onMounted, onScopeDispose, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { onlyMessage } from '@jetlinks-web/utils'
-import { querySettingHouses, type HouseInfo } from '../../../api/financeSetting'
-import { requestErrorMessage } from '../../../utils/requestError'
-const props = defineProps<{ projectId: string; busy: boolean; request?: typeof querySettingHouses }>()
-const emit = defineEmits<{ close: []; pick: [string] }>()
+import { type querySettingHouses, type HouseInfo } from '../../../api/financeSetting'
+import { useSettingHousePicker } from '../../../hooks/finance-setting/useSettingHousePicker'
+const props = defineProps<{
+  projectId: string
+  busy: boolean
+  multiple?: boolean
+  selectedIds?: string[]
+  limit?: number
+  request?: typeof querySettingHouses
+}>()
+const emit = defineEmits<{ close: []; pick: [string]; pickMany: [string[]] }>()
 const { t } = useI18n()
-const keyword = ref(''),
-  pageIndex = ref(0),
-  total = ref(0),
-  rows = ref<HouseInfo[]>([]),
-  loading = ref(false)
-let token = 0
-async function load(page = 0) {
-  const generation = ++token
-  pageIndex.value = page
-  loading.value = true
-  try {
-    const result = await (props.request || querySettingHouses)(props.projectId, {
-      keyword: keyword.value,
-      pageIndex: page,
-      pageSize: 8
-    })
-    if (generation === token) {
-      rows.value = result.data
-      total.value = result.total
-    }
-  } catch (error) {
-    if (generation === token) onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
-  } finally {
-    if (generation === token) loading.value = false
-  }
-}
-onMounted(() => {
-  void load()
-})
-onScopeDispose(() => {
-  ++token
-})
+const { keyword, pageIndex, total, rows, loading, selected, remaining, load, select } = useSettingHousePicker(props)
+const columns = computed(() => [
+  { title: t('Setting.house'), dataIndex: 'fullName' },
+  { title: t('Setting.billingArea'), dataIndex: 'billingArea', width: 130 }
+])
+const selection = computed(() => ({
+  selectedRowKeys: selected.value,
+  preserveSelectedRowKeys: true,
+  onChange: select,
+  getCheckboxProps: (row: HouseInfo) => ({
+    disabled:
+      props.busy ||
+      props.selectedIds?.includes(row.spaceId) ||
+      (!selected.value.includes(row.spaceId) && selected.value.length >= remaining.value)
+  })
+}))
 </script>
 <template>
   <a-modal
     :open="true"
     :width="720"
     :title="t('Setting.chooseHouse')"
-    :footer="null"
+    :footer="multiple ? undefined : null"
+    :confirm-loading="busy"
+    :ok-button-props="{ disabled: !selected.length || loading }"
+    :ok-text="t('Setting.addSelectedHouses', { count: selected.length })"
+    @ok="emit('pickMany', selected)"
     @cancel="emit('close')"
   >
     <a-input-search
@@ -55,7 +49,22 @@ onScopeDispose(() => {
       @search="load(0)"
     />
     <a-spin :spinning="loading || busy">
-      <div class="setting-house-picker">
+      <a-table
+        v-if="multiple"
+        class="setting-house-picker"
+        row-key="spaceId"
+        :columns="columns"
+        :data-source="rows"
+        :pagination="false"
+        :row-selection="selection"
+        size="middle"
+      >
+        <template #emptyText><CloudEmpty :description="t('Setting.noHouses')" /></template>
+      </a-table>
+      <div
+        v-else
+        class="setting-house-picker"
+      >
         <button
           v-for="row in rows"
           :key="row.spaceId"
@@ -77,6 +86,12 @@ onScopeDispose(() => {
         />
       </div>
     </a-spin>
+    <div
+      v-if="multiple"
+      class="setting-selection-summary"
+    >
+      {{ t('Setting.selectedHouses', { count: selected.length }) }}
+    </div>
     <a-pagination
       v-if="total"
       :current="pageIndex + 1"
@@ -120,6 +135,10 @@ onScopeDispose(() => {
 .setting-house-choice small {
   display: block;
   margin-top: 4px;
+  color: var(--ant-color-text-secondary, #595959);
+}
+.setting-selection-summary {
+  margin-bottom: 12px;
   color: var(--ant-color-text-secondary, #595959);
 }
 </style>

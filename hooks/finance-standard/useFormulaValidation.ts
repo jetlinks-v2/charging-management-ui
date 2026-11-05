@@ -9,16 +9,20 @@ export function useFormulaValidation(project: () => string, expression: () => st
     checking = ref(false),
     valid = ref(false)
   let generation = 0
-  watch([expression, project], () => {
-    generation++
-    valid.value = false
-    checking.value = false
-  })
+  watch(
+    [expression, project],
+    () => {
+      generation++
+      valid.value = false
+      checking.value = false
+    },
+    { flush: 'sync' }
+  )
   onScopeDispose(() => {
     generation++
   })
   async function check() {
-    if (!project() || !expression().trim() || checking.value) return
+    if (!project() || !expression().trim() || checking.value) return false
     const token = ++generation
     checking.value = true
     valid.value = false
@@ -27,12 +31,14 @@ export function useFormulaValidation(project: () => string, expression: () => st
       if (token === generation) {
         valid.value = true
         onlyMessage(t('Standard.formulaValid'), 'success')
+        return true
       }
     } catch (cause) {
       if (token === generation) onlyMessage(requestErrorMessage(cause, t('Finance.failed')), 'error')
     } finally {
       if (token === generation) checking.value = false
     }
+    return false
   }
   return { checking, valid, check }
 }

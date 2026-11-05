@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
+import dayjs from 'dayjs'
+import type { ChargeSetting } from '../../../api/financeSetting'
 import type { Query } from '../../../api/archive'
 import { settingPermission, type useSettingWorkspace } from '../../../hooks/finance-setting/useSettingWorkspace'
 const props = defineProps<{ state: ReturnType<typeof useSettingWorkspace> }>()
@@ -13,7 +15,8 @@ const columns = computed(() => [
   { title: t('Setting.standard'), dataIndex: 'standardName', width: 190, scopedSlots: true },
   { title: t('Setting.customer'), dataIndex: 'customerName', width: 180, scopedSlots: true },
   { title: t('Setting.validity'), dataIndex: 'validity', width: 210, scopedSlots: true },
-  { title: t('Setting.version'), dataIndex: 'configVersion', width: 80 },
+  { title: t('Setting.price'), dataIndex: 'price', width: 110, align: 'right', scopedSlots: true },
+  { title: t('Setting.formula'), dataIndex: 'formula', width: 220, scopedSlots: true },
   { title: t('Setting.state'), dataIndex: 'status', width: 130, scopedSlots: true },
   { title: t('Finance.actions'), dataIndex: 'actions', width: 160, fixed: 'right', scopedSlots: true }
 ])
@@ -27,6 +30,13 @@ const fields = computed(() =>
     search: { type: 'string' }
   }))
 )
+function periodState(row: ChargeSetting) {
+  if (row.status !== 'ACTIVE') return row.status
+  const today = dayjs().format('YYYY-MM-DD')
+  if (row.effectiveStartDate > today) return 'PENDING'
+  if (row.effectiveEndDate && row.effectiveEndDate < today) return 'EXPIRED'
+  return 'ACTIVE'
+}
 function filter({ filter }: ConditionFilterChangePayload) {
   terms.value = (filter.terms || []) as Query['terms']
 }
@@ -49,7 +59,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
     :pagination="{ pageSize: 12 }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 1200 }"
+    :scroll="{ x: 1640 }"
     @request-error="notify"
   >
     <template #fullName="row">
@@ -63,14 +73,24 @@ function filter({ filter }: ConditionFilterChangePayload) {
     </template>
     <template #standardName="row">
       <span>{{ row.standardName }}</span>
-      <small class="setting-secondary">{{ row.standardCode }}</small>
+      <small class="setting-secondary">{{ row.standardCode }} · V{{ row.configVersion }}</small>
+    </template>
+    <template #price="row">
+      <span class="setting-price">{{ row.snapshot?.standard?.price ?? '—' }}</span>
+    </template>
+    <template #formula="row">
+      <a-tooltip :title="row.snapshot?.standard?.formulaDisplay">
+        <span class="setting-formula-text">{{ row.snapshot?.standard?.formulaDisplay || '—' }}</span>
+      </a-tooltip>
     </template>
     <template #customerName="row">{{ row.customerNames?.join('、') || row.customerName }}</template>
     <template #validity="row">
       {{ row.effectiveStartDate }} ～ {{ row.effectiveEndDate || t('Setting.unlimited') }}
     </template>
     <template #status="row">
-      <a-tag :color="row.status === 'ACTIVE' ? 'success' : 'default'">{{ t('Setting.status.' + row.status) }}</a-tag>
+      <a-tag :color="periodState(row) === 'ACTIVE' ? 'success' : 'default'">
+        {{ t('Setting.status.' + periodState(row)) }}
+      </a-tag>
       <small class="setting-secondary">{{ t(row.billed ? 'Setting.billed' : 'Setting.unbilled') }}</small>
     </template>
     <template #actions="row">
@@ -171,5 +191,15 @@ function filter({ filter }: ConditionFilterChangePayload) {
   display: block;
   color: var(--ant-color-text-secondary, #595959);
   margin-top: 4px;
+}
+.setting-price {
+  font-variant-numeric: tabular-nums;
+}
+.setting-formula-text {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 </style>

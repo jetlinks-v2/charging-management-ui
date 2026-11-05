@@ -37,6 +37,7 @@ export function useSettingForm(
     remark: ''
   })
   const model = reactive<SettingInput>(defaults())
+  const rules = ref<SettingInput[]>([model])
   const standard = computed(() => props.options.standards.find((row) => row.id === model.standardId))
   const subjectOptions = computed(() =>
     props.options.projectSubjects.map((row) => ({
@@ -58,22 +59,49 @@ export function useSettingForm(
   let token = 0,
     disposed = false
   const notify = (error: unknown) => onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
-  async function addHouse(spaceId: string) {
-    if (loadingHouse.value || targets.value.some((row) => row.context.house.spaceId === spaceId)) return
+  async function addHouses(spaceIds: string[]) {
+    if (loadingHouse.value || props.readOnly) return
+    const ids = [...new Set(spaceIds)].filter((id) => !targets.value.some((row) => row.context.house.spaceId === id))
+    if (!ids.length) {
+      pickerOpen.value = false
+      return
+    }
+    if ((props.mode === 'batch' ? targets.value.length + ids.length : ids.length) * rules.value.length > 200) {
+      onlyMessage(t('Setting.batchLimit'), 'warning')
+      return
+    }
     const generation = ++token
     loadingHouse.value = true
     try {
-      const context = await getSettingHouse(props.projectId, spaceId)
-      if (disposed || generation !== token) return
-      const previous = props.detail?.spaceId === spaceId ? props.detail.customerRelationshipIds : []
-      const selected = previous.filter((id) => context.customers.some((row) => row.relationshipId === id))
-      const relationshipIds = selected.length
-        ? selected
-        : context.customers.length === 1
-          ? [context.customers[0].relationshipId]
-          : []
-      if (props.mode !== 'batch') targets.value = []
-      targets.value.push({ context, relationshipIds })
+      // 所有来源加载通过才更新选择，避免批量加载失败时悄悄遗漏房屋。
+      const contexts: HouseContext[] = []
+      for (let offset = 0; offset < ids.length; offset += 20) {
+        contexts.push(
+          ...(await Promise.all(
+            ids.slice(offset, offset + 20).map(async (id) => {
+              try {
+                return await getSettingHouse(props.projectId, id)
+              } catch (error) {
+                throw new Error(id + ': ' + requestErrorMessage(error, t('Finance.failed')))
+              }
+            })
+          ))
+        )
+        if (disposed || generation !== token) return
+      }
+      const additions = contexts.map((context) => {
+        const previous = props.detail?.spaceId === context.house.spaceId ? props.detail.customerRelationshipIds : []
+        const selected = previous.filter((id) => context.customers.some((row) => row.relationshipId === id))
+        return {
+          context,
+          relationshipIds: selected.length
+            ? selected
+            : context.customers.length === 1
+              ? [context.customers[0].relationshipId]
+              : []
+        }
+      })
+      targets.value = props.mode === 'batch' ? [...targets.value, ...additions] : additions.slice(0, 1)
       pickerOpen.value = false
     } catch (error) {
       if (!disposed && generation === token) notify(error)
@@ -81,6 +109,7 @@ export function useSettingForm(
       if (generation === token) loadingHouse.value = false
     }
   }
+  const addHouse = (spaceId: string) => addHouses([spaceId])
   watch(
     () => [props.detail, props.projectId, props.mode, props.readOnly] as const,
     () => {
@@ -88,6 +117,7 @@ export function useSettingForm(
       loadingHouse.value = false
       targets.value = []
       Object.assign(model, defaults())
+      rules.value = [model]
       if (props.readOnly) return
       if (props.detail) {
         const row = props.detail
@@ -116,7 +146,7 @@ export function useSettingForm(
     model.variableValues = {}
   }
   async function submit() {
-    if (loadingHouse.value) return
+    if (loadingHouse.value || props.readOnly) return
     try {
       await form.value?.validate()
     } catch {
@@ -126,32 +156,84 @@ export function useSettingForm(
       onlyMessage(t('Setting.chooseHouse'), 'warning')
       return
     }
-    if (targets.value.some((row) => !row.relationshipIds.length)) {
+    if (
+      targets.value.some(
+        (row) =>
+          !row.relationshipIds.length ||
+          row.relationshipIds.some((id) => !row.context.customers.some((customer) => customer.relationshipId === id))
+      )
+    ) {
       onlyMessage(t('Setting.chooseEveryCustomer'), 'warning')
       return
     }
-    if (!standard.value || !model.projectSubjectId) {
-      onlyMessage(t('Setting.chooseStandard'), 'warning')
+    if (targets.value.length * rules.value.length > 200) {
+      onlyMessage(t('Setting.batchLimit'), 'warning')
       return
     }
-    if (model.effectiveEndDate && model.effectiveStartDate > model.effectiveEndDate) {
-      onlyMessage(t('Setting.dateOrder'), 'warning')
-      return
+    const inputs: SettingInput[] = []
+    for (const rule of rules.value) {
+      const selected = props.options.standards.find((row) => row.id === rule.standardId)
+      const subject = props.options.projectSubjects.find((row) => row.id === rule.projectSubjectId)
+      if (!selected || selected.subjectId !== subject?.subjectId) {
+        onlyMessage(t('Setting.chooseStandard'), 'warning')
+        return
+      }
+      if (!rule.effectiveStartDate || (rule.effectiveEndDate && rule.effectiveStartDate > rule.effectiveEndDate)) {
+        onlyMessage(t('Setting.dateOrder'), 'warning')
+        return
+      }
+      const variables = selected.variablesSnapshot.filter(
+        (row) => !['STANDARD_PRICE', 'BILLING_AREA', 'PERIOD_MONTHS'].includes(row.variableCode)
+      )
+      if (
+        variables.some(
+          (row) => rule.variableValues[row.variableCode] === '' || rule.variableValues[row.variableCode] == null
+        )
+      ) {
+        onlyMessage(t('Setting.completeVariables'), 'warning')
+        return
+      }
+      // 固定变量由后端快照确定，金额正式计算仍由后端执行。
+      const variableValues = Object.fromEntries(
+        variables.map((row) => [row.variableCode, String(rule.variableValues[row.variableCode])])
+      )
+      inputs.push(
+        ...targets.value.map((row) => ({
+          ...rule,
+          variableValues,
+          spaceId: row.context.house.spaceId,
+          customerRelationshipIds: [...new Set(row.relationshipIds)],
+          effectiveEndDate: rule.effectiveEndDate || null
+        }))
+      )
     }
-    // 固定变量由后端来源快照确定，前端只提交可编辑值，不发送展示金额作为正式入账依据。
-    const variableValues = Object.fromEntries(
-      editableVariables.value.map((row) => [row.variableCode, String(model.variableValues[row.variableCode] ?? '')])
-    )
-    submitInputs(
-      targets.value.map((row) => ({
-        ...model,
-        variableValues,
-        spaceId: row.context.house.spaceId,
-        customerRelationshipIds: [...row.relationshipIds],
-        effectiveEndDate: model.effectiveEndDate || null
-      }))
-    )
+    for (let i = 0; i < inputs.length; i++) {
+      if (
+        inputs
+          .slice(i + 1)
+          .some(
+            (other) =>
+              other.spaceId === inputs[i].spaceId &&
+              other.projectSubjectId === inputs[i].projectSubjectId &&
+              other.effectiveStartDate <= (inputs[i].effectiveEndDate || '9999-12-31') &&
+              inputs[i].effectiveStartDate <= (other.effectiveEndDate || '9999-12-31')
+          )
+      ) {
+        onlyMessage(t('Setting.overlappingRules'), 'warning')
+        return
+      }
+    }
+    submitInputs(inputs)
   }
+  function addRule() {
+    if (props.detail || (rules.value.length + 1) * Math.max(1, targets.value.length) > 200) return
+    rules.value.push({
+      ...defaults(),
+      effectiveStartDate: model.effectiveStartDate,
+      effectiveEndDate: model.effectiveEndDate
+    })
+  }
+
   onScopeDispose(() => {
     disposed = true
     ++token
@@ -159,6 +241,9 @@ export function useSettingForm(
   return {
     form,
     model,
+    rules,
+    addRule,
+    addHouses,
     targets,
     pickerOpen,
     loadingHouse,

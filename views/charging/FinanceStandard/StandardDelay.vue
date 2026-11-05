@@ -1,23 +1,28 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { StandardInput, StandardOptions } from '../../../api/financeStandard'
 const props = defineProps<{ model: StandardInput; options: StandardOptions }>()
 const { t } = useI18n()
-const enabled = computed({
-  get: () => props.model.isDelay === 1,
-  set: (value) => {
-    props.model.isDelay = value ? 1 : 0
-  }
-})
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t('Standard.' + key) }) }]
+const amountRules = [
+  {
+    validator: (_rule: unknown, value: string | null) => {
+      const amount = Number(value)
+      return amount > 0 && (props.model.delayCalcForm !== 1 || amount <= 100)
+        ? Promise.resolve()
+        : Promise.reject(new Error(t('Standard.delayAmountInvalid')))
+    }
+  }
+]
 </script>
 <template>
   <a-form-item :label="t('Standard.isDelay')">
-    <a-switch
-      v-model:checked="enabled"
-      :checked-children="t('Subject.yes')"
-      :un-checked-children="t('Subject.no')"
+    <a-radio-group
+      v-model:value="model.isDelay"
+      :options="[
+        { value: 0, label: t('Subject.no') },
+        { value: 1, label: t('Subject.yes') }
+      ]"
     />
   </a-form-item>
   <div
@@ -37,18 +42,24 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
     </a-form-item>
     <a-form-item
       name="rateAmount"
-      :label="t('Standard.rateAmount')"
-      :rules="required('rateAmount')"
+      :label="t(model.delayCalcForm === 1 ? 'Standard.delayRatio' : 'Standard.delayAmount')"
+      :rules="amountRules"
     >
-      <a-input-number
-        :value="model.rateAmount ?? undefined"
-        @update:value="model.rateAmount = $event == null ? null : String($event)"
-        string-mode
-        :min="'0.01'"
-        :max="model.delayCalcForm === 1 ? '100' : '999999999999999999.99'"
-        :precision="2"
-        style="width: 100%"
-      />
+      <a-space
+        class="delay-amount"
+        align="center"
+      >
+        <a-input-number
+          :value="model.rateAmount ?? undefined"
+          @update:value="model.rateAmount = $event == null ? null : String($event)"
+          string-mode
+          :min="'0.01'"
+          :max="model.delayCalcForm === 1 ? '100' : '999999999999999999.99'"
+          :precision="2"
+          style="width: 100%"
+        />
+        <span>{{ model.delayCalcForm === 1 ? '%' : t('Standard.yuan') }}</span>
+      </a-space>
     </a-form-item>
     <a-form-item
       name="delayRoundType"
@@ -73,4 +84,19 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
       />
     </a-form-item>
   </div>
+  <a-alert
+    v-if="model.isDelay && model.delayRoundType === 1"
+    :message="t('Standard.monthlyDelayHint')"
+    type="info"
+    show-icon
+  />
 </template>
+<style scoped>
+.delay-amount {
+  display: flex;
+}
+.delay-amount :deep(.ant-space-item:first-child) {
+  flex: 1;
+  min-width: 0;
+}
+</style>

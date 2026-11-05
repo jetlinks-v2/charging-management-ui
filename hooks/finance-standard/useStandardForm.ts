@@ -6,7 +6,7 @@ import type { StandardInput, FinanceStandard, StandardOptions } from '../../api/
 import type { TaxItem } from '../../api/financeTax'
 import { formulaDisplay } from './formula'
 export function useStandardForm(
-  props: { open: boolean; detail?: FinanceStandard; options: StandardOptions },
+  props: { open: boolean; detail?: FinanceStandard; options: StandardOptions; selectedSubjectId?: string },
   save: (input: StandardInput) => void
 ) {
   const { t } = useI18n(),
@@ -14,7 +14,7 @@ export function useStandardForm(
   const defaults = (): StandardInput => ({
     standardCode: '',
     standardName: '',
-    subjectId: '',
+    subjectId: props.selectedSubjectId || '',
     billingMethod: 'AREA',
     formulaExpression: '',
     formulaDisplay: '',
@@ -25,6 +25,9 @@ export function useStandardForm(
     taxItemId: '',
     companyId: '',
     isDelay: 0,
+    delayCalcForm: 0,
+    delayRoundType: 0,
+    delayBaseType: 'CURRENT_RECEIVABLE',
     executeDate: null,
     cancelDate: null
   })

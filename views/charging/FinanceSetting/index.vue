@@ -25,21 +25,14 @@ const {
   metadataLoading,
   metadataFailed,
   stopTarget,
-  metadata,
-  reload,
   select,
   close,
   save,
   stop
 } = state
 const { projectId, keyword, selectedId, selected, loading: treeLoading, failed: treeFailed } = archive
-function refresh() {
-  void metadata()
-  void archive.loadTree()
-  reload()
-}
 function selectTree(keys: (string | number)[]) {
-  selectedId.value = keys.length ? String(keys[0]) : undefined
+  if (keys.length) selectedId.value = String(keys[0])
 }
 </script>
 <template>
@@ -83,8 +76,9 @@ function selectTree(keys: (string | number)[]) {
       <main class="subject-content">
         <div class="subject-content-heading setting-heading">
           <div>
-            <h2>{{ t('Setting.title') }}</h2>
-            <span class="subject-caption">{{ selected?.spaceLocation || t('Setting.hint') }}</span>
+            <strong class="setting-scope">
+              {{ selected?.spaceLocation || selected?.name || t('Archive.allSpaces') }}
+            </strong>
           </div>
           <a-space wrap>
             <a-button
@@ -92,13 +86,6 @@ function selectTree(keys: (string | number)[]) {
               @click="tasksOpen = true"
             >
               {{ t('Setting.tasks') }}
-            </a-button>
-            <a-button
-              :disabled="!projectId"
-              :aria-label="t('Finance.refresh')"
-              @click="refresh"
-            >
-              <AIcon type="ReloadOutlined" />
             </a-button>
             <j-permission-button
               :hasPermission="`${settingPermission}:save`"
@@ -157,6 +144,23 @@ function selectTree(keys: (string | number)[]) {
 <style scoped>
 .setting-heading {
   flex-wrap: wrap;
+  align-items: center;
+}
+.setting-heading > div {
+  flex: 1;
+  min-width: 180px;
+}
+.setting-scope {
+  overflow-wrap: anywhere;
+}
+.subject-content {
+  gap: 16px;
+}
+.setting-heading {
+  margin-bottom: 0;
+}
+.subject-content :deep(.jtable-body-spin) {
+  flex: 0 1 auto;
 }
 .setting-all {
   margin: 12px 0;

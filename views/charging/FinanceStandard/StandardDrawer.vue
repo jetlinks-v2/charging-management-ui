@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import type { FinanceStandard, StandardInput, StandardOptions } from '../../../api/financeStandard'
@@ -9,11 +9,14 @@ import StandardFormula from './StandardFormula.vue'
 import StandardDelay from './StandardDelay.vue'
 import StandardDetail from './StandardDetail.vue'
 import StandardTaxPicker from './StandardTaxPicker.vue'
+import StandardTaxSummary from './StandardTaxSummary.vue'
 const props = defineProps<{
   open: boolean
   detail?: FinanceStandard
   options: StandardOptions
   projectId: string
+  projectName: string
+  selectedSubjectId: string
   state: { loading: boolean; failed: boolean; saving: boolean; readOnly: boolean }
 }>()
 const emit = defineEmits<{ close: []; retry: []; save: [StandardInput] }>()
@@ -22,6 +25,9 @@ const { form, model, tax, variables, display, changeMethod, selectTax, submit } 
   emit('save', input)
 )
 const taxOpen = ref(false)
+const subjectName = computed(
+  () => props.detail?.subjectName || props.options.subjects.find((row) => row.id === model.subjectId)?.name || ''
+)
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t('Standard.' + key) }) }]
 const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Finance.failed')), 'error')
 </script>
@@ -63,6 +69,22 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
         :title="t('Standard.basic')"
       >
         <div class="finance-form-grid">
+          <a-form-item :label="t('ProjectContext.current')">
+            <a-input
+              :value="projectName"
+              disabled
+            />
+          </a-form-item>
+          <a-form-item
+            name="subjectId"
+            :label="t('Standard.subjectId')"
+            :rules="required('subjectId')"
+          >
+            <a-input
+              :value="subjectName"
+              disabled
+            />
+          </a-form-item>
           <a-form-item
             name="standardName"
             :label="t('Standard.standardName')"
@@ -81,19 +103,6 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
             <a-input
               v-model:value="model.standardCode"
               :maxlength="60"
-            />
-          </a-form-item>
-          <a-form-item
-            name="subjectId"
-            :label="t('Standard.subjectId')"
-            :rules="required('subjectId')"
-          >
-            <a-select
-              v-model:value="model.subjectId"
-              show-search
-              option-filter-prop="label"
-              :options="options.subjects.map((row) => ({ value: row.id, label: row.name + ' · ' + row.code }))"
-              :placeholder="t('Standard.chooseSubject')"
             />
           </a-form-item>
         </div>
@@ -120,19 +129,10 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
           :label="t('Standard.taxItemId')"
           :rules="required('taxItemId')"
         >
-          <div class="standard-tax-selection">
-            <div v-if="tax">
-              <strong>{{ tax.goodsName }}</strong>
-              <p>{{ tax.companyName }} · {{ tax.goodsCode }} · {{ Number((Number(tax.taxRate) * 100).toFixed(6)) }}%</p>
-            </div>
-            <span
-              v-else
-              class="standard-muted"
-            >
-              {{ t('Standard.noTaxSelected') }}
-            </span>
-            <a-button @click="taxOpen = true">{{ t(tax ? 'Standard.changeTax' : 'Standard.chooseTax') }}</a-button>
-          </div>
+          <StandardTaxSummary
+            :tax="tax"
+            @select="taxOpen = true"
+          />
         </a-form-item>
       </SectionCard>
       <SectionCard
@@ -157,6 +157,8 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
               :value="model.executeDate ?? undefined"
               @update:value="model.executeDate = $event ? String($event) : null"
               value-format="YYYY-MM-DD"
+              :placeholder="t('Standard.unlimitedStart')"
+              :disabled-date="(date) => !!model.cancelDate && date.format('YYYY-MM-DD') > model.cancelDate"
               class="standard-full"
             />
           </a-form-item>
@@ -168,6 +170,8 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
               :value="model.cancelDate ?? undefined"
               @update:value="model.cancelDate = $event ? String($event) : null"
               value-format="YYYY-MM-DD"
+              :placeholder="t('Standard.unlimitedEnd')"
+              :disabled-date="(date) => !!model.executeDate && date.format('YYYY-MM-DD') < model.executeDate"
               class="standard-full"
             />
           </a-form-item>
@@ -222,21 +226,5 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
 }
 .standard-full {
   width: 100%;
-}
-.standard-tax-selection {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.standard-tax-selection p {
-  margin: 4px 0 0;
-  color: var(--ink-3, #737373);
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-.standard-muted {
-  color: var(--ink-3, #737373);
 }
 </style>

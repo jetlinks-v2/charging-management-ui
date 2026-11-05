@@ -10,14 +10,17 @@ const { t } = useI18n()
 const state = useStandardWorkspace()
 const {
   projectId,
+  project,
   options,
-  tree,
-  selectedCategory,
+  treeKeyword,
+  visibleTree,
+  visibleExpandedKeys,
+  treeExpandedKeys,
+  canCreate,
   selectedSubject,
   treeSelection,
   selectTree,
   metadataLoading,
-  metadataFailed,
   open,
   detail,
   loading,
@@ -27,17 +30,12 @@ const {
   exporting,
   variablesOpen,
   metadata,
-  reload,
   select,
   close,
   retry,
   save,
   exportFile
 } = state
-function refresh() {
-  void metadata()
-  reload()
-}
 </script>
 <template>
   <FinancePage>
@@ -48,25 +46,35 @@ function refresh() {
           <strong>{{ t('Subject.categories') }}</strong>
         </div>
         <a-spin :spinning="metadataLoading">
-          <a-button
-            block
-            :type="!selectedCategory && !selectedSubject ? 'primary' : 'text'"
-            :ghost="!selectedCategory && !selectedSubject"
-            @click="selectTree([])"
+          <a-input
+            v-model:value="treeKeyword"
+            class="standard-tree-search"
+            allow-clear
+            :placeholder="t('Standard.searchTree')"
+            :aria-label="t('Standard.searchTree')"
           >
-            {{ t('Subject.allCategories') }}
-          </a-button>
+            <template #prefix><AIcon type="SearchOutlined" /></template>
+          </a-input>
           <a-tree
-            v-if="tree.length"
-            :tree-data="tree"
+            v-if="visibleTree.length"
+            :tree-data="visibleTree"
             :selected-keys="treeSelection"
-            default-expand-all
+            :expanded-keys="visibleExpandedKeys"
             block-node
             @select="selectTree"
+            @expand="(keys) => (treeExpandedKeys = keys.map(String))"
           />
           <CloudEmpty
             v-else
-            :description="t(projectId ? 'Standard.noCategories' : 'ProjectContext.choose')"
+            :description="
+              t(
+                !projectId
+                  ? 'ProjectContext.choose'
+                  : treeKeyword.trim()
+                    ? 'Subject.noCategoryMatch'
+                    : 'Standard.noCategories'
+              )
+            "
           />
         </a-spin>
       </aside>
@@ -74,7 +82,9 @@ function refresh() {
         <div class="subject-content-heading standard-heading">
           <div>
             <h2>{{ t('Standard.title') }}</h2>
-            <span class="subject-caption">{{ t('Standard.hint') }}</span>
+            <span class="subject-caption">
+              {{ state.selectedSubjectInfo.value?.name || t('Standard.chooseSubjectFirst') }}
+            </span>
           </div>
           <a-space wrap>
             <j-permission-button
@@ -92,17 +102,10 @@ function refresh() {
             >
               {{ t('Archive.export') }}
             </j-permission-button>
-            <a-button
-              :disabled="!projectId"
-              :aria-label="t('Finance.refresh')"
-              @click="refresh"
-            >
-              <AIcon type="ReloadOutlined" />
-            </a-button>
             <j-permission-button
               :hasPermission="`${standardPermission}:save`"
               type="primary"
-              :disabled="!projectId || metadataLoading || metadataFailed"
+              :disabled="!canCreate"
               @click="select(undefined, false)"
             >
               {{ t('Standard.create') }}
@@ -118,6 +121,8 @@ function refresh() {
       :detail="detail"
       :options="options"
       :project-id="projectId"
+      :project-name="project?.name || ''"
+      :selected-subject-id="selectedSubject"
       :state="{ loading, failed, saving, readOnly }"
       @close="close"
       @save="save"
@@ -139,5 +144,8 @@ function refresh() {
 }
 .subject-categories :deep(.ant-spin-container) {
   min-height: 260px;
+}
+.standard-tree-search {
+  margin-bottom: 16px;
 }
 </style>

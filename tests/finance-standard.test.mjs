@@ -55,6 +55,7 @@ const { useStandardWorkspace } = await load('../hooks/finance-standard/useStanda
 const { useStandardForm } = await load('../hooks/finance-standard/useStandardForm.ts')
 const { formulaDisplay } = await load('../hooks/finance-standard/formula.ts')
 const { useFormulaValidation } = await load('../hooks/finance-standard/useFormulaValidation.ts')
+const { useStandardFormulaEditor } = await load('../hooks/finance-standard/useStandardFormulaEditor.ts')
 const { useStandardTaxPicker } = await load('../hooks/finance-standard/useStandardTaxPicker.ts')
 const deferred = () => {
   let resolve
@@ -106,7 +107,7 @@ function mount(factory, api = {}) {
   )
   globalThis.__standardContext = {
     projectId: ref('a'),
-    project: ref({ id: 'a', name: 'Project A' }),
+    current: ref({ id: 'a', name: 'Project A' }),
     refresh: async () => {}
   }
   globalThis.__standardMessages = []
@@ -177,6 +178,7 @@ test('list and export share project, category, status and search; missing projec
   const calls = []
   const { state, unmount } = mount(() => useStandardWorkspace(), { queryStandards: async (...a) => calls.push(a) })
   state.selectedCategory.value = 'nested'
+  assert.equal(state.project.value.name, 'Project A')
   state.effectiveStatus.value = 'EXPIRED'
   state.terms.value = [{ column: 'standardName', termType: 'like', value: '%water%' }]
   await state.request({ pageIndex: 3, pageSize: 12, terms: state.terms.value })
@@ -296,5 +298,97 @@ test('subject tree filters by actual subject id instead of directory and keeps s
   state.selectTree(['category:cat1'])
   assert.equal(state.selectedSubject.value, '')
   assert.equal(state.selectedCategory.value, 'cat1')
+  unmount()
+})
+
+test('directory search retains ancestry and does not change selected subject or request scope', async () => {
+  const data = options()
+  data.categories = [
+    { id: 'root', name: '总目录' },
+    { id: 'child', parentId: 'root', name: '物业费' },
+    { id: 'other', name: '停车费' }
+  ]
+  data.subjects = [
+    { id: 'home', categoryId: 'child', name: '住宅物业费' },
+    { id: 'park', categoryId: 'other', name: '停车' }
+  ]
+  const { state, unmount } = mount(() => useStandardWorkspace(), { getStandardOptions: async () => data })
+  await state.metadata()
+  state.selectTree(['subject:home'])
+  state.treeKeyword.value = '住宅'
+  assert.equal(state.visibleTree.value.length, 1)
+  assert.equal(state.visibleTree.value[0].key, 'category:root')
+  assert.equal(state.visibleTree.value[0].children[0].children[0].key, 'subject:home')
+  assert.equal(state.selectedSubject.value, 'home')
+  state.treeKeyword.value = '不存在'
+  assert.deepEqual(state.visibleTree.value, [])
+  assert.equal(state.filters.value.subjectId, 'home')
+  state.treeKeyword.value = ''
+  assert.equal(state.visibleTree.value.length, 2)
+  unmount()
+})
+
+test('new standard requires a valid selected subject and form inherits its ownership and delay defaults', async () => {
+  const data = options()
+  data.subjects = [{ id: 'home', categoryId: 'child', name: '住宅物业费' }]
+  data.billingMethods = [{ value: 'AREA', defaultExpression: '${STANDARD_PRICE}*${BILLING_AREA}' }]
+  const { state, unmount } = mount(() => useStandardWorkspace(), { getStandardOptions: async () => data })
+  await state.metadata()
+  await state.select(undefined, false)
+  assert.equal(state.open.value, false)
+  state.selectTree(['subject:home'])
+  assert.equal(state.canCreate.value, true)
+  await state.select(undefined, false)
+  assert.equal(state.open.value, true)
+  unmount()
+  const props = reactive({ open: true, options: data, selectedSubjectId: 'home' })
+  const form = mount(() => useStandardForm(props, () => {}))
+  assert.equal(form.state.model.subjectId, 'home')
+  assert.equal(form.state.model.delayCalcForm, 0)
+  assert.equal(form.state.model.delayRoundType, 0)
+  assert.equal(form.state.model.delayBaseType, 'CURRENT_RECEIVABLE')
+  form.unmount()
+})
+
+test('formula editing protects original on cancel and only confirms the validated current draft', async () => {
+  const source = ref('${STANDARD_PRICE}')
+  const confirmed = []
+  const props = reactive({
+    projectId: 'a',
+    expression: source.value,
+    variables: [{ variableCode: 'STANDARD_PRICE', variableName: '单价' }]
+  })
+  const { state, unmount } = mount(() => useStandardFormulaEditor(props, (value) => confirmed.push(value)))
+  state.begin()
+  state.draft.value = '${STANDARD_PRICE}*2'
+  state.cancel()
+  assert.equal(source.value, '${STANDARD_PRICE}')
+  assert.deepEqual(confirmed, [])
+  state.begin()
+  state.draft.value = '${STANDARD_PRICE}*3'
+  await state.confirm()
+  assert.deepEqual(confirmed, ['${STANDARD_PRICE}*3'])
+  assert.equal(state.open.value, false)
+  unmount()
+})
+
+test('failed formula check keeps dialog open and does not apply invalid formula', async () => {
+  const applied = []
+  const { state, unmount } = mount(
+    () =>
+      useStandardFormulaEditor({ projectId: 'a', expression: '${STANDARD_PRICE}', variables: [] }, (value) =>
+        applied.push(value)
+      ),
+    {
+      validateStandardFormula: async () => {
+        throw new Error('invalid formula')
+      }
+    }
+  )
+  state.begin()
+  state.draft.value = 'bad('
+  await state.confirm()
+  assert.equal(state.open.value, true)
+  assert.deepEqual(applied, [])
   unmount()
 })
