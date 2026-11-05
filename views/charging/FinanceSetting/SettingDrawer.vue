@@ -85,12 +85,6 @@ function ruleKeys(rule: SettingInput) {
           }"
           @choose="pickerOpen = true"
         />
-        <p
-          v-if="targets.length"
-          class="setting-help"
-        >
-          {{ t('Setting.sharedPayers') }}
-        </p>
       </SectionCard>
       <div class="setting-rules">
         <SettingRuleCard
