@@ -277,6 +277,7 @@
     "noArrears": "Create an arrears notification configuration",
     "configureLevels": "Maintain arrears level options in Dictionary management first",
     "thresholds": "Notification thresholds",
+    "thresholdDays": "{days} days overdue",
     "overdueDays": "Overdue days",
     "level": "Alert level",
     "addRule": "Add threshold",

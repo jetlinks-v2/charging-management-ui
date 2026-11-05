@@ -47,6 +47,9 @@ export interface ArrearsConfig {
   name: string
   remark?: string
 }
+export interface ArrearsConfigView extends ArrearsConfig {
+  rules: ArrearsRule[]
+}
 export interface ArrearsInput {
   version?: number
   name: string
@@ -138,7 +141,7 @@ export const getArrearsOptions = () =>
 export const getArrearsLevels = () =>
   request.get<DictionaryOption[]>(`${base}/arrears-configs/_levels`, {}, { hiddenError: true }).then(checked)
 export const queryArrears = (query: Query, signal?: AbortSignal) =>
-  request.post<Page<ArrearsConfig>>(`${base}/arrears-configs/_query`, query, { signal, hiddenError: true })
+  request.post<Page<ArrearsConfigView>>(`${base}/arrears-configs/_query`, query, { signal, hiddenError: true })
 export const getArrears = (value: string) =>
   request.get<ArrearsDetail>(`${base}/arrears-configs/${id(value)}`, {}, { hiddenError: true }).then(checked)
 export const saveArrears = (value: string | undefined, input: ArrearsInput) =>

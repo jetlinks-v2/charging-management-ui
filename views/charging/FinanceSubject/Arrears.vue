@@ -28,6 +28,7 @@ const {
 } = useArrears()
 const columns = computed(() => [
   { title: t('Subject.arrearsName'), dataIndex: 'name', width: 260, scopedSlots: true },
+  { title: t('Subject.thresholds'), dataIndex: 'rules', width: 360, scopedSlots: true },
   { title: t('Subject.remark'), dataIndex: 'remark' },
   { title: t('Finance.modified'), dataIndex: 'modifierName', width: 140 },
   { title: t('Finance.actions'), dataIndex: 'actions', width: 180, scopedSlots: true }
@@ -77,6 +78,22 @@ const filter = ({ filter }: ConditionFilterChangePayload) => {
           >
             {{ row.name }}
           </a-button>
+        </template>
+        <template #rules="row">
+          <div
+            v-if="row.rules?.length"
+            class="arrears-thresholds"
+          >
+            <div
+              v-for="rule in row.rules"
+              :key="rule.id || rule.overdueDays"
+            >
+              <span>{{ t('Subject.thresholdDays', { days: rule.overdueDays }) }}</span>
+              <span class="arrears-threshold-arrow">→</span>
+              <span>{{ levels.find((item) => item.value === rule.levelCode)?.text || rule.levelCode }}</span>
+            </div>
+          </div>
+          <span v-else>—</span>
         </template>
         <template #actions="row">
           <a-space :size="0">
@@ -240,6 +257,15 @@ const filter = ({ filter }: ConditionFilterChangePayload) => {
 </template>
 <style src="../finance.css"></style>
 <style scoped>
+.arrears-thresholds {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.25rem 0;
+}
+.arrears-threshold-arrow {
+  margin: 0 0.625rem;
+  color: var(--ant-color-text-tertiary, #8c8c8c);
+}
 .arrears-rules-heading {
   display: flex;
   align-items: center;

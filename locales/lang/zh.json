@@ -277,6 +277,7 @@
     "noArrears": "暂无欠费通知等级，请先新建配置",
     "configureLevels": "暂无可用欠费等级，请在字典管理中维护欠费等级选项",
     "thresholds": "欠费通知阈值",
+    "thresholdDays": "欠费 {days} 天",
     "overdueDays": "欠费天数",
     "level": "告警等级",
     "addRule": "添加阈值",
