@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { Query } from '../../../api/archive'
@@ -11,6 +11,7 @@ import {
 import ReceivableBatchActions from './ReceivableBatchActions.vue'
 import ReceivableColumnSettings from './ReceivableColumnSettings.vue'
 import ReceivableRowActions from './ReceivableRowActions.vue'
+import ReceivableReview from './ReceivableReview.vue'
 import { useReceivableColumns } from '../../../hooks/finance-receivable/useReceivableColumns'
 import { receivableFields } from '../../../utils/receivableFields'
 const props = defineProps<{ state: ReturnType<typeof useReceivableWorkspace>; cashier?: boolean }>()
@@ -18,6 +19,8 @@ const { t } = useI18n()
 const { archive, table, terms, params, status, request, select, actionTarget, notify } = props.state
 const columnState = useReceivableColumns()
 const { columns, scrollWidth } = columnState
+const review = ref<InstanceType<typeof ReceivableReview>>(),
+  reviewBlocked = ref(false)
 const fields = computed(() => receivableFields(t))
 const filter = ({ filter }: ConditionFilterChangePayload) => {
   terms.value = (filter.terms || []) as Query['terms']
@@ -52,8 +55,16 @@ const selection = computed(() => ({
     <ReceivableColumnSettings :state="columnState" />
   </div>
   <ReceivableBatchActions
-    v-if="!cashier"
+    v-if="!cashier && !reviewBlocked"
     :state="state.batch"
+  />
+  <ReceivableReview
+    v-if="!cashier"
+    ref="review"
+    :project-id="archive.projectId.value"
+    :selected="state.batch.selected.value"
+    @lock="reviewBlocked = $event"
+    @saved="state.reload()"
   />
   <j-pro-table
     v-if="archive.projectId.value"
@@ -99,6 +110,9 @@ const selection = computed(() => ({
       <strong class="receivable-money">{{ row.arrears }}</strong>
     </template>
     <template #state="row">
+      <a-tag :color="row.reviewState === 'APPROVED' ? 'green' : row.reviewState === 'REJECTED' ? 'red' : 'default'">
+        {{ t('ReceivableReview.state.' + (row.reviewState || 'PENDING')) }}
+      </a-tag>
       <a-tag :color="row.frozen ? 'warning' : row.periodStatus === 'CLOSED' ? 'default' : 'processing'">
         {{ t('Receivable.status.' + (row.frozen ? 'FROZEN' : row.periodStatus)) }}
       </a-tag>
@@ -112,9 +126,10 @@ const selection = computed(() => ({
     <template #actions="row">
       <ReceivableRowActions
         :row="row"
-        :readonly="cashier"
+        :readonly="cashier || reviewBlocked"
         @select="(mode) => select(row, mode)"
         @action="(action) => (actionTarget = { row, action })"
+        @review="(action) => review?.start([row], action)"
       />
     </template>
     <template #emptyText><CloudEmpty :description="t('Receivable.empty')" /></template>

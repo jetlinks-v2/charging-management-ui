@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import type { Receivable, ReceivableAction } from '../../../api/financeReceivable'
+import type { Receivable, ReceivableAction, ReceivableReviewAction } from '../../../api/financeReceivable'
 import { receivablePermission } from '../../../hooks/finance-receivable/useReceivableWorkspace'
 defineProps<{ row: Receivable; readonly?: boolean }>()
-const emit = defineEmits<{ select: [mode?: true | 'SPLIT']; action: [action: ReceivableAction] }>()
+const emit = defineEmits<{
+  select: [mode?: true | 'SPLIT']
+  action: [action: ReceivableAction]
+  review: [action: ReceivableReviewAction]
+}>()
 const { t } = useI18n()
 const actions = (row: Receivable) =>
   (['FREEZE', 'UNFREEZE', 'DELETE'] as ReceivableAction[]).filter((action) => row.allowedOperations.includes(action))
+const reviews = (row: Receivable) =>
+  (['APPROVE', 'REJECT', 'UNAPPROVE'] as ReceivableReviewAction[]).filter((action) =>
+    row.allowedOperations.includes(action)
+  )
 </script>
 <template>
   <a-space :size="0">
@@ -28,7 +36,7 @@ const actions = (row: Receivable) =>
         {{ t('Adjustment.title') }}
       </j-permission-button>
       <a-dropdown
-        v-if="actions(row).length || row.allowedOperations.includes('SPLIT')"
+        v-if="actions(row).length || reviews(row).length || row.allowedOperations.includes('SPLIT')"
         :trigger="['click']"
       >
         <a-button
@@ -40,6 +48,18 @@ const actions = (row: Receivable) =>
         </a-button>
         <template #overlay>
           <a-menu>
+            <a-menu-item
+              v-for="review in reviews(row)"
+              :key="review"
+            >
+              <j-permission-button
+                type="text"
+                :hasPermission="`${receivablePermission}:${review.toLowerCase()}`"
+                @click="emit('review', review)"
+              >
+                {{ t('ReceivableReview.action.' + review) }}
+              </j-permission-button>
+            </a-menu-item>
             <a-menu-item
               v-if="row.allowedOperations.includes('SPLIT')"
               key="split"

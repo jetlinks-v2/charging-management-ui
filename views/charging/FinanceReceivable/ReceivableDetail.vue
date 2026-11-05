@@ -63,11 +63,24 @@ const variables = computed(
       class="receivable-detail"
     >
       <div class="receivable-detail-state">
+        <a-tag
+          :color="detail.reviewState === 'APPROVED' ? 'green' : detail.reviewState === 'REJECTED' ? 'red' : 'default'"
+        >
+          {{ t('ReceivableReview.state.' + (detail.reviewState || 'PENDING')) }}
+        </a-tag>
         <a-tag :color="detail.frozen ? 'warning' : detail.periodStatus === 'OPEN' ? 'processing' : 'default'">
           {{ t('Receivable.status.' + (detail.frozen ? 'FROZEN' : detail.periodStatus)) }}
         </a-tag>
         <span>{{ t('Receivable.calculatedAsOfDate') }} {{ detail.calculatedAsOfDate }}</span>
       </div>
+      <KvGrid
+        v-if="detail.reviewedOn"
+        :items="[
+          { label: t('ReceivableReview.reviewedOn'), value: detail.reviewedOn },
+          { label: t('ReceivableReview.reviewedName'), value: detail.reviewedName || '—' },
+          { label: t('Receivable.reason'), value: detail.reviewReason || '—' }
+        ]"
+      />
       <a-button
         v-if="detail.sourceReceivableId"
         type="link"

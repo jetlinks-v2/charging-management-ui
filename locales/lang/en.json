@@ -829,7 +829,10 @@
       "DELETE": "Delete",
       "ADJUST": "Adjust",
       "SPLIT": "Split by date",
-      "IMPORT": "Historical import"
+      "IMPORT": "Historical import",
+      "APPROVE": "Approve",
+      "REJECT": "Reject",
+      "UNAPPROVE": "Undo approval"
     },
     "confirm": {
       "FREEZE": "Freezing pauses bill operations. Accrual and late fees continue under the original rules.",
@@ -1646,5 +1649,110 @@
       "UNAPPROVE": "Undo approval returns this batch to pending review. Closed months cannot be reopened here.",
       "CANCEL": "Cancel releases sources while preserving this batch and its operation history."
     }
+  },
+  "MonthClosing": {
+    "title": "Monthly closing",
+    "year": "Accounting year",
+    "period": "Accounting period",
+    "monthLabel": "Month {month}",
+    "state": "Status",
+    "status": {
+      "OPEN": "Open",
+      "CLOSED": "Closed"
+    },
+    "closedBy": "Closed by {name}",
+    "awaitingClose": "Awaiting reconciliation",
+    "action": {
+      "CLOSE": "Close period",
+      "REOPEN": "Reopen period"
+    },
+    "done": {
+      "CLOSE": "Period closed",
+      "REOPEN": "Period reopened"
+    },
+    "hint": {
+      "CLOSE": "Reconcile payments, handovers and required receivable approvals before closing. Closed-period restrictions will apply.",
+      "REOPEN": "Only the latest closed period can be reopened. Payment and document history will remain."
+    },
+    "confirm": {
+      "CLOSE": "Confirm closing",
+      "REOPEN": "Confirm reopening"
+    },
+    "reason": "Reason",
+    "amount": "Net funds",
+    "cashAmount": "Net cash",
+    "sourceCount": "Fund sources",
+    "receivableCount": "Receivables",
+    "unhanded": "Sources without handover",
+    "pendingHandover": "Handovers awaiting approval",
+    "pendingReceivable": "Unapproved receivables",
+    "reviewRequired": "Approval required before closing",
+    "reviewOptional": "Full approval is not required",
+    "resolveChecks": "Complete handovers and required approvals, then reconcile again.",
+    "check": "Reconcile period",
+    "unknown": "The result is not confirmed. Recover the original operation instead of starting another one.",
+    "pending": "A closing or reopening result is pending. Recover the original operation first.",
+    "recover": "Recover confirmation",
+    "previewChanged": "The period has changed. Close this dialog, refresh and reconcile again.",
+    "ruleTitle": "Closing rules",
+    "ruleHint": "Applies to the current project. Handovers always require approval.",
+    "requireReview": "Require approval of all period receivables before closing",
+    "ruleSaved": "Closing rules saved for this project",
+    "ruleFailed": "Closing rules could not be loaded. Try again.",
+    "createYear": "Create year",
+    "editYear": "Adjust dates",
+    "calendarMode": "Period calendar",
+    "natural": "Calendar months",
+    "custom": "Custom opening day",
+    "openingDay": "Monthly opening day",
+    "customHint": "Choose 1–28. Day 1 uses calendar months; days 2–15 extend into the next month; days 16–28 begin in the previous month. The year remains fully covered.",
+    "editHint": "Adjust the complete year, keeping periods continuous. Closed dates and existing financial attribution cannot change.",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "invalidDates": "Cover January 1 through December 31 without gaps or overlaps.",
+    "yearCreated": "Accounting periods created for {year}",
+    "yearEdited": "Accounting dates updated for {year}",
+    "loadFailed": "Periods could not be loaded. Refresh to retry.",
+    "noYear": "No accounting periods for {year}. Create the year first.",
+    "openHint": "Reconcile before closing. Periods close in sequence, on or after their end date.",
+    "closedHint": "This period is closed. Only the latest closed period can be reopened; closing history remains available.",
+    "logs": "Closing history",
+    "noLogs": "No closing history for this period",
+    "actionTitle": "Action",
+    "operator": "Operator",
+    "operationTime": "Time",
+    "members": "Frozen source records",
+    "noMembers": "No frozen sources in this closing",
+    "sourceType": "Source type",
+    "sourceReference": "Source reference",
+    "sourceVersion": "Version at closing",
+    "sourceTypes": {
+      "PAYMENT": "Payment",
+      "REFUND": "Refund",
+      "FUND": "Fund entry",
+      "CREDIT": "Original credit",
+      "HANDOVER": "Handover",
+      "RECEIVABLE": "Receivable",
+      "DOCUMENT": "Document"
+    }
+  },
+  "ReceivableReview": {
+    "action": {
+      "APPROVE": "Approve",
+      "REJECT": "Reject",
+      "UNAPPROVE": "Undo approval"
+    },
+    "state": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "reviewedOn": "Review date",
+    "reviewedName": "Reviewer",
+    "done": "Review completed for {count} receivables",
+    "hint": "All {count} receivables must pass validation before the batch is saved.",
+    "unknown": "The review result is not confirmed. Recover the original request instead of submitting a new one.",
+    "pending": "A receivable review result is pending. Recover it first.",
+    "recover": "Recover review"
   }
 }

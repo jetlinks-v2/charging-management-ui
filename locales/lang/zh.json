@@ -830,7 +830,10 @@
       "DELETE": "删除",
       "ADJUST": "调整",
       "SPLIT": "日期拆分",
-      "IMPORT": "历史导入"
+      "IMPORT": "历史导入",
+      "APPROVE": "审核",
+      "REJECT": "驳回",
+      "UNAPPROVE": "反审核"
     },
     "confirm": {
       "FREEZE": "冻结后暂停账单业务操作，计提和逾期费用仍按原规则计算。",
@@ -1647,5 +1650,110 @@
       "UNAPPROVE": "反审核后回到待审核状态；已月结的批次无法反审核。",
       "CANCEL": "反交账后释放来源，原批次和操作记录继续保留。"
     }
+  },
+  "MonthClosing": {
+    "title": "财务月结",
+    "year": "会计年度",
+    "period": "会计账期",
+    "monthLabel": "{month}月",
+    "state": "状态",
+    "status": {
+      "OPEN": "未结账",
+      "CLOSED": "已结账"
+    },
+    "closedBy": "结账人：{name}",
+    "awaitingClose": "待核对结账",
+    "action": {
+      "CLOSE": "月结",
+      "REOPEN": "反月结"
+    },
+    "done": {
+      "CLOSE": "月结已完成",
+      "REOPEN": "反月结已完成"
+    },
+    "hint": {
+      "CLOSE": "核对本期收款、交账和应收审核后结账。结账后本期账务受关闭限制。",
+      "REOPEN": "仅支持反结最近一期。历史收款和票据记录会保留。"
+    },
+    "confirm": {
+      "CLOSE": "确认月结",
+      "REOPEN": "确认反月结"
+    },
+    "reason": "操作原因",
+    "amount": "资金净额",
+    "cashAmount": "现金净额",
+    "sourceCount": "资金来源笔数",
+    "receivableCount": "应收账单数",
+    "unhanded": "未交账来源",
+    "pendingHandover": "交账待审核",
+    "pendingReceivable": "应收未审核",
+    "reviewRequired": "月结前须完成审核",
+    "reviewOptional": "当前规则不要求全部审核",
+    "resolveChecks": "请先完成交账及所需审核，再重新核对。",
+    "check": "核对本期",
+    "unknown": "提交结果尚未确认，请恢复原操作核对结果，勿重复发起。",
+    "pending": "有一笔月结或反月结结果待确认，请先恢复原操作。",
+    "recover": "恢复结账确认",
+    "previewChanged": "账期已发生变化，请关闭后刷新，再重新核对。",
+    "ruleTitle": "月结规则",
+    "ruleHint": "此规则对当前项目生效，不影响其他项目。交账始终需要审核。",
+    "requireReview": "月结前要求本期应收全部审核",
+    "ruleSaved": "当前项目月结规则已保存",
+    "ruleFailed": "月结规则加载失败，请重试。",
+    "createYear": "创建年度",
+    "editYear": "调整日期",
+    "calendarMode": "账期划分",
+    "natural": "自然月",
+    "custom": "自定义开账日",
+    "openingDay": "每月开账日",
+    "customHint": "可选1—28日。1日按自然月；2—15日向次月延伸，16—28日从上月开始；全年首尾保持在当年内。",
+    "editHint": "请一次调整完整年度，保持各期日期连续。已结账期和已有账务的日期归属不能改变。",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "invalidDates": "全年须完整覆盖1月1日至12月31日，各期不得重叠或留空。",
+    "yearCreated": "{year}年会计账期已创建",
+    "yearEdited": "{year}年账期日期已调整",
+    "loadFailed": "账期加载失败，请刷新重试。",
+    "noYear": "{year}年还没有会计账期，请先创建年度。",
+    "openHint": "选择月结后先核对本期；须按账期顺序结账，且已到本期结束日期。",
+    "closedHint": "本期已结账。仅最近已结期支持反月结，历史结账记录始终保留。",
+    "logs": "结账历史",
+    "noLogs": "本期暂无结账记录",
+    "actionTitle": "操作",
+    "operator": "操作人",
+    "operationTime": "操作时间",
+    "members": "冻结来源记录",
+    "noMembers": "本次结账没有冻结来源记录",
+    "sourceType": "来源类型",
+    "sourceReference": "来源记录编号",
+    "sourceVersion": "结账时版本",
+    "sourceTypes": {
+      "PAYMENT": "收款",
+      "REFUND": "退款",
+      "FUND": "资金流水",
+      "CREDIT": "原存入",
+      "HANDOVER": "交账",
+      "RECEIVABLE": "应收款",
+      "DOCUMENT": "票据"
+    }
+  },
+  "ReceivableReview": {
+    "action": {
+      "APPROVE": "审核",
+      "REJECT": "驳回",
+      "UNAPPROVE": "反审核"
+    },
+    "state": {
+      "PENDING": "待审核",
+      "APPROVED": "已审核",
+      "REJECTED": "已驳回"
+    },
+    "reviewedOn": "审核日期",
+    "reviewedName": "审核人",
+    "done": "已完成{count}笔应收审核操作",
+    "hint": "本次操作包含{count}笔账单，所有账单校验通过后统一保存。",
+    "unknown": "审核结果尚未确认，请用原请求恢复结果，勿重复提交。",
+    "pending": "有一笔应收审核结果待确认，请先恢复。",
+    "recover": "恢复审核确认"
   }
 }

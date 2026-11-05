@@ -1190,6 +1190,57 @@
                 "actions": ["print"]
               }
             ]
+          },
+          {
+            "id": "approve",
+            "name": "审核",
+            "i18nMessages": {
+              "zh_CN": "审核",
+              "en_US": "Approve",
+              "en": "Approve"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": [
+                  "approve"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "reject",
+            "name": "驳回",
+            "i18nMessages": {
+              "zh_CN": "驳回",
+              "en_US": "Reject",
+              "en": "Reject"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": [
+                  "reject"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "unapprove",
+            "name": "反审核",
+            "i18nMessages": {
+              "zh_CN": "反审核",
+              "en_US": "Undo approval",
+              "en": "Undo approval"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-receivable",
+                "actions": [
+                  "unapprove"
+                ]
+              }
+            ]
           }
         ]
       }
@@ -1706,6 +1757,122 @@
               {
                 "permission": "property-finance-handovers",
                 "actions": ["cancel"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceMonthClosing",
+        "code": "charging/FinanceMonthClosing",
+        "name": "财务月结",
+        "url": "/charging/payment/FinanceMonthClosing",
+        "owner": "app",
+        "sortIndex": 11,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "财务月结",
+            "en_US": "Monthly closing",
+            "en": "Monthly closing"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-accounting-periods",
+            "actions": [
+              "query"
+            ]
+          },
+          {
+            "permission": "property-finance-month-closing",
+            "actions": [
+              "query"
+            ]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "create",
+            "name": "创建年度",
+            "i18nMessages": {
+              "zh_CN": "创建年度",
+              "en_US": "Create year",
+              "en": "Create year"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-accounting-periods",
+                "actions": [
+                  "create"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "edit",
+            "name": "调整日期",
+            "i18nMessages": {
+              "zh_CN": "调整日期",
+              "en_US": "Adjust dates",
+              "en": "Adjust dates"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-accounting-periods",
+                "actions": [
+                  "save"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "save",
+            "name": "月结规则",
+            "i18nMessages": {
+              "zh_CN": "月结规则",
+              "en_US": "Closing rules",
+              "en": "Closing rules"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-month-closing",
+                "actions": [
+                  "save"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "close",
+            "name": "月结",
+            "i18nMessages": {
+              "zh_CN": "月结",
+              "en_US": "Close period",
+              "en": "Close period"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-month-closing",
+                "actions": [
+                  "close"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "reopen",
+            "name": "反月结",
+            "i18nMessages": {
+              "zh_CN": "反月结",
+              "en_US": "Reopen period",
+              "en": "Reopen period"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-month-closing",
+                "actions": [
+                  "reopen"
+                ]
               }
             ]
           }

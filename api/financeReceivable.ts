@@ -2,10 +2,25 @@ import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Query, type Page } from './archive'
 import type { ChargeSetting } from './financeSetting'
 import { excelResponse } from '../utils/archiveFiles'
+import type { PaymentRequest } from './paymentConfirmation'
 const request: Pick<Request, 'get' | 'post'> = hostRequest
 const id = encodeURIComponent
 const base = (project: string) => `/property/finance/projects/${id(project)}/receivables`
 export type ReceivableAction = 'FREEZE' | 'UNFREEZE' | 'DELETE'
+export type ReceivableReviewAction = 'APPROVE' | 'REJECT' | 'UNAPPROVE'
+export interface ReceivableReviewInput {
+  action: ReceivableReviewAction
+  items: { id: string; version: number }[]
+  reason: string
+}
+export interface ReceivableReviewPreview {
+  token: string
+  rows: Receivable[]
+}
+export type ReceivableReviewResult = Pick<
+  Receivable,
+  'id' | 'spaceId' | 'version' | 'reviewState' | 'reviewedOn' | 'reviewedName' | 'reviewReason'
+>
 export interface Receivable {
   id: string
   projectId: string
@@ -39,6 +54,10 @@ export interface Receivable {
   split?: boolean
   frozen: boolean
   financialClosed: boolean
+  reviewState?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  reviewedOn?: string
+  reviewedName?: string
+  reviewReason?: string
   contractReceivableAmount: string
   accruedReceivableAmount: string
   adjustmentAmount: string
@@ -87,6 +106,18 @@ export const changeReceivable = (project: string, row: Receivable, action: Recei
     .post(
       `${base(project)}/${id(row.id)}/_${action.toLowerCase()}`,
       { version: row.version, reason },
+      { hiddenError: true }
+    )
+    .then(checked)
+export const reviewReceivables = (project: string, input: PaymentRequest<ReceivableReviewInput>) =>
+  request
+    .post<ReceivableReviewResult[]>(
+      `${base(project)}/_${input.input.action.toLowerCase()}`,
+      {
+        requestId: input.requestId,
+        items: input.input.items,
+        reason: input.input.reason
+      },
       { hiddenError: true }
     )
     .then(checked)
