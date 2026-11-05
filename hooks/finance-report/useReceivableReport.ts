@@ -1,6 +1,6 @@
 import { computed, onScopeDispose, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { downloadFileByUrl, onlyMessage } from '@jetlinks-web/utils'
+import { onlyMessage } from '@jetlinks-web/utils'
 import { useProjectContext, useProjectSwitchGuard } from '../project/useProjectContext'
 import {
   queryReceivableReport,
@@ -11,7 +11,7 @@ import {
   type ReportGroup
 } from '../../api/financeReport'
 import type { Query } from '../../api/archive'
-import { excelErrorMessage } from '../../utils/archiveFiles'
+import { useReportExport } from './useReportExport'
 import { requestErrorMessage } from '../../utils/requestError'
 
 /** 草稿与已查询条件分离；分页、汇总、导出共用已应用范围，代次隔离过期响应。 */
@@ -30,24 +30,28 @@ export function useReceivableReport() {
     active = ref(defaults())
   const summary = ref<ReportAmounts>(),
     failed = ref(false),
-    loading = ref(false),
-    exporting = ref(false)
+    loading = ref(false)
   const table = ref<{ reload: () => void }>(),
     revision = ref(0),
     selected = ref<ReportRow[]>([])
-  const subjectLabel = ref(''),
-    previewUrl = ref(''),
-    previewOpen = ref(false)
+  const subjectLabel = ref('')
   const projects = context.projects,
     ready = computed(() => active.value.projectIds.length > 0)
   let generation = 0,
-    exportGeneration = 0,
     disposed = false
   const copy = (input: ReportInput) => ({
     ...input,
     projectIds: [...input.projectIds],
     spaceIds: [...input.spaceIds],
     subjectIds: [...input.subjectIds]
+  })
+  const { exporting, previewUrl, previewOpen, closePreview, exportRows } = useReportExport({
+    projectId: context.projectId,
+    enabled: () => ready.value && !loading.value && !failed.value,
+    input: () => copy(active.value),
+    title: () => t('Report.title'),
+    fallback: () => t('Finance.failed'),
+    request: exportReceivableReport
   })
   const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.failed')), 'error')
   function invalidate() {
@@ -133,44 +137,9 @@ export function useReceivableReport() {
     subjectLabel.value = ''
     apply()
   }
-  function closePreview() {
-    previewOpen.value = false
-    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
-    previewUrl.value = ''
-  }
-  async function exportRows(format: 'excel' | 'pdf', preview = false) {
-    if (!ready.value || exporting.value || loading.value || failed.value) return
-    const input = copy(active.value),
-      token = ++exportGeneration
-    exporting.value = true
-    try {
-      const blob = await exportReceivableReport(input, format)
-      if (disposed || token !== exportGeneration) return
-      const url = URL.createObjectURL(blob)
-      if (preview) {
-        closePreview()
-        previewUrl.value = url
-        previewOpen.value = true
-      } else {
-        try {
-          downloadFileByUrl(url, t('Report.title'), format === 'excel' ? 'xlsx' : 'pdf')
-        } finally {
-          setTimeout(() => URL.revokeObjectURL(url), 1000)
-        }
-      }
-    } catch (e) {
-      const message = await excelErrorMessage(e, t('Finance.failed'))
-      if (!disposed && token === exportGeneration) onlyMessage(message, 'error')
-    } finally {
-      if (!disposed && token === exportGeneration) exporting.value = false
-    }
-  }
   watch(
     context.projectId,
     () => {
-      ++exportGeneration
-      exporting.value = false
-      closePreview()
       resetState()
     },
     { flush: 'sync' }
@@ -179,7 +148,6 @@ export function useReceivableReport() {
   onScopeDispose(() => {
     disposed = true
     ++generation
-    closePreview()
   })
   return {
     draft,

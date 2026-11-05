@@ -2316,6 +2316,48 @@
             ]
           }
         ]
+      },
+      {
+        "id": "charging-FinanceReceivedReport",
+        "code": "charging/FinanceReceivedReport",
+        "name": "实收统计",
+        "url": "/charging/reports/FinanceReceivedReport",
+        "owner": "app",
+        "sortIndex": 2,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "实收统计",
+            "en_US": "Received report",
+            "en": "Received report"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-report-received",
+            "actions": [
+              "query"
+            ]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "export",
+            "name": "导出 / 打印",
+            "i18nMessages": {
+              "zh_CN": "导出 / 打印",
+              "en_US": "Export / print",
+              "en": "Export / print"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-report-received",
+                "actions": [
+                  "export"
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   }

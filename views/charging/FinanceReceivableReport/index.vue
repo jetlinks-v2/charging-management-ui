@@ -5,6 +5,8 @@ import { useReceivableReport } from '../../../hooks/finance-report/useReceivable
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import ReportFilters from './ReportFilters.vue'
 import ReportTable from './ReportTable.vue'
+import ReportExportActions from '../components/ReportExportActions.vue'
+import ReportPdfPreview from '../components/ReportPdfPreview.vue'
 const { t } = useI18n(),
   state = useReceivableReport()
 const { active, summary, loading, exporting, previewOpen, previewUrl, ready, failed, group, closePreview, exportRows } =
@@ -58,66 +60,19 @@ const groups: ReportGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT']
             {{ t('Report.' + key) }}
           </a-radio-button>
         </a-radio-group>
-        <a-space wrap>
-          <j-permission-button
-            hasPermission="charging/FinanceReceivableReport:export"
-            :disabled="!ready || loading || failed"
-            :loading="exporting"
-            @click="exportRows('excel')"
-          >
-            <AIcon type="DownloadOutlined" />
-            {{ t('Report.excel') }}
-          </j-permission-button>
-          <j-permission-button
-            hasPermission="charging/FinanceReceivableReport:export"
-            :disabled="!ready || loading || failed || exporting"
-            @click="exportRows('pdf')"
-          >
-            {{ t('Report.pdf') }}
-          </j-permission-button>
-          <j-permission-button
-            hasPermission="charging/FinanceReceivableReport:export"
-            :disabled="!ready || loading || failed || exporting"
-            @click="exportRows('pdf', true)"
-          >
-            <AIcon type="PrinterOutlined" />
-            {{ t('Report.print') }}
-          </j-permission-button>
-          <a-button
-            :disabled="exporting"
-            @click="state.reload"
-          >
-            <AIcon type="ReloadOutlined" />
-            {{ t('Finance.refresh') }}
-          </a-button>
-        </a-space>
+        <ReportExportActions
+          permission="charging/FinanceReceivableReport:export"
+          :state="{ ready, loading, failed, exporting }"
+          @export="exportRows"
+          @refresh="state.reload"
+        />
       </div>
       <a-spin :spinning="exporting"><ReportTable :state="state" /></a-spin>
     </div>
-    <a-modal
-      :open="previewOpen"
-      :title="t('Report.printTitle')"
-      :width="1280"
-      :body-style="{ padding: 0 }"
-      @cancel="closePreview"
-    >
-      <iframe
-        v-if="previewUrl"
-        class="report-pdf"
-        :src="previewUrl + '#view=FitH&navpanes=0'"
-        :title="t('Report.printTitle')"
-        referrerpolicy="no-referrer"
-      />
-      <template #footer>
-        <a-button @click="closePreview">{{ t('Finance.close') }}</a-button>
-        <a-button
-          :href="previewUrl"
-          :download="t('Report.title') + '.pdf'"
-        >
-          {{ t('Report.pdf') }}
-        </a-button>
-      </template>
-    </a-modal>
+    <ReportPdfPreview
+      :state="{ open: previewOpen, url: previewUrl, title: t('Report.printTitle'), filename: t('Report.title') }"
+      @close="closePreview"
+    />
   </j-page-container>
 </template>
 <style scoped>
@@ -170,12 +125,7 @@ h2 {
   gap: 12px;
   margin-bottom: 16px;
 }
-.report-pdf {
-  display: block;
-  width: 100%;
-  height: 72vh;
-  border: 0;
-}
+
 @media (max-width: 1100px) {
   .report-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
