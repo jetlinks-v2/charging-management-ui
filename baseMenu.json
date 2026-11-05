@@ -129,21 +129,11 @@
         "buttons": [
           {
             "id": "save",
-            "name": "维护税目",
+            "name": "启用/停用",
             "permissions": [
               {
                 "permission": "property-finance-tax",
                 "actions": ["save"]
-              }
-            ]
-          },
-          {
-            "id": "delete",
-            "name": "删除",
-            "permissions": [
-              {
-                "permission": "property-finance-tax",
-                "actions": ["delete"]
               }
             ]
           },
