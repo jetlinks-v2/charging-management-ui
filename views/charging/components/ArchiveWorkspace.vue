@@ -9,6 +9,8 @@ const { t } = useI18n()
 const k = 'Archive.'
 const {
   projects,
+  projectTree,
+  selectProject,
   projectId,
   tree,
   selectedId,
@@ -76,12 +78,18 @@ const refresh = () => {
     >
       <div class="archive-workspace">
         <div class="archive-toolbar">
-          <a-select
-            v-model:value="projectId"
-            :options="projects.map((item) => ({ value: item.id, label: item.name }))"
+          <a-tree-select
+            :value="projectId || undefined"
+            :tree-data="projectTree"
+            tree-default-expand-all
+            show-search
+            tree-node-filter-prop="title"
+            :dropdown-match-select-width="false"
+            :dropdown-style="{ width: 'max-content', maxWidth: 'calc(100vw - 32px)', maxHeight: '400px', overflow: 'auto' }"
             :placeholder="t(k + 'selectProject')"
             :aria-label="t(k + 'project')"
             class="archive-project"
+            @change="selectProject"
           />
           <span class="archive-muted">
             {{ t(k + 'lastSync') }}：{{

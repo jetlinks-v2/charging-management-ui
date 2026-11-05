@@ -18,12 +18,15 @@ async function load(entry, apiNames = []) {
           {
             name: 'archive-api',
             setup(builder) {
-              builder.onResolve({ filter: /api\/(archive|user)|@jetlinks-web|@vueuse\/core|vue-i18n/ }, (args) => ({
-                path: args.path,
-                namespace: 'mock'
-              }))
+              builder.onResolve(
+                { filter: /api\/(archive|user|organization)|@jetlinks-web|@vueuse\/core|vue-i18n/ },
+                (args) => ({
+                  path: args.path,
+                  namespace: 'mock'
+                })
+              )
               builder.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
-                contents: /api\/(archive|user)/.test(args.path)
+                contents: /api\/(archive|user|organization)/.test(args.path)
                   ? apiNames
                       .map((name) => `export const ${name} = (...args) => globalThis.__archiveApi.${name}(...args)`)
                       .join('\n')
@@ -53,7 +56,8 @@ const organizationSpaces = await load('../hooks/archive/useOrganizationSpaces.ts
   'syncSpaces'
 ])
 const scopeModule = await load('../hooks/archive/useArchiveScope.ts', [
-  'getSpaceProjects',
+  'getOrganizationTree',
+  'checked',
   'getSpaceTree',
   'spaceSyncStatus',
   'syncSpaces'
@@ -346,10 +350,13 @@ test('权限裁剪导致无可见子项时仍遵守来源leaf=false', () => {
 test('切换项目后忽略旧空间树，不能把上个项目房屋带进新范围', async () => {
   const old = deferred()
   const { state, unmount } = mount(scopeModule.useArchiveScope, {
-    getSpaceProjects: async () => [
-      { id: 'a', name: 'A' },
-      { id: 'b', name: 'B' }
-    ],
+    checked: (response) => response.result,
+    getOrganizationTree: async () => ({
+      result: [
+        { id: 'a', name: 'A', organizationType: { value: 'project', text: '项目' } },
+        { id: 'b', name: 'B', organizationType: { value: 'project', text: '项目' } }
+      ]
+    }),
     getSpaceTree: (id) =>
       id === 'a' ? old.promise : Promise.resolve([{ id: 'b-house', name: 'B house', leaf: true, version: 0 }]),
     spaceSyncStatus: async () => ({ running: false })
@@ -361,6 +368,89 @@ test('切换项目后忽略旧空间树，不能把上个项目房屋带进新�
   await settle()
   assert.equal(state.tree.value[0].id, 'b-house')
   assert.equal(state.selectedId.value, undefined)
+  unmount()
+})
+
+test('项目选择保留组织层级，仅项目可选，父节点禁用不影响下级项目', async () => {
+  const source = [
+    {
+      id: 'company',
+      name: '公司',
+      children: [
+        {
+          id: 'external',
+          name: '外协单位',
+          organizationType: { value: 'external', text: '外协单位' },
+          children: [{ id: 'park', name: '园区', organizationType: { value: 'project', text: '项目' } }]
+        },
+        { id: 'second', name: '二期', organizationType: { value: 'project', text: '项目' } }
+      ]
+    }
+  ]
+  const requests = []
+  const { state, unmount } = mount(scopeModule.useArchiveScope, {
+    checked: (response) => response.result,
+    getOrganizationTree: async () => ({ result: source }),
+    getSpaceTree: async (id) => {
+      requests.push(id)
+      return []
+    },
+    spaceSyncStatus: async () => ({ running: false })
+  })
+  await settle()
+  const root = state.projectTree.value[0]
+  assert.equal(root.title, '公司')
+  assert.equal(root.disabled, true)
+  assert.equal(root.children[0].disabled, true)
+  assert.equal(root.children[0].children[0].disabled, false)
+  assert.equal(root.children[1].disabled, false)
+  assert.deepEqual(
+    state.projects.value.map((node) => node.id),
+    ['park', 'second']
+  )
+  assert.equal(state.projectId.value, 'park')
+  state.selectProject('company')
+  state.selectProject('external')
+  await settle()
+  assert.deepEqual(requests, ['park'])
+  state.selectProject('second')
+  await settle()
+  assert.equal(state.scope.value.projectId, 'second')
+  assert.deepEqual(requests, ['park', 'second'])
+  unmount()
+})
+
+test('组织类型变更后清空失效项目，组织查询失败可刷新重试', async () => {
+  let nodes = [
+    {
+      id: 'company',
+      name: '公司',
+      children: [{ id: 'park', name: '园区', organizationType: { value: 'project', text: '项目' } }]
+    }
+  ]
+  let failed = true
+  const { state, unmount } = mount(scopeModule.useArchiveScope, {
+    checked: (response) => {
+      if (!response.success) throw new Error('查询失败')
+      return response.result
+    },
+    getOrganizationTree: async () => ({ success: !failed, result: structuredClone(nodes) }),
+    getSpaceTree: async () => [],
+    spaceSyncStatus: async () => ({ running: false })
+  })
+  await settle()
+  assert.equal(state.failed.value, true)
+  assert.equal(state.projectId.value, '')
+  failed = false
+  await state.loadProjects()
+  await settle()
+  assert.equal(state.projectId.value, 'park')
+  nodes[0].children[0].organizationType = { value: 'external', text: '外协单位' }
+  await state.loadProjects()
+  await settle()
+  assert.equal(state.projectId.value, '')
+  assert.deepEqual(state.tree.value, [])
+  assert.equal(state.projectTree.value[0].children[0].disabled, true)
   unmount()
 })
 test('字典分类停用后不可新增选择，旧记录仍可解析原文或原编码', async () => {

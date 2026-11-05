@@ -28,14 +28,15 @@ async function loadComponent(path) {
       {
         name: 'platform',
         setup(builder) {
-          builder.onResolve({ filter: /api\/archive$|@jetlinks-web|vue-i18n|\.vue$/ }, (args) => ({
+          builder.onResolve({ filter: /api\/(archive|organization)$|@jetlinks-web|vue-i18n|\.vue$/ }, (args) => ({
             path: args.path,
             namespace: 'platform'
           }))
           builder.onLoad({ filter: /.*/, namespace: 'platform' }, ({ path }) => ({
-            contents: path.includes('api/archive')
+            contents: /api\/(archive|organization)$/.test(path)
               ? [
-                  'getSpaceProjects',
+                  'getOrganizationTree',
+                  'checked',
                   'getSpaceTree',
                   'spaceSyncStatus',
                   'syncSpaces',
@@ -121,7 +122,7 @@ function mount(component, api) {
     'j-page-container',
     'a-spin',
     'a-button',
-    'a-select',
+    'a-tree-select',
     'a-input',
     'a-switch',
     'a-tag',
@@ -160,7 +161,10 @@ function mount(component, api) {
 
 test('空间和客户共用树：选中房屋保持高亮并向右侧传递所选空间范围，清空恢复项目范围', async (t) => {
   const view = mount(Workspace, {
-    getSpaceProjects: async () => [{ id: 'project', name: '园区' }],
+    checked: (response) => response.result,
+    getOrganizationTree: async () => ({
+      result: [{ id: 'project', name: '园区', organizationType: { value: 'project', text: '项目' } }]
+    }),
     getSpaceTree: async () => [
       {
         id: 'root',

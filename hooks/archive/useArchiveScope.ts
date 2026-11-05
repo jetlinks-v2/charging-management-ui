@@ -1,12 +1,21 @@
 import { computed, onMounted, onScopeDispose, ref, watch } from 'vue'
-import {
-  getSpaceProjects,
-  getSpaceTree,
-  spaceSyncStatus,
-  syncSpaces,
-  type Space,
-  type SpaceSyncStatus
-} from '../../api/archive'
+import { checked, getSpaceTree, spaceSyncStatus, syncSpaces, type Space, type SpaceSyncStatus } from '../../api/archive'
+import { getOrganizationTree, type PropertyOrganization } from '../../api/organization'
+import { flattenOrganizations } from '../../utils/organizationTree'
+
+interface ProjectTreeNode {
+  value: string
+  title: string
+  disabled: boolean
+  children: ProjectTreeNode[]
+}
+const toProjectTree = (nodes: PropertyOrganization[]): ProjectTreeNode[] =>
+  nodes.map((node) => ({
+    value: node.id,
+    title: node.name,
+    disabled: node.organizationType?.value !== 'project',
+    children: toProjectTree(node.children || [])
+  }))
 export const flattenSpaces = (nodes: Space[]): Space[] =>
   nodes.flatMap((node) => [node, ...flattenSpaces(node.children || [])])
 export const filterSpaces = (nodes: Space[], keyword: string): Space[] =>
@@ -18,7 +27,11 @@ export const filterSpaces = (nodes: Space[], keyword: string): Space[] =>
   })
 /** 来源 leaf 是完整来源树的事实；可见子树无 children 不代表能维护房屋。 */
 export function useArchiveScope() {
-  const projects = ref<{ id: string; name: string }[]>([])
+  const organizations = ref<PropertyOrganization[]>([])
+  const projects = computed(() =>
+    flattenOrganizations(organizations.value).filter((node) => node.organizationType?.value === 'project')
+  )
+  const projectTree = computed(() => toProjectTree(organizations.value))
   const projectId = ref('')
   const tree = ref<Space[]>([])
   const selectedId = ref<string>()
@@ -37,14 +50,17 @@ export function useArchiveScope() {
   async function loadProjects() {
     const token = ++projectGeneration
     try {
-      const result = await getSpaceProjects()
+      const result = checked(await getOrganizationTree())
       if (disposed || token !== projectGeneration) return
-      projects.value = result
-      if (!result.some((item) => item.id === projectId.value)) projectId.value = result[0]?.id || ''
+      organizations.value = result
+      if (!projects.value.some((item) => item.id === projectId.value)) projectId.value = projects.value[0]?.id || ''
       failed.value = false
     } catch {
       if (!disposed && token === projectGeneration) failed.value = true
     }
+  }
+  function selectProject(id: string) {
+    if (projects.value.some((item) => item.id === id)) projectId.value = id
   }
   async function loadTree() {
     const token = ++generation
@@ -98,6 +114,8 @@ export function useArchiveScope() {
   })
   return {
     projects,
+    projectTree,
+    selectProject,
     projectId,
     tree,
     selectedId,
