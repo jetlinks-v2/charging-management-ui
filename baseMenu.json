@@ -2261,5 +2261,62 @@
         ]
       }
     ]
+  },
+  {
+    "id": "charging-reports",
+    "code": "charging/reports",
+    "name": "财务报表",
+    "url": "/charging/reports",
+    "owner": "app",
+    "sortIndex": 77,
+    "i18nMessages": {
+      "name": {
+        "zh_CN": "财务报表",
+        "en_US": "Financial reports",
+        "en": "Financial reports"
+      }
+    },
+    "permissions": [],
+    "buttons": [],
+    "children": [
+      {
+        "id": "charging-FinanceReceivableReport",
+        "code": "charging/FinanceReceivableReport",
+        "name": "应收统计",
+        "url": "/charging/reports/FinanceReceivableReport",
+        "owner": "app",
+        "sortIndex": 1,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "应收统计",
+            "en_US": "Receivable report",
+            "en": "Receivable report"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-report-receivable",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "export",
+            "name": "导出 / 打印",
+            "i18nMessages": {
+              "zh_CN": "导出 / 打印",
+              "en_US": "Export / print",
+              "en": "Export / print"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-report-receivable",
+                "actions": ["export"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
