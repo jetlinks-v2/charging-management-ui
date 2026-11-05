@@ -52,12 +52,12 @@ const compiled = await build({
             args.path.includes('financeFundRevoke')
               ? apiNames.map((name) => `export const ${name}=(...a)=>globalThis.__fundApi.${name}(...a)`).join('\n')
               : args.path.includes('usePaymentRecovery')
-                ? 'export const usePaymentRecovery=()=>globalThis.__fundRecovery'
-                : args.path.includes('useFundRecovery')
-                  ? 'export const useFundRecovery=()=>globalThis.__fundRecovery'
-                  : args.path === 'vue-i18n'
-                    ? 'export const useI18n=()=>({t:key=>key})'
-                    : 'export const onlyMessage=(...a)=>globalThis.__fundMessages.push(a)'
+              ? 'export const usePaymentRecovery=()=>globalThis.__fundRecovery'
+              : args.path.includes('useFundRecovery')
+              ? 'export const useFundRecovery=()=>globalThis.__fundRecovery'
+              : args.path === 'vue-i18n'
+              ? 'export const useI18n=()=>({t:key=>key})'
+              : 'export const onlyMessage=(...a)=>globalThis.__fundMessages.push(a)'
         }))
       }
     }
@@ -311,6 +311,94 @@ test('恢复跨公司收取原请求时不由空选项清除标准、付款方�
   assert.equal(state.model.standardId, 'standard')
   assert.equal(state.model.method, '2')
   assert.equal(state.model.quantity, '2')
+  unmount()
+})
+
+test('预收固定项目默认公司，标准限该公司及所选科目，切换科目不改变公司', async () => {
+  globalThis.__fundRecovery = storage()
+  const { state, unmount } = mount(
+    () => useFundEditor({ projectId: 'project', draft: { type: 'ADVANCE', action: 'TOPUP' } }, () => {}),
+    {
+      getFundsOptions: async () => ({
+        defaultCompanyId: 'one',
+        companies: [
+          { id: 'two', funding: [] },
+          { id: 'one', funding: [{ id: 'cash', method: '1' }] }
+        ],
+        projectSubjects: [],
+        standards: [
+          { id: 'a', subjectId: 'subject-a', subjectName: '物业费', companyId: 'one' },
+          { id: 'b', subjectId: 'subject-b', subjectName: '停车费', companyId: 'one' },
+          { id: 'foreign', subjectId: 'subject-b', subjectName: '停车费', companyId: 'two' }
+        ]
+      })
+    }
+  )
+  await flush()
+  state.model.subjectId = 'subject-b'
+  assert.deepEqual(
+    state.sourceStandards.value.map((v) => v.id),
+    ['b']
+  )
+  state.model.standardId = 'b'
+  state.standardChanged()
+  await flush()
+  assert.equal(state.model.companyId, 'one')
+  state.model.subjectId = 'subject-a'
+  assert.equal(state.model.standardId, undefined)
+  assert.equal(state.model.companyId, 'one')
+  assert.deepEqual(
+    state.sourceStandards.value.map((v) => v.id),
+    ['a']
+  )
+  assert.equal(state.model.method, '1')
+  unmount()
+})
+
+test('没有项目默认公司时预收不能自动选择其他公司，也不能发起收款预览', async () => {
+  globalThis.__fundRecovery = storage()
+  let previews = 0
+  const { state, unmount } = mount(
+    () => useFundEditor({ projectId: 'project', draft: { type: 'ADVANCE', action: 'TOPUP' } }, () => {}),
+    {
+      getFundsOptions: async () => ({ companies: [{ id: 'other', funding: [] }], projectSubjects: [], standards: [] }),
+      previewFunds: async () => {
+        previews++
+        return { token: 'invalid' }
+      }
+    }
+  )
+  await flush()
+  await state.calculate()
+  assert.equal(state.model.companyId, '')
+  assert.equal(previews, 0)
+  assert.ok(globalThis.__fundMessages.length)
+  unmount()
+})
+
+test('科目押金固定使用项目默认公司，不依赖任何收费标准', async () => {
+  globalThis.__fundRecovery = storage()
+  const { state, unmount } = mount(
+    () => useFundEditor({ projectId: 'project', draft: { type: 'DEPOSIT', action: 'TOPUP' } }, () => {}),
+    {
+      getFundsOptions: async () => ({
+        defaultCompanyId: 'default-company',
+        companies: [
+          { id: 'other-company', funding: [] },
+          { id: 'default-company', funding: [{ id: 'cash', method: '1' }] }
+        ],
+        subjects: [{ id: 'deposit', name: '装修押金' }],
+        projectSubjects: [],
+        standards: []
+      })
+    }
+  )
+  await flush()
+  state.model.subjectId = 'deposit'
+  await flush()
+  assert.equal(state.model.companyId, 'default-company')
+  assert.equal(state.model.standardId, undefined)
+  assert.equal(state.model.method, '1')
   unmount()
 })
 

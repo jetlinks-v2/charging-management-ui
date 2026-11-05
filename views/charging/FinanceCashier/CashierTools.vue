@@ -7,14 +7,6 @@ const { t } = useI18n()
 <template>
   <a-space wrap>
     <j-permission-button
-      hasPermission="charging/FinanceCashier:collect"
-      :disabled="!projectId || !leaf || busy"
-      @click="emit('prepay')"
-    >
-      <AIcon type="CalendarOutlined" />
-      {{ t('Prepay.title') }}
-    </j-permission-button>
-    <j-permission-button
       hasPermission="charging/FinanceCashier:temporary"
       :disabled="!projectId || busy"
       @click="emit('temporary')"
@@ -25,18 +17,18 @@ const { t } = useI18n()
     <j-permission-button
       hasPermission="charging/FinanceCashier:topup"
       :disabled="!projectId || busy"
-      @click="emit('topup', 'ADVANCE')"
-    >
-      <AIcon type="WalletOutlined" />
-      {{ t('Funds.collectAdvance') }}
-    </j-permission-button>
-    <j-permission-button
-      hasPermission="charging/FinanceCashier:topup"
-      :disabled="!projectId || busy"
       @click="emit('topup', 'DEPOSIT')"
     >
       <AIcon type="SafetyCertificateOutlined" />
       {{ t('Funds.collectDeposit') }}
+    </j-permission-button>
+    <j-permission-button
+      hasPermission="charging/FinanceCashier:topup"
+      :disabled="!projectId || busy"
+      @click="emit('topup', 'ADVANCE')"
+    >
+      <AIcon type="WalletOutlined" />
+      {{ t('Funds.collectAdvance') }}
     </j-permission-button>
   </a-space>
 </template>

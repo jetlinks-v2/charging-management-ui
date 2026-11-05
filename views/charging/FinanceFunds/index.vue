@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { Query } from '../../../api/archive'
-import type { FundAccount, FundAction, FundEntry } from '../../../api/financeFunds'
+import type { FundAccount, FundAction, FundEntry, FundType } from '../../../api/financeFunds'
 import { useFundsWorkspace } from '../../../hooks/finance-funds/useFundsWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import FundDetail from './FundDetail.vue'
@@ -12,8 +12,11 @@ import FundEditor from './FundEditor.vue'
 import FundReturnEditor from './FundReturnEditor.vue'
 import FundRevokeEditor from './FundRevokeEditor.vue'
 import '../FinanceCashier/cashier.css'
+import FinanceLedgerSpace from '../components/FinanceLedgerSpace.vue'
 const { t } = useI18n()
-const state = useFundsWorkspace()
+const props = defineProps<{ fundType?: FundType }>()
+const permission = props.fundType === 'DEPOSIT' ? 'charging/FinanceDeposit' : 'charging/FinanceFunds'
+const state = useFundsWorkspace(props.fundType)
 const { projectId, table, type, terms, params, request, open, loading, failed, detail, select, close, saved, notify } =
   state
 const { draft, pending, failed: recoveryFailed, recover, start, close: closeEditor } = state.flow
@@ -78,159 +81,153 @@ function revokeTopup(entry: FundEntry) {
 <template>
   <FinancePage>
     <ProjectScopeBar />
-    <section class="funds-workspace">
-      <div class="funds-heading">
-        <div>
-          <h2>{{ t('Funds.title') }}</h2>
-          <span>{{ t('Funds.hint') }}</span>
-        </div>
-        <a-button
-          :disabled="!projectId"
-          :aria-label="t('Finance.refresh')"
-          @click="table?.reload()"
+    <div class="ledger-layout">
+      <FinanceLedgerSpace :state="state.archive" />
+      <section class="funds-workspace">
+        <a-alert
+          v-if="pending"
+          type="warning"
+          show-icon
+          :message="t('Funds.pending')"
         >
-          <AIcon type="ReloadOutlined" />
-        </a-button>
-      </div>
-      <a-alert
-        v-if="pending"
-        type="warning"
-        show-icon
-        :message="t('Funds.pending')"
-      >
-        <template #action>
-          <a-button @click="recover">{{ t('Cashier.retry') }}</a-button>
-        </template>
-      </a-alert>
-      <a-alert
-        v-if="returnPending"
-        type="warning"
-        show-icon
-        :message="t('FundReturn.pending')"
-      >
-        <template #action>
-          <a-button
-            type="link"
-            @click="recoverReturn"
-          >
-            {{ t('Cashier.retry') }}
-          </a-button>
-        </template>
-      </a-alert>
-      <a-alert
-        v-if="revokePending"
-        type="warning"
-        show-icon
-        :message="t('FundRevoke.pending')"
-      >
-        <template #action>
-          <j-permission-button
-            hasPermission="charging/FinanceFunds:revoke-topup"
-            @click="recoverRevoke"
-          >
-            {{ t('Cashier.retry') }}
-          </j-permission-button>
-        </template>
-      </a-alert>
-      <a-tabs v-model:active-key="type">
-        <a-tab-pane
-          key=""
-          :tab="t('Funds.all')"
-        />
-        <a-tab-pane
-          key="ADVANCE"
-          :tab="t('Funds.ADVANCE')"
-        />
-        <a-tab-pane
-          key="DEPOSIT"
-          :tab="t('Funds.DEPOSIT')"
-        />
-      </a-tabs>
-      <ConditionFilter
-        :fields="fields"
-        @change="filter"
-      />
-      <j-pro-table
-        v-if="projectId"
-        ref="table"
-        row-key="id"
-        type="PAGE"
-        mode="TABLE"
-        :columns="columns"
-        :params="params"
-        :request="request"
-        :pagination="{ pageSize: 12 }"
-        :no-pagination="false"
-        :alert-show="false"
-        :body-style="{ padding: 0 }"
-        :scroll="{ x: 1320 }"
-        @request-error="notify"
-      >
-        <template #fullName="row">
-          <a-button
-            type="link"
-            class="funds-house"
-            @click="select(row.id)"
-          >
-            {{ row.fullName }}
-          </a-button>
-        </template>
-        <template #type="row">
-          <a-tag :color="row.type === 'DEPOSIT' ? 'gold' : 'blue'">{{ t('Funds.' + row.type) }}</a-tag>
-        </template>
-        <template #balance="row">
-          <strong class="cashier-money">{{ row.balance }}</strong>
-        </template>
-        <template #actions="row">
-          <a-space :size="0">
+          <template #action>
+            <a-button @click="recover">{{ t('Cashier.retry') }}</a-button>
+          </template>
+        </a-alert>
+        <a-alert
+          v-if="returnPending"
+          type="warning"
+          show-icon
+          :message="t('FundReturn.pending')"
+        >
+          <template #action>
             <a-button
               type="link"
+              @click="recoverReturn"
+            >
+              {{ t('Cashier.retry') }}
+            </a-button>
+          </template>
+        </a-alert>
+        <a-alert
+          v-if="revokePending"
+          type="warning"
+          show-icon
+          :message="t('FundRevoke.pending')"
+        >
+          <template #action>
+            <j-permission-button
+              :hasPermission="`${permission}:revoke-topup`"
+              @click="recoverRevoke"
+            >
+              {{ t('Cashier.retry') }}
+            </j-permission-button>
+          </template>
+        </a-alert>
+        <a-tabs
+          v-if="!fundType"
+          v-model:active-key="type"
+        >
+          <a-tab-pane
+            key=""
+            :tab="t('Funds.all')"
+          />
+          <a-tab-pane
+            key="ADVANCE"
+            :tab="t('Funds.ADVANCE')"
+          />
+          <a-tab-pane
+            key="DEPOSIT"
+            :tab="t('Funds.DEPOSIT')"
+          />
+        </a-tabs>
+        <ConditionFilter
+          :fields="fields"
+          @change="filter"
+        />
+        <j-pro-table
+          v-if="projectId"
+          ref="table"
+          row-key="id"
+          type="PAGE"
+          mode="TABLE"
+          :columns="columns"
+          :params="params"
+          :request="request"
+          :pagination="{ pageSize: 12 }"
+          :no-pagination="false"
+          :alert-show="false"
+          :body-style="{ padding: 0 }"
+          :scroll="{ x: 1320 }"
+          @request-error="notify"
+        >
+          <template #fullName="row">
+            <a-button
+              type="link"
+              class="funds-house"
               @click="select(row.id)"
             >
-              {{ t('Funds.history') }}
+              {{ row.fullName }}
             </a-button>
-            <j-permission-button
-              type="link"
-              hasPermission="charging/FinanceFunds:refund"
-              :disabled="disabled(row)"
-              @click="operate('REFUND', row)"
-            >
-              {{ t('Funds.REFUND') }}
-            </j-permission-button>
-            <j-permission-button
-              type="link"
-              hasPermission="charging/FinanceFunds:transfer"
-              :disabled="disabled(row)"
-              @click="operate('TRANSFER', row)"
-            >
-              {{ t('Funds.TRANSFER') }}
-            </j-permission-button>
-            <j-permission-button
-              v-if="row.type === 'DEPOSIT'"
-              type="link"
-              hasPermission="charging/FinanceFunds:deduct"
-              :disabled="disabled(row)"
-              @click="operate('DEDUCT', row)"
-            >
-              {{ t('Funds.DEDUCT') }}
-            </j-permission-button>
-            <j-permission-button
-              type="link"
-              hasPermission="charging/FinanceFunds:offset"
-              :disabled="disabled(row)"
-              @click="operate('OFFSET', row)"
-            >
-              {{ t('Funds.OFFSET') }}
-            </j-permission-button>
-          </a-space>
-        </template>
-        <template #emptyText><CloudEmpty :description="t('Funds.empty')" /></template>
-      </j-pro-table>
-      <CloudEmpty
-        v-else
-        :description="t('ProjectContext.choose')"
-      />
-    </section>
+          </template>
+          <template #type="row">
+            <a-tag :color="row.type === 'DEPOSIT' ? 'gold' : 'blue'">{{ t('Funds.' + row.type) }}</a-tag>
+          </template>
+          <template #balance="row">
+            <strong class="cashier-money">{{ row.balance }}</strong>
+          </template>
+          <template #actions="row">
+            <a-space :size="0">
+              <a-button
+                type="link"
+                @click="select(row.id)"
+              >
+                {{ t('Funds.history') }}
+              </a-button>
+              <j-permission-button
+                type="link"
+                :hasPermission="`${permission}:refund`"
+                :disabled="disabled(row)"
+                @click="operate('REFUND', row)"
+              >
+                {{ t('Funds.REFUND') }}
+              </j-permission-button>
+              <j-permission-button
+                v-if="row.type === 'ADVANCE'"
+                type="link"
+                :hasPermission="`${permission}:transfer`"
+                :disabled="disabled(row)"
+                @click="operate('TRANSFER', row)"
+              >
+                {{ t('Funds.TRANSFER') }}
+              </j-permission-button>
+              <j-permission-button
+                v-if="row.type === 'DEPOSIT'"
+                type="link"
+                :hasPermission="`${permission}:deduct`"
+                :disabled="disabled(row)"
+                @click="operate('DEDUCT', row)"
+              >
+                {{ t('Funds.DEDUCT') }}
+              </j-permission-button>
+              <j-permission-button
+                type="link"
+                :hasPermission="`${permission}:offset`"
+                :disabled="disabled(row)"
+                @click="operate('OFFSET', row)"
+              >
+                {{ t('Funds.OFFSET') }}
+              </j-permission-button>
+            </a-space>
+          </template>
+          <template #emptyText><CloudEmpty :description="t('Funds.empty')" /></template>
+        </j-pro-table>
+        <CloudEmpty
+          v-else
+          :description="t('ProjectContext.choose')"
+        />
+      </section>
+    </div>
     <JlDrawerShell
       v-if="open"
       :open="true"
@@ -244,6 +241,7 @@ function revokeTopup(entry: FundEntry) {
           v-if="detail"
           :project-id="projectId"
           :account="detail"
+          :permission="permission"
           :return-disabled="pending || recoveryFailed || returnPending || returnFailed || revokePending || revokeFailed"
           @return-offset="returnOffset"
           @revoke-topup="revokeTopup"

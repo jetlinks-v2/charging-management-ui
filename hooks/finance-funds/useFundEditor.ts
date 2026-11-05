@@ -37,6 +37,7 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
     spaceId: account?.spaceId,
     relationshipId: account?.relationshipId,
     standardId: account?.standardId,
+    subjectId: account?.subjectId,
     amount: account?.balance || '',
     occurredAt: dayjs().format('YYYY-MM-DDTHH:mm:ss'),
     payerName: account?.customerName || '',
@@ -45,6 +46,23 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
   })
   const company = computed(() => options.value.companies.find((v) => v.id === model.companyId))
   const files = ref<UploadChangeParam['fileList']>([])
+  const paymentStep = ref(false)
+  const uploading = computed(() => files.value.some((v) => v.status === 'uploading'))
+  const invalidFiles = computed(() =>
+    files.value.some((v) => v.status !== 'done' || !v.response?.result?.id || v.response?.success === false)
+  )
+  async function nextStep() {
+    if (loading.value || !model.companyId) {
+      if (!model.companyId) confirmation.notify(new Error(t('Funds.companyUnresolved')))
+      return
+    }
+    try {
+      await form.value?.validate()
+      paymentStep.value = true
+    } catch {
+      return
+    }
+  }
   function filesChanged(info: UploadChangeParam) {
     files.value = info.fileList
     const file = info.fileList[0]
@@ -55,13 +73,44 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
   const funding = computed(() => company.value?.funding || []),
     optionId = ref('')
   const availableStandards = computed(() =>
-    options.value.standards.filter((v) => !model.companyId || v.companyId === model.companyId)
+    options.value.standards.filter((v) => !!model.companyId && v.companyId === model.companyId)
   )
   const standard = computed(() => options.value.standards.find((v) => v.id === model.standardId))
+  const subjects = computed(() =>
+    model.type === 'DEPOSIT'
+      ? options.value.subjects || []
+      : [
+          ...new Map(
+            availableStandards.value
+              .filter((v) => !!v.subjectId)
+              .map((v) => [v.subjectId, { id: v.subjectId, name: v.subjectName }])
+          ).values()
+        ]
+  )
+  const sourceStandards = computed(() =>
+    availableStandards.value.filter((v) => !!model.subjectId && v.subjectId === model.subjectId)
+  )
   let disposed = false,
     loadToken = 0,
     quoteToken = 0
   watch(model, () => confirmation.invalidate(), { deep: true, flush: 'sync' })
+  watch(
+    () => model.subjectId,
+    () => {
+      if (confirmation.uncertain.value || model.action !== 'TOPUP') return
+      if (model.type === 'ADVANCE') {
+        if (standard.value?.subjectId !== model.subjectId) {
+          model.standardId = undefined
+          model.quantity = undefined
+          ++quoteToken
+        }
+      } else {
+        // 新收款统一归属项目默认公司，押金没有收费标准。
+        model.companyId = options.value.defaultCompanyId || ''
+      }
+    },
+    { flush: 'sync' }
+  )
   watch(optionId, () => {
     const v = funding.value.find((v) => v.id === optionId.value)
     model.method = v?.method
@@ -72,7 +121,7 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
     () => {
       if (confirmation.uncertain.value) return
       optionId.value = funding.value[0]?.id || ''
-      if (model.action === 'TOPUP' && standard.value?.companyId !== model.companyId) {
+      if (model.action === 'TOPUP' && model.type === 'ADVANCE' && standard.value?.companyId !== model.companyId) {
         model.standardId = undefined
         ++quoteToken
         model.quantity = undefined
@@ -103,13 +152,13 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
   }
   function standardChanged() {
     if (standard.value) {
-      model.companyId = standard.value.companyId
+      model.subjectId = standard.value.subjectId
       void quote()
     }
   }
   async function quote() {
     const n = ++quoteToken
-    if (!model.standardId || !model.quantity || model.action !== 'TOPUP') return
+    if (!model.standardId || !model.quantity || model.action !== 'TOPUP' || model.type === 'DEPOSIT') return
     try {
       const amount = await getFundQuote(props.projectId, model.standardId, model.companyId, model.quantity)
       if (!disposed && n === quoteToken) model.amount = amount
@@ -119,7 +168,11 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
   }
   async function calculate() {
     if (loading.value) return
-    if (files.value.some((v) => v.status === 'uploading' || v.status === 'error')) {
+    if (!model.companyId) {
+      confirmation.notify(new Error(t('Funds.companyUnresolved')))
+      return
+    }
+    if (uploading.value || invalidFiles.value) {
       confirmation.notify(new Error(t('Funds.attachmentPending')))
       return
     }
@@ -141,7 +194,7 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
     try {
       options.value = await getFundsOptions(props.projectId)
       if (disposed) return
-      if (!model.companyId && options.value.companies.length === 1) model.companyId = options.value.companies[0].id
+      if (!account && model.action === 'TOPUP') model.companyId = options.value.defaultCompanyId || ''
       optionId.value = funding.value[0]?.id || ''
       if (props.draft.initialSpace && !account) {
         picker.value = 'source'
@@ -179,6 +232,8 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
     funding,
     optionId,
     availableStandards,
+    subjects,
+    sourceStandards,
     standard,
     confirmation,
     pick,
@@ -186,6 +241,10 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
     quote,
     calculate,
     files,
+    paymentStep,
+    uploading,
+    invalidFiles,
+    nextStep,
     filesChanged
   }
 }

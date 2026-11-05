@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { queryTemporaryHouses } from '../../../api/financeTemporary'
 import { useTemporaryEditor } from '../../../hooks/finance-temporary/useTemporaryEditor'
 import { useProjectSwitchGuard } from '../../../hooks/project/useProjectContext'
@@ -12,19 +13,32 @@ const emit = defineEmits<{ close: []; saved: [] }>()
 const state = useTemporaryEditor(props, () => emit('saved'))
 const { t, model, form, picker, loading, confirmation, uploading, invalidFiles, balanced, calculate, pick } = state
 const { preview, result, calculating, saving, uncertain, failed, invalidate, submit } = confirmation
+const paymentStep = ref(false)
+async function next() {
+  try {
+    await form.value?.validate()
+  } catch {
+    return
+  }
+  paymentStep.value = true
+}
 useProjectSwitchGuard(() => !!result.value)
 function close() {
   if (!saving.value && !calculating.value && !uploading.value && !uncertain.value) emit('close')
 }
 </script>
 <template>
-  <JlDrawerShell
-    :open="true"
+  <a-modal
+    open
+    centered
     :width="960"
-    icon="WalletOutlined"
-    :title="t(result ? 'Cashier.paymentInfo' : 'Temporary.collect')"
-    :sub="t('Temporary.hint')"
-    @update:open="close"
+    :title="t(result ? 'Cashier.paymentInfo' : paymentStep ? 'Cashier.confirmTitle' : 'Temporary.collect')"
+    :style="{ maxWidth: 'calc(100vw - 2rem)' }"
+    :body-style="{ maxHeight: 'calc(100dvh - 13rem)', overflowY: 'auto' }"
+    :mask-closable="false"
+    :closable="!saving && !calculating && !uploading && !uncertain"
+    :keyboard="!saving && !calculating && !uploading && !uncertain"
+    @cancel="close"
   >
     <div class="cashier-editor">
       <PaymentSummary
@@ -34,7 +48,7 @@ function close() {
       <template v-else>
         <a-steps
           size="small"
-          :current="preview ? 1 : 0"
+          :current="paymentStep ? 1 : 0"
           :items="[{ title: t('Cashier.edit') }, { title: t('Cashier.confirmTitle') }]"
         />
         <template v-if="preview">
@@ -51,12 +65,11 @@ function close() {
               :items="[
                 { label: t('Setting.house'), value: preview.fullName },
                 { label: t('Setting.customer'), value: preview.customerName },
-                { label: t('Setting.subject'), value: preview.subjectName },
+                { label: t('Funds.collectionSubject'), value: preview.subjectName },
                 { label: t('Setting.standard'), value: preview.standardName },
                 { label: t('Temporary.startDate'), value: model.startDate },
                 { label: t('Temporary.endDate'), value: model.endDate },
-                { label: t('Temporary.accountPeriod'), value: model.accountPeriod },
-                { label: t('Funds.quantity'), value: model.quantity || '—' }
+                { label: t('Temporary.amount'), value: model.amount }
               ]"
             />
           </SectionCard>
@@ -108,13 +121,19 @@ function close() {
             :disabled="loading || calculating || saving || failed"
             class="cashier-form"
           >
-            <TemporarySourceFields :state="state" />
-            <TemporaryPaymentFields :state="state" />
+            <TemporarySourceFields
+              v-if="!paymentStep"
+              :state="state"
+            />
+            <TemporaryPaymentFields
+              v-else
+              :state="state"
+            />
           </a-form>
         </a-spin>
       </template>
     </div>
-    <template #foot>
+    <template #footer>
       <a-button
         :disabled="saving || calculating || uploading || uncertain"
         @click="close"
@@ -122,6 +141,21 @@ function close() {
         {{ t('Finance.close') }}
       </a-button>
       <template v-if="!result">
+        <a-button
+          v-if="paymentStep && !preview"
+          :disabled="calculating || saving"
+          @click="paymentStep = false"
+        >
+          {{ t('Adjustment.back') }}
+        </a-button>
+        <a-button
+          v-if="!paymentStep"
+          type="primary"
+          :disabled="loading || failed"
+          @click="next"
+        >
+          {{ t('Cashier.preview') }}
+        </a-button>
         <a-button
           v-if="preview"
           :disabled="saving || uncertain"
@@ -138,7 +172,7 @@ function close() {
           {{ t(uncertain ? 'Cashier.retry' : 'Cashier.confirm') }}
         </a-button>
         <a-button
-          v-else
+          v-else-if="paymentStep"
           type="primary"
           :loading="calculating"
           :disabled="loading || uploading || invalidFiles || failed || !balanced"
@@ -148,7 +182,7 @@ function close() {
         </a-button>
       </template>
     </template>
-  </JlDrawerShell>
+  </a-modal>
   <SettingHousePicker
     v-if="picker"
     :project-id="projectId"

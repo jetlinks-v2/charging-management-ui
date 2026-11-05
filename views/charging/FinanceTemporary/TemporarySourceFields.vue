@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { useTemporaryEditor } from '../../../hooks/finance-temporary/useTemporaryEditor'
 const props = defineProps<{ state: ReturnType<typeof useTemporaryEditor> }>()
-const { t, model, picker, house, options, availableStandards } = props.state
+const { t, model, picker, house, subjects, availableStandards } = props.state
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t(key) }) }]
 </script>
 <template>
@@ -37,15 +37,15 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         />
       </a-form-item>
       <a-form-item
-        :label="t('Cashier.company')"
-        name="companyId"
-        :rules="required('Cashier.company')"
+        :label="t('Funds.collectionSubject')"
+        name="subjectId"
+        :rules="required('Funds.collectionSubject')"
       >
         <a-select
-          :value="model.companyId || undefined"
-          @change="(value) => (model.companyId = String(value))"
-          :placeholder="t('Cashier.chooseCompany')"
-          :options="options.companies.map((v) => ({ value: v.id, label: v.name }))"
+          v-model:value="model.subjectId"
+          show-search
+          option-filter-prop="label"
+          :options="subjects.map((v) => ({ value: v.id, label: v.name }))"
         />
       </a-form-item>
       <a-form-item
@@ -58,20 +58,8 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
           @change="(value) => (model.standardId = String(value))"
           show-search
           option-filter-prop="label"
-          :disabled="!model.companyId"
-          :options="availableStandards.map((v) => ({ value: v.id, label: `${v.subjectName} · ${v.standardName}` }))"
-        />
-      </a-form-item>
-      <a-form-item
-        :label="t('Funds.quantity')"
-        name="quantity"
-      >
-        <a-input-number
-          v-model:value="model.quantity"
-          string-mode
-          :precision="4"
-          :min="'0.0001'"
-          :max="'99999999.9999'"
+          :disabled="!model.subjectId"
+          :options="availableStandards.map((v) => ({ value: v.id, label: v.standardName }))"
         />
       </a-form-item>
       <a-form-item
@@ -92,17 +80,6 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         <a-date-picker
           v-model:value="model.endDate"
           value-format="YYYY-MM-DD"
-        />
-      </a-form-item>
-      <a-form-item
-        :label="t('Temporary.accountPeriod')"
-        name="accountPeriod"
-        :rules="required('Temporary.accountPeriod')"
-      >
-        <a-date-picker
-          v-model:value="model.accountPeriod"
-          picker="month"
-          value-format="YYYY-MM"
         />
       </a-form-item>
       <a-form-item

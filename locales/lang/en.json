@@ -667,6 +667,8 @@
     "hint": "Generated from current bill amounts. Generate again after receiving payments."
   },
   "Cashier": {
+    "receivedLedger": "Received ledger",
+    "originalPayments": "Payments and refunds",
     "uploadReceipt": "Click or drag to upload a payment receipt",
     "singlePaymentRequired": "Choose one payment method per collection",
     "fullCollectionRequired": "Collect the full outstanding amount of the selected bills. Refresh if the bills changed",
@@ -741,6 +743,10 @@
     "empty": "No refund records"
   },
   "Funds": {
+    "companyUnresolved": "The project has no valid default collection company. Check its company association.",
+    "collectionSubject": "Collection subject",
+    "advanceTitle": "Advance management",
+    "depositTitle": "Deposit management",
     "title": "Advances and deposits",
     "hint": "Review balances, refunds, transfers and offsets by property and customer. Collect new funds at the cashier.",
     "all": "All",
@@ -751,7 +757,7 @@
     "TRANSFER": "Transfer",
     "TRANSFER_IN": "Transfer in",
     "DEDUCT": "Deduct",
-    "OFFSET": "Offset bills",
+    "OFFSET": "Settle bills",
     "collectAdvance": "Collect advance",
     "collectDeposit": "Collect deposit",
     "type": "Fund type",
@@ -1811,7 +1817,7 @@
     "findCustomer": "Search customer name",
     "freeze": "Freeze",
     "frozen": "Frozen",
-    "companyMismatch": "Bills belong to different or unconfigured companies. Collect separately by company.",
+    "companyMismatch": "The selected bills do not belong to the project default collection company. Check project and charge configuration.",
     "reductionApplied": "Reduction deducted. Enter the amount being collected."
   },
   "SettingReview": {

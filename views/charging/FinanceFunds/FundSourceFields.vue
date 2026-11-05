@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { useFundEditor } from '../../../hooks/finance-funds/useFundEditor'
 const props = defineProps<{ state: ReturnType<typeof useFundEditor> }>()
-const { t, model, house, target, options, picker, availableStandards, standardChanged } = props.state
+const { t, model, house, target, picker, availableStandards, subjects, sourceStandards, standardChanged } = props.state
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t(key) }) }]
 </script>
 <template>
@@ -35,16 +35,19 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
           />
         </a-form-item>
         <a-form-item
-          :label="t('Cashier.company')"
-          name="companyId"
-          :rules="required('Cashier.company')"
+          :label="t('Funds.collectionSubject')"
+          name="subjectId"
+          :rules="required('Funds.collectionSubject')"
         >
           <a-select
-            v-model:value="model.companyId"
-            :options="options.companies.map((v) => ({ value: v.id, label: v.name }))"
+            v-model:value="model.subjectId"
+            show-search
+            option-filter-prop="label"
+            :options="subjects.map((v) => ({ value: v.id, label: v.name }))"
           />
         </a-form-item>
         <a-form-item
+          v-if="model.type === 'ADVANCE'"
           :label="t('Setting.standard')"
           name="standardId"
           :rules="required('Setting.standard')"
@@ -52,7 +55,8 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
           <a-select
             v-model:value="model.standardId"
             show-search
-            :options="availableStandards.map((v) => ({ value: v.id, label: v.subjectName + ' · ' + v.standardName }))"
+            :disabled="!model.subjectId"
+            :options="sourceStandards.map((v) => ({ value: v.id, label: v.standardName }))"
             option-filter-prop="label"
             @change="standardChanged"
           />

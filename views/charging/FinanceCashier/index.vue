@@ -131,6 +131,7 @@ function fundSaved() {
         :state="state"
         :busy="busy"
         @collect="start"
+        @prepay="prepay.start(selectedId || '', selected?.spaceLocation || selected?.name || '')"
       />
     </div>
     <div

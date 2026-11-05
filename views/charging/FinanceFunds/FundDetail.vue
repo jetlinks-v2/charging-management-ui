@@ -5,7 +5,7 @@ import { onlyMessage } from '@jetlinks-web/utils'
 import type { FundAccount, FundEntry } from '../../../api/financeFunds'
 import { useFundHistory } from '../../../hooks/finance-funds/useFundHistory'
 import { requestErrorMessage } from '../../../utils/requestError'
-const props = defineProps<{ projectId: string; account: FundAccount; returnDisabled?: boolean }>()
+const props = defineProps<{ projectId: string; account: FundAccount; returnDisabled?: boolean; permission?: string }>()
 const emit = defineEmits<{ returnOffset: [entry: FundEntry]; revokeTopup: [entry: FundEntry] }>()
 const { t } = useI18n(),
   { selected, params, request } = useFundHistory(props)
@@ -69,7 +69,7 @@ const summary = computed(() => [
           <j-permission-button
             v-if="row.action === 'OFFSET'"
             type="link"
-            hasPermission="charging/FinanceFunds:return-offset"
+            :hasPermission="`${permission || 'charging/FinanceFunds'}:return-offset`"
             :disabled="returnDisabled"
             @click="emit('returnOffset', row)"
           >
@@ -78,7 +78,7 @@ const summary = computed(() => [
           <j-permission-button
             v-if="row.action === 'TOPUP' && account.type === 'ADVANCE'"
             type="link"
-            hasPermission="charging/FinanceFunds:revoke-topup"
+            :hasPermission="`${permission || 'charging/FinanceFunds'}:revoke-topup`"
             :disabled="returnDisabled"
             @click="emit('revokeTopup', row)"
           >

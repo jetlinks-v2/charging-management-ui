@@ -33,6 +33,7 @@ export interface FundInput {
   spaceId?: string
   relationshipId?: string
   standardId?: string
+  subjectId?: string
   companyId: string
   amount: string
   quantity?: string
@@ -115,7 +116,11 @@ export interface FundDraft {
   account?: FundAccount
   initialSpace?: string
 }
-export type FundsOptions = SettingOptions & { companies: CashierCompany[] }
+export type FundsOptions = SettingOptions & {
+  companies: CashierCompany[]
+  subjects?: { id: string; name: string; enabled: boolean }[]
+  defaultCompanyId?: string
+}
 export const getFundsOptions = (p: string) =>
   request.get<FundsOptions>(`${base(p)}/_options`, {}, { hiddenError: true }).then(checked)
 export const queryFundsHouses = (p: string, q: Record<string, unknown>) =>

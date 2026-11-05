@@ -132,7 +132,7 @@ export function useCashier(
     try {
       const options = await getCashierOptions(project)
       if (disposed || props.projectId !== project) return
-      // 公司以账单快照为准；无公司快照的旧账单保留项目公司选择。
+      // 后端只提供项目默认公司，原账单公司必须一致，禁止跨公司记账。
       const ids = new Set(props.rows.map((row) => row.companyId || row.snapshot?.standard?.companyId).filter(Boolean))
       companies.value = ids.size > 1 ? [] : ids.size ? options.filter((option) => ids.has(option.id)) : options
       if (ids.size > 1 || (ids.size && !companies.value.length)) notify(new Error(t('CashierDesk.companyMismatch')))

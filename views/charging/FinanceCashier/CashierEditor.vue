@@ -36,7 +36,6 @@ const {
   files,
   uploading,
   invalidFiles,
-  chooseCompany,
   choosePayer,
   filesChanged,
   calculate,
@@ -122,20 +121,6 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
                 <span class="cashier-fixed-company">{{ t('Cashier.company') }}：{{ companies[0].name }}</span>
               </template>
               <div class="cashier-grid">
-                <a-form-item
-                  v-if="companies.length !== 1"
-                  class="cashier-company-field"
-                  :label="t('Cashier.company')"
-                  name="companyId"
-                  :rules="required('Cashier.company')"
-                >
-                  <a-select
-                    :value="model.companyId || undefined"
-                    :options="companies.map((item) => ({ value: item.id, label: item.name }))"
-                    :placeholder="t('Cashier.chooseCompany')"
-                    @change="(value) => chooseCompany(String(value))"
-                  />
-                </a-form-item>
                 <a-form-item
                   :label="t('Cashier.paidAt')"
                   name="paidAt"

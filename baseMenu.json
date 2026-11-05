@@ -884,6 +884,12 @@
           }
         ],
         "buttons": [
+            {
+              "id": "export",
+              "name": "导出",
+              "i18nMessages": { "zh_CN": "导出", "en_US": "Export", "en": "Export" },
+              "permissions": [{ "permission": "property-finance-cashier", "actions": ["export"] }]
+            },
           {
             "id": "refund",
             "name": "退款",
@@ -943,16 +949,131 @@
       {
         "id": "charging-FinanceFunds",
         "code": "charging/FinanceFunds",
-        "name": "预收与押金",
-        "url": "/charging/payment/FinanceFunds",
+        "name": "预收款管理",
+        "url": "/charging/payment/FinanceAdvance",
         "owner": "app",
         "sortIndex": 4,
         "icon": "WalletOutlined",
         "i18nMessages": {
           "name": {
-            "zh_CN": "预收与押金",
-            "en_US": "Advances and deposits",
-            "en": "Advances and deposits"
+            "zh_CN": "预收款管理",
+            "en_US": "Advance management",
+            "en": "Advance management"
+          }
+        },
+        "showPage": ["property-finance-funds"],
+        "permissions": [
+          {
+            "permission": "property-finance-funds",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "refund",
+            "name": "退还",
+            "i18nMessages": {
+              "zh_CN": "退还",
+              "en_US": "Refund",
+              "en": "Refund"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["refund"]
+              }
+            ]
+          },
+          {
+            "id": "transfer",
+            "name": "划转",
+            "i18nMessages": {
+              "zh_CN": "划转",
+              "en_US": "Transfer",
+              "en": "Transfer"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["transfer"]
+              }
+            ]
+          },
+          {
+            "id": "deduct",
+            "name": "扣除",
+            "i18nMessages": {
+              "zh_CN": "扣除",
+              "en_US": "Deduct",
+              "en": "Deduct"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["deduct"]
+              }
+            ]
+          },
+          {
+            "id": "offset",
+            "name": "冲抵账单",
+            "i18nMessages": {
+              "zh_CN": "冲抵账单",
+              "en_US": "Offset bills",
+              "en": "Offset bills"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["offset"]
+              }
+            ]
+          },
+          {
+            "id": "return-offset",
+            "name": "退回余额",
+            "i18nMessages": {
+              "zh_CN": "退回余额",
+              "en_US": "Return to balance",
+              "en": "Return to balance"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["return-offset"]
+              }
+            ]
+          },
+          {
+            "id": "revoke-topup",
+            "name": "撤销预收存入",
+            "i18nMessages": {
+              "zh_CN": "撤销预收存入",
+              "en_US": "Reverse advance top-up",
+              "en": "Reverse advance top-up"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-funds",
+                "actions": ["revoke-topup"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "charging-FinanceDeposit",
+        "code": "charging/FinanceDeposit",
+        "name": "押金管理",
+        "url": "/charging/payment/FinanceDeposit",
+        "owner": "app",
+        "sortIndex": 5,
+        "icon": "WalletOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "押金管理",
+            "en_US": "Deposit management",
+            "en": "Deposit management"
           }
         },
         "showPage": ["property-finance-funds"],

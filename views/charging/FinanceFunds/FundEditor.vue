@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { FundDraft } from '../../../api/financeFunds'
 import { queryFundsHouses } from '../../../api/financeFunds'
 import { useFundEditor } from '../../../hooks/finance-funds/useFundEditor'
@@ -9,23 +10,52 @@ import FundPaymentFields from './FundPaymentFields.vue'
 import FundBills from './FundBills.vue'
 import FundOffsetPreview from './FundOffsetPreview.vue'
 import '../FinanceCashier/cashier.css'
+const title = computed(() =>
+  t(
+    result.value
+      ? 'Funds.succeeded'
+      : model.action === 'TOPUP'
+      ? model.type === 'DEPOSIT'
+        ? 'Funds.collectDeposit'
+        : 'Funds.collectAdvance'
+      : 'Funds.' + model.action
+  )
+)
 const props = defineProps<{ projectId: string; draft: FundDraft }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const state = useFundEditor(props, () => emit('saved'))
-const { t, form, loading, picker, model, confirmation, pick, calculate } = state
+const {
+  t,
+  form,
+  loading,
+  picker,
+  model,
+  confirmation,
+  pick,
+  calculate,
+  paymentStep,
+  uploading,
+  invalidFiles,
+  nextStep
+} = state
 const { preview, result, saving, calculating, uncertain, failed, invalidate, submit } = confirmation
 useProjectSwitchGuard(() => !!result.value)
 function close() {
-  if (!saving.value && !calculating.value && !uncertain.value) emit('close')
+  if (!saving.value && !calculating.value && !uncertain.value && !uploading.value) emit('close')
 }
 </script>
 <template>
-  <JlDrawerShell
-    :open="true"
+  <a-modal
+    open
+    centered
     :width="900"
-    icon="WalletOutlined"
-    :title="t(result ? 'Funds.succeeded' : 'Funds.' + model.action)"
-    @update:open="close"
+    :title="title"
+    :style="{ maxWidth: 'calc(100vw - 2rem)' }"
+    :body-style="{ maxHeight: 'calc(100dvh - 13rem)', overflowY: 'auto' }"
+    :mask-closable="false"
+    :closable="!saving && !calculating && !uncertain && !uploading"
+    :keyboard="!saving && !calculating && !uncertain && !uploading"
+    @cancel="close"
   >
     <div class="cashier-editor">
       <template v-if="result">
@@ -56,7 +86,7 @@ function close() {
       <template v-else>
         <a-steps
           size="small"
-          :current="preview ? 1 : 0"
+          :current="preview || paymentStep ? 1 : 0"
           :items="[{ title: t('Funds.fill') }, { title: t('Funds.review') }]"
         />
         <template v-if="preview">
@@ -73,7 +103,7 @@ function close() {
               :items="[
                 { label: t('Setting.house'), value: preview.fullName },
                 { label: t('Setting.customer'), value: preview.customerName },
-                { label: t('Setting.subject'), value: preview.subjectName },
+                { label: t('Funds.collectionSubject'), value: preview.subjectName },
                 { label: t('Cashier.company'), value: preview.companyName },
                 { label: t('Funds.before'), value: preview.beforeBalance },
                 { label: t('Funds.after'), value: preview.afterBalance },
@@ -116,7 +146,17 @@ function close() {
             :disabled="loading || calculating || saving"
             class="cashier-form"
           >
-            <FundSourceFields :state="state" />
+            <FundSourceFields
+              v-if="model.action !== 'TOPUP' || !paymentStep"
+              :state="state"
+            />
+            <div
+              v-if="model.action === 'TOPUP' && paymentStep"
+              class="cashier-amount"
+            >
+              <span>{{ t('Funds.amount') }}</span>
+              <strong>{{ model.amount }}</strong>
+            </div>
             <FundBills
               v-if="model.action === 'OFFSET' && draft.account"
               :project-id="projectId"
@@ -128,19 +168,37 @@ function close() {
                 }
               "
             />
-            <FundPaymentFields :state="state" />
+            <FundPaymentFields
+              :state="state"
+              :phase="model.action === 'TOPUP' ? (paymentStep ? 'payment' : 'business') : undefined"
+            />
           </a-form>
         </a-spin>
       </template>
     </div>
-    <template #foot>
+    <template #footer>
       <a-button
-        :disabled="saving || calculating || uncertain"
+        :disabled="saving || calculating || uncertain || uploading"
         @click="close"
       >
         {{ t('Finance.close') }}
       </a-button>
       <template v-if="!result">
+        <a-button
+          v-if="paymentStep && !preview"
+          :disabled="calculating || saving || uploading"
+          @click="paymentStep = false"
+        >
+          {{ t('Adjustment.back') }}
+        </a-button>
+        <a-button
+          v-if="model.action === 'TOPUP' && !paymentStep && !preview"
+          type="primary"
+          :disabled="loading || failed"
+          @click="nextStep"
+        >
+          {{ t('Funds.review') }}
+        </a-button>
         <a-button
           v-if="preview"
           :disabled="saving || uncertain"
@@ -157,17 +215,17 @@ function close() {
           {{ t(uncertain ? 'Cashier.retry' : 'Funds.confirm') }}
         </a-button>
         <a-button
-          v-else
+          v-else-if="model.action !== 'TOPUP' || paymentStep"
           type="primary"
           :loading="calculating"
-          :disabled="loading || failed"
+          :disabled="loading || failed || uploading || invalidFiles"
           @click="calculate"
         >
           {{ t('Funds.review') }}
         </a-button>
       </template>
     </template>
-  </JlDrawerShell>
+  </a-modal>
   <SettingHousePicker
     v-if="picker"
     :project-id="projectId"

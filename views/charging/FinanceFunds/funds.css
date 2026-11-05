@@ -1,5 +1,6 @@
 .funds-workspace {
-  margin-top: 16px;
+  flex: 1;
+  margin-top: 0;
   padding: 20px;
   background: var(--panel-background, #fff);
   border: 1px solid var(--line, #f0f0f0);
@@ -35,5 +36,18 @@
   }
   .funds-heading {
     align-items: flex-start;
+  }
+}
+
+.ledger-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  margin-top: 16px;
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .ledger-layout {
+    flex-direction: column;
   }
 }

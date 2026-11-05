@@ -59,7 +59,7 @@ export function usePrepay(
   })
   const setting = computed(() => settings.value.find((s) => s.id === model.settingId))
   const activity = computed(() => setting.value?.activities.find((a) => a.id === model.activityId))
-  const company = computed(() => companies.value.find((c) => c.id === setting.value?.companyId))
+  const company = computed(() => (companies.value.length === 1 ? companies.value[0] : undefined))
   const total = computed(() => quote.value?.payAmount || '0.00')
   const funding = computed<FundingOption[]>(() => frozen.value?.funding || company.value?.funding || [])
   const companyName = computed(() => frozen.value?.companyName || company.value?.name || '')
@@ -125,9 +125,11 @@ export function usePrepay(
         getCashierOptions(project)
       ])
       if (disposed || token !== generation || project !== props.projectId || space !== props.spaceId) return
-      settings.value = choices
+      settings.value = choices.filter(
+        (choice) => paymentOptions.length === 1 && choice.companyId === paymentOptions[0].id
+      )
       companies.value = paymentOptions
-      if (choices.length === 1) chooseSetting(choices[0].id)
+      if (settings.value.length === 1) chooseSetting(settings.value[0].id)
     } catch (error) {
       if (!disposed) {
         loadFailed.value = true
@@ -209,7 +211,7 @@ export function usePrepay(
           request: {
             requestId: paymentRequestId(),
             version: quote.value.version,
-            companyId: setting.value?.companyId,
+            companyId: company.value?.id,
             paidAt: model.paidAt,
             remark: model.remark,
             attachmentName: model.attachmentName,

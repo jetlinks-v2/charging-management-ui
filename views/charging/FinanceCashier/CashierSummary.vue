@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import type { useCashierWorkspace } from '../../../hooks/finance-cashier/useCashierWorkspace'
 const props = defineProps<{ state: ReturnType<typeof useCashierWorkspace>; busy: boolean }>()
-const emit = defineEmits<{ collect: [] }>()
+const emit = defineEmits<{ collect: []; prepay: [] }>()
 const { t } = useI18n()
 const { selected, balances, balanceFailed, total, clear, loading } = props.state
 </script>
@@ -44,6 +44,14 @@ const { selected, balances, balanceFailed, total, clear, loading } = props.state
         @click="emit('collect')"
       >
         {{ t('Cashier.collect') }}
+      </j-permission-button>
+      <j-permission-button
+        block
+        hasPermission="charging/FinanceCashier:collect"
+        :disabled="busy || !state.archive.selected.value?.leaf"
+        @click="emit('prepay')"
+      >
+        {{ t('Prepay.title') }}
       </j-permission-button>
       <a-button
         v-if="selected.length"

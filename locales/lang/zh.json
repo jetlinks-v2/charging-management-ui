@@ -667,6 +667,8 @@
     "hint": "按当前账单金额生成，收款后请重新生成通知单。"
   },
   "Cashier": {
+    "receivedLedger": "已收流水",
+    "originalPayments": "收款明细与退款",
     "uploadReceipt": "点击或拖拽上传缴费凭证",
     "singlePaymentRequired": "每次收款只能选择一种支付方式",
     "fullCollectionRequired": "请按所选账单的剩余应收金额全额收款，账单变化后请重新查询",
@@ -741,6 +743,10 @@
     "empty": "暂无退款记录"
   },
   "Funds": {
+    "companyUnresolved": "项目未配置有效默认收款公司，请检查项目公司关联。",
+    "collectionSubject": "收取科目",
+    "advanceTitle": "预收款管理",
+    "depositTitle": "押金管理",
     "title": "预收与押金",
     "hint": "按房屋和客户查看余额、退还、划转与账单冲抵；新增收取请前往收银台。",
     "all": "全部",
@@ -751,7 +757,7 @@
     "TRANSFER": "划转",
     "TRANSFER_IN": "划入",
     "DEDUCT": "扣除",
-    "OFFSET": "冲抵账单",
+    "OFFSET": "结转",
     "collectAdvance": "收取预收款",
     "collectDeposit": "收取押金",
     "type": "资金类型",
@@ -1811,7 +1817,7 @@
     "findCustomer": "输入客户姓名搜索",
     "freeze": "冻结",
     "frozen": "已冻结",
-    "companyMismatch": "所选费用所属公司不一致或公司未配置，请按公司分别收款",
+    "companyMismatch": "所选费用与项目默认收款公司不一致，请检查项目及收费配置",
     "reductionApplied": "已扣除本次减免，可继续填写本次实收金额"
   },
   "SettingReview": {

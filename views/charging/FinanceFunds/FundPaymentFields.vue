@@ -1,17 +1,21 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { useFundEditor } from '../../../hooks/finance-funds/useFundEditor'
 import { FileUpload } from '@jetlinks-web-core/components'
-const props = defineProps<{ state: ReturnType<typeof useFundEditor> }>()
+const props = defineProps<{ state: ReturnType<typeof useFundEditor>; phase?: 'business' | 'payment' }>()
 const { t, model, funding, optionId, quote, files, filesChanged } = props.state
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t(key) }) }]
+const business = computed(() => props.phase !== 'payment')
+const payment = computed(() => props.phase !== 'business')
 </script>
 <template>
   <SectionCard
     icon="WalletOutlined"
-    :title="t('Funds.operationInfo')"
+    :title="t(payment && !business ? 'Cashier.paymentInfo' : 'Funds.operationInfo')"
   >
     <div class="cashier-grid">
       <a-form-item
+        v-if="business"
         :label="t('Funds.amount')"
         name="amount"
         :rules="required('Funds.amount')"
@@ -21,11 +25,11 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
           string-mode
           :precision="2"
           :min="'0.01'"
-          :disabled="!!model.quantity || model.action === 'OFFSET'"
+          :disabled="(model.type === 'ADVANCE' && !!model.quantity) || model.action === 'OFFSET'"
         />
       </a-form-item>
       <a-form-item
-        v-if="model.action === 'TOPUP'"
+        v-if="business && model.action === 'TOPUP'"
         :label="t('Funds.quantity')"
       >
         <a-input-number
@@ -37,7 +41,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         />
       </a-form-item>
       <a-form-item
-        v-if="['TOPUP', 'REFUND'].includes(model.action)"
+        v-if="payment && ['TOPUP', 'REFUND'].includes(model.action)"
         :label="t('Cashier.method')"
         name="method"
         :rules="required('Cashier.method')"
@@ -48,6 +52,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         />
       </a-form-item>
       <a-form-item
+        v-if="payment"
         :label="t('Funds.occurredAt')"
         name="occurredAt"
         :rules="required('Funds.occurredAt')"
@@ -60,6 +65,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         />
       </a-form-item>
       <a-form-item
+        v-if="payment"
         :label="t('Funds.payer')"
         name="payerName"
         :rules="required('Funds.payer')"
@@ -70,8 +76,10 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         />
       </a-form-item>
       <a-form-item
-        v-if="model.action === 'TOPUP' && model.type === 'ADVANCE'"
+        v-if="business && model.action === 'TOPUP' && model.type === 'ADVANCE'"
         :label="t('Receivable.calcStartDate')"
+        name="startDate"
+        :rules="required('Receivable.calcStartDate')"
       >
         <a-date-picker
           v-model:value="model.startDate"
@@ -79,8 +87,10 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         />
       </a-form-item>
       <a-form-item
-        v-if="model.action === 'TOPUP' && model.type === 'ADVANCE'"
+        v-if="business && model.action === 'TOPUP' && model.type === 'ADVANCE'"
         :label="t('Receivable.calcEndDate')"
+        name="endDate"
+        :rules="required('Receivable.calcEndDate')"
       >
         <a-date-picker
           v-model:value="model.endDate"
@@ -89,9 +99,10 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
       </a-form-item>
     </div>
     <a-form-item
+      v-if="business"
       :label="t('Funds.reason')"
       name="reason"
-      :rules="required('Funds.reason')"
+      :rules="model.action === 'TOPUP' ? [] : required('Funds.reason')"
     >
       <a-textarea
         v-model:value="model.reason"
@@ -100,7 +111,10 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         show-count
       />
     </a-form-item>
-    <a-form-item :label="t('Cashier.attachmentHint')">
+    <a-form-item
+      v-if="payment"
+      :label="t('Cashier.attachmentHint')"
+    >
       <FileUpload
         :value="files"
         :max-count="1"

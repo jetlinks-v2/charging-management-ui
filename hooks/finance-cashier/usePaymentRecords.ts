@@ -6,15 +6,22 @@ import { queryPayments, getPayment, type PaymentDetail } from '../../api/finance
 import { queryTemporaryPayments, getTemporaryPayment } from '../../api/financeTemporary'
 import type { Query } from '../../api/archive'
 import { requestErrorMessage } from '../../utils/requestError'
+import { flattenSpaces, useFinanceSpaceScope } from '../finance-setting/useFinanceSpaceScope'
 export function usePaymentRecords(temporary = false) {
   const { t } = useI18n()
   const context = useProjectContext()
   const projectId = context.projectId
+  const archive = useFinanceSpaceScope()
   const table = ref<{ reload: () => void }>()
   const terms = ref<Query['terms']>([])
   const params = computed(() => ({
     projectId: projectId.value,
-    terms: terms.value,
+    terms: [
+      { terms: terms.value },
+      ...(archive.selected.value
+        ? [{ column: 'spaceId', termType: 'in', value: flattenSpaces([archive.selected.value]).map((v) => v.id) }]
+        : [])
+    ],
     sorts: [{ name: 'createTime', order: 'desc' }]
   }))
   const open = ref(false),
@@ -62,5 +69,5 @@ export function usePaymentRecords(temporary = false) {
     disposed = true
     ++generation
   })
-  return { projectId, table, terms, params, open, loading, failed, detail, request, select, close, notify }
+  return { archive, projectId, table, terms, params, open, loading, failed, detail, request, select, close, notify }
 }

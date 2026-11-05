@@ -37,6 +37,7 @@ export function useTemporaryEditor(props: { projectId: string; initialSpace?: st
     spaceId: '',
     relationshipId: '',
     standardId: '',
+    subjectId: undefined as string | undefined,
     companyId: '',
     startDate: dayjs().format('YYYY-MM-DD'),
     endDate: dayjs().format('YYYY-MM-DD'),
@@ -57,7 +58,38 @@ export function useTemporaryEditor(props: { projectId: string; initialSpace?: st
   )
   const funding = computed(() => options.value.companies.find((v) => v.id === model.companyId)?.funding || [])
   const availableStandards = computed(() =>
-    options.value.standards.filter((v) => !model.companyId || v.companyId === model.companyId)
+    options.value.standards.filter(
+      (v) => !!model.subjectId && v.subjectId === model.subjectId && v.companyId === model.companyId
+    )
+  )
+  const subjects = computed(() => [
+    ...new Map(
+      options.value.standards
+        .filter((v) => !!v.subjectId && v.companyId === model.companyId)
+        .map((v) => [v.subjectId, { id: v.subjectId, name: v.subjectName }])
+    ).values()
+  ])
+  // 公司由项目默认配置提供，科目仅控制标准；恢复中的原请求保持不变。
+  watch(
+    () => model.subjectId,
+    () => {
+      if (confirmation.uncertain.value) return
+      if (options.value.standards.find((v) => v.id === model.standardId)?.subjectId !== model.subjectId) {
+        model.standardId = ''
+      }
+    },
+    { flush: 'sync' }
+  )
+  watch(
+    () => model.standardId,
+    () => {
+      if (confirmation.uncertain.value) return
+      const standard = options.value.standards.find((v) => v.id === model.standardId)
+      if (standard) {
+        model.subjectId = standard.subjectId
+      }
+    },
+    { flush: 'sync' }
   )
   const total = computed(() => {
     try {
@@ -77,6 +109,13 @@ export function useTemporaryEditor(props: { projectId: string; initialSpace?: st
   let disposed = false,
     houseToken = 0
   watch(model, () => confirmation.invalidate(), { deep: true, flush: 'sync' })
+  watch(
+    () => model.amount,
+    () => {
+      if (!confirmation.uncertain.value && model.tenders.length === 1) model.tenders[0].amount = model.amount
+    },
+    { flush: 'sync' }
+  )
   watch(
     () => model.companyId,
     () => {
@@ -184,6 +223,7 @@ export function useTemporaryEditor(props: { projectId: string; initialSpace?: st
     model,
     funding,
     availableStandards,
+    subjects,
     confirmation,
     total,
     tenderTotal,

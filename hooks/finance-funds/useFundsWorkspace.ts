@@ -8,14 +8,16 @@ import { requestErrorMessage } from '../../utils/requestError'
 import { useFundFlow } from './useFundFlow'
 import { useFundReturnFlow } from './useFundReturnFlow'
 import { useFundRevokeFlow } from './useFundRevokeFlow'
+import { flattenSpaces, useFinanceSpaceScope } from '../finance-setting/useFinanceSpaceScope'
 
-export function useFundsWorkspace() {
+export function useFundsWorkspace(fixedType?: FundType) {
   const { t } = useI18n(),
     { projectId } = useProjectContext()
   const flow = useFundFlow(projectId)
   const returns = useFundReturnFlow(projectId)
   const revocations = useFundRevokeFlow(projectId)
-  const type = ref<FundType | ''>(''),
+  const archive = useFinanceSpaceScope()
+  const type = ref<FundType | ''>(fixedType || ''),
     terms = ref<Query['terms']>([])
   const table = ref<{ reload: () => void }>()
   const open = ref(false),
@@ -27,7 +29,13 @@ export function useFundsWorkspace() {
   const params = computed(() => ({
     projectId: projectId.value,
     type: type.value,
-    terms: [{ terms: terms.value }, ...(type.value ? [{ column: 'type', termType: 'eq', value: type.value }] : [])],
+    terms: [
+      { terms: terms.value },
+      ...(type.value ? [{ column: 'type', termType: 'eq', value: type.value }] : []),
+      ...(archive.selected.value
+        ? [{ column: 'spaceId', termType: 'in', value: flattenSpaces([archive.selected.value]).map((v) => v.id) }]
+        : [])
+    ],
     sorts: [{ name: 'modifyTime', order: 'desc' }]
   }))
   const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.failed')), 'error')
@@ -71,13 +79,14 @@ export function useFundsWorkspace() {
   watch(projectId, () => {
     close()
     terms.value = []
-    type.value = ''
+    type.value = fixedType || ''
   })
   onScopeDispose(() => {
     disposed = true
     ++generation
   })
   return {
+    archive,
     projectId,
     flow,
     returns,

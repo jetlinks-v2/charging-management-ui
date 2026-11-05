@@ -9,6 +9,7 @@ export interface TemporaryInput extends Omit<CashierInput, 'items' | 'payerRelat
   spaceId: string
   relationshipId: string
   standardId: string
+  subjectId?: string
   startDate: string
   endDate: string
   accountPeriod: string
