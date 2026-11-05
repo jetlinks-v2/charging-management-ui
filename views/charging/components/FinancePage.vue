@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { FullPage } from '@jetlinks-web-core/layout'
+
+defineProps<{ fixed?: boolean }>()
 </script>
 
 <template>
   <j-page-container>
     <FullPage
       class="finance-page"
-      :fixed="false"
+      :class="{ 'finance-page--fixed': fixed }"
+      :fixed="!!fixed"
+      :flex="!!fixed"
       margin="0"
     >
       <slot />
@@ -19,5 +23,13 @@ import { FullPage } from '@jetlinks-web-core/layout'
   display: flex;
   flex-direction: column;
   container-type: inline-size;
+}
+.finance-page--fixed {
+  min-height: 0;
+  overflow: hidden;
+}
+.finance-page--fixed > :deep(.project-scope-bar),
+.finance-page--fixed > :deep(.cashier-pending-actions) {
+  flex: none;
 }
 </style>

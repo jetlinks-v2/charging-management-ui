@@ -2,14 +2,17 @@
 import FinancePage from '../components/FinancePage.vue'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useReceivableWorkspace } from '../../../hooks/finance-receivable/useReceivableWorkspace'
+import { useCashierWorkspace } from '../../../hooks/finance-cashier/useCashierWorkspace'
 import { useProjectSwitchGuard } from '../../../hooks/project/useProjectContext'
 import { useCollectionRecovery } from '../../../hooks/finance-cashier/useCollectionRecovery'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { watch } from 'vue'
 import type { Receivable } from '../../../api/financeReceivable'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
-import ReceivableTable from '../FinanceReceivable/ReceivableTable.vue'
+import CashierSpaceTree from './CashierSpaceTree.vue'
+import CashierWorkbench from './CashierWorkbench.vue'
+import CashierSummary from './CashierSummary.vue'
+import './workbench.css'
 import ReceivableDetail from '../FinanceReceivable/ReceivableDetail.vue'
 import CashierEditor from './CashierEditor.vue'
 import CashierTools from './CashierTools.vue'
@@ -21,9 +24,9 @@ import { useFundFlow } from '../../../hooks/finance-funds/useFundFlow'
 import { useTemporaryFlow } from '../../../hooks/finance-temporary/useTemporaryFlow'
 import TemporaryEditor from '../FinanceTemporary/TemporaryEditor.vue'
 const { t } = useI18n()
-const state = useReceivableWorkspace()
-const { archive, tree, open, detail, loading, failed, close } = state
-const { projectId, keyword, selectedId, selected, loading: treeLoading } = archive
+const state = useCashierWorkspace()
+const { archive, open, detail, detailLoading: loading, detailFailed: failed, close } = state
+const { projectId, selectedId, selected } = archive
 const temporary = useTemporaryFlow(projectId)
 const {
   open: temporaryOpen,
@@ -41,7 +44,7 @@ const {
 } = prepay
 const funds = useFundFlow(projectId)
 const { draft: fundDraft, pending: fundPending, failed: fundFailed } = funds
-const selection = state.batch.selected
+const selection = state.selected
 const collecting = ref<Receivable[]>()
 const recovery = useCollectionRecovery(projectId)
 const pendingRows = ref<Receivable[]>()
@@ -52,6 +55,7 @@ const busy = computed(
     prepayOpen.value ||
     prepayPending.value ||
     prepayFailed.value ||
+    open.value ||
     !!fundDraft.value ||
     temporaryOpen.value ||
     fundPending.value ||
@@ -76,17 +80,13 @@ function closeEditor() {
   readPending()
 }
 useProjectSwitchGuard(() => !collecting.value && !pendingRows.value && !recoveryFailed.value)
-function refresh() {
-  void archive.loadTree()
-  state.reload()
-}
 function start() {
   if (!busy.value && selection.value.length && selection.value.length <= 100)
     collecting.value = selection.value.map((row) => ({ ...row }))
 }
 function collected() {
   pendingRows.value = undefined
-  state.batch.clear()
+  state.clear()
   state.reload()
 }
 function temporarySaved() {
@@ -99,51 +99,21 @@ function fundSaved() {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed>
     <ProjectScopeBar />
-    <div class="subject-workspace">
-      <aside class="subject-categories">
-        <div class="subject-tree-heading">
-          <strong>{{ t('Setting.spaceTree') }}</strong>
-        </div>
-        <a-input
-          v-model:value="keyword"
-          :placeholder="t('Archive.searchSpace')"
-          :aria-label="t('Archive.searchSpace')"
-          allow-clear
-        />
-        <a-button
-          block
-          :type="selectedId ? 'text' : 'primary'"
-          :ghost="!selectedId"
-          :disabled="busy"
-          class="cashier-all"
-          @click="selectedId = undefined"
-        >
-          {{ t('Archive.allSpaces') }}
-        </a-button>
-        <a-spin :spinning="treeLoading">
-          <a-tree
-            v-if="tree.length"
-            :tree-data="tree"
-            :disabled="busy"
-            :selected-keys="selectedId ? [selectedId] : []"
-            default-expand-all
-            block-node
-            @select="(keys) => (selectedId = keys.length ? String(keys[0]) : undefined)"
-          />
-          <CloudEmpty
-            v-else-if="!treeLoading"
-            :description="t('Archive.noSpaces')"
-          />
-        </a-spin>
-      </aside>
-      <main class="subject-content">
-        <div class="subject-content-heading">
-          <div>
-            <h2>{{ t('Cashier.title') }}</h2>
-            <span class="subject-caption">{{ selected?.spaceLocation || t('Cashier.scopeHint') }}</span>
-          </div>
+    <div
+      class="cashier-workspace"
+      :class="{ 'cashier-workspace-records': state.tab.value === 'records' }"
+    >
+      <CashierSpaceTree
+        :state="state"
+        :busy="busy"
+      />
+      <CashierWorkbench
+        :state="state"
+        :busy="busy"
+      >
+        <template #tools>
           <CashierTools
             :project-id="projectId"
             :busy="busy"
@@ -153,85 +123,44 @@ function fundSaved() {
               (type) => funds.start({ action: 'TOPUP', type, initialSpace: selected?.leaf ? selectedId : undefined })
             "
             @prepay="prepay.start(selectedId || '', selected?.spaceLocation || selected?.name || '')"
-            @refresh="refresh"
           />
-        </div>
-        <a-alert
-          v-if="prepayPending"
-          type="warning"
-          show-icon
-          :message="t('Prepay.pending')"
-          class="cashier-pending"
-        >
-          <template #action>
-            <a-button @click="prepay.recover">{{ t('Cashier.retry') }}</a-button>
-          </template>
-        </a-alert>
-        <a-alert
-          v-if="temporaryPending"
-          type="warning"
-          show-icon
-          :message="t('Temporary.pending')"
-          class="cashier-pending"
-        >
-          <template #action>
-            <a-button @click="temporary.recover">{{ t('Cashier.retry') }}</a-button>
-          </template>
-        </a-alert>
-        <a-alert
-          v-if="fundPending"
-          type="warning"
-          show-icon
-          :message="t('Funds.pending')"
-          class="cashier-pending"
-        >
-          <template #action>
-            <a-button @click="funds.recover">{{ t('Cashier.retry') }}</a-button>
-          </template>
-        </a-alert>
-        <a-alert
-          v-if="pendingRows"
-          type="warning"
-          show-icon
-          class="cashier-pending"
-          :message="t('Cashier.pending')"
-        >
-          <template #action>
-            <a-button @click="collecting = pendingRows">{{ t('Cashier.retry') }}</a-button>
-          </template>
-        </a-alert>
-        <div
-          v-if="selection.length"
-          class="cashier-selected"
-        >
-          <span>{{ t('Receivable.selectedCount', { count: selection.length }) }}</span>
-          <a-space>
-            <a-button
-              type="link"
-              @click="state.batch.clear()"
-            >
-              {{ t('Receivable.clearSelection') }}
-            </a-button>
-            <j-permission-button
-              type="primary"
-              hasPermission="charging/FinanceCashier:collect"
-              :disabled="selection.length > 100 || busy"
-              @click="start"
-            >
-              <AIcon type="WalletOutlined" />
-              {{ t('Cashier.collect') }}
-            </j-permission-button>
-          </a-space>
-        </div>
-        <ReceivableTable
-          :state="state"
-          cashier
-        />
-        <CloudEmpty
-          v-if="!projectId"
-          :description="t('ProjectContext.choose')"
-        />
-      </main>
+        </template>
+      </CashierWorkbench>
+      <CashierSummary
+        v-if="state.tab.value === 'collect'"
+        :state="state"
+        :busy="busy"
+        @collect="start"
+      />
+    </div>
+    <div
+      v-if="pendingRows || prepayPending || temporaryPending || fundPending"
+      class="cashier-pending-actions"
+    >
+      <a-button
+        v-if="pendingRows"
+        @click="collecting = pendingRows"
+      >
+        {{ t('Cashier.retry') }}
+      </a-button>
+      <a-button
+        v-if="prepayPending"
+        @click="prepay.recover"
+      >
+        {{ t('Prepay.pending') }}
+      </a-button>
+      <a-button
+        v-if="temporaryPending"
+        @click="temporary.recover"
+      >
+        {{ t('Temporary.pending') }}
+      </a-button>
+      <a-button
+        v-if="fundPending"
+        @click="funds.recover"
+      >
+        {{ t('Funds.pending') }}
+      </a-button>
     </div>
     <ReceivableDetail
       v-if="open"
@@ -278,12 +207,3 @@ function fundSaved() {
     />
   </FinancePage>
 </template>
-<style scoped src="../FinanceSubject/subject.css"></style>
-<style scoped>
-.cashier-all {
-  margin: 12px 0;
-}
-.subject-categories :deep(.ant-spin-container) {
-  min-height: 260px;
-}
-</style>

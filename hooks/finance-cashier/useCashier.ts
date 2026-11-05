@@ -17,13 +17,14 @@ import {
 } from '../../api/financeCashier'
 import type { CollectionRecovery } from '../../api/financeCashier'
 import type { Receivable } from '../../api/financeReceivable'
+import { cashierReductions, cents, money, type CashierReduction } from '../../utils/cashierTree'
 import { sumMoney } from '../../utils/receivableTotals'
 import { requestErrorMessage } from '../../utils/requestError'
 import { paymentRequestId } from '../../utils/paymentRequest'
 
 /** 正式入账使用冻结的预览输入。网络结果未知时只能复用同一请求重查，防止第二笔收款。 */
 export function useCashier(
-  props: { projectId: string; rows: Receivable[] },
+  props: { projectId: string; rows: Receivable[]; reduction?: CashierReduction },
   saved: () => void,
   recovery?: CollectionRecovery
 ) {
@@ -43,7 +44,9 @@ export function useCashier(
   const invalidFiles = computed(() =>
     files.value.some((file) => file.status !== 'done' || !file.response?.result?.id || file.response?.success === false)
   )
+  const discounts = cashierReductions(props.rows, props.reduction)
   const model = reactive({
+    reduction: props.reduction ? { ...props.reduction } : (undefined as CashierReduction | undefined),
     companyId: '',
     payerName: props.rows[0]?.customerName || '',
     payerRelationshipId: undefined as string | undefined,
@@ -51,7 +54,11 @@ export function useCashier(
     remark: '',
     attachmentName: '',
     attachmentFileId: '',
-    items: props.rows.map((row) => ({ id: row.id, version: row.version, amount: row.arrears })),
+    items: props.rows.map((row) => ({
+      id: row.id,
+      version: row.version,
+      amount: money(cents(row.arrears) - cents(discounts[props.rows.indexOf(row)]))
+    })),
     tenders: [] as { optionId: string; amount: string }[]
   })
   let disposed = false,
@@ -125,8 +132,11 @@ export function useCashier(
     try {
       const options = await getCashierOptions(project)
       if (disposed || props.projectId !== project) return
-      companies.value = options
-      if (options.length === 1) chooseCompany(options[0].id)
+      // 公司以账单快照为准；无公司快照的旧账单保留项目公司选择。
+      const ids = new Set(props.rows.map((row) => row.companyId || row.snapshot?.standard?.companyId).filter(Boolean))
+      companies.value = ids.size > 1 ? [] : ids.size ? options.filter((option) => ids.has(option.id)) : options
+      if (ids.size > 1 || (ids.size && !companies.value.length)) notify(new Error(t('CashierDesk.companyMismatch')))
+      if (companies.value.length === 1) chooseCompany(companies.value[0].id)
     } catch (error) {
       if (!disposed) notify(error)
     } finally {

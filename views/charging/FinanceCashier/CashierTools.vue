@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 defineProps<{ projectId: string; busy: boolean; leaf: boolean }>()
-const emit = defineEmits<{ temporary: []; topup: [type: 'ADVANCE' | 'DEPOSIT']; prepay: []; refresh: [] }>()
+const emit = defineEmits<{ temporary: []; topup: [type: 'ADVANCE' | 'DEPOSIT']; prepay: [] }>()
 const { t } = useI18n()
 </script>
 <template>
@@ -38,12 +38,5 @@ const { t } = useI18n()
       <AIcon type="SafetyCertificateOutlined" />
       {{ t('Funds.collectDeposit') }}
     </j-permission-button>
-    <a-button
-      :disabled="!projectId || busy"
-      :aria-label="t('Finance.refresh')"
-      @click="emit('refresh')"
-    >
-      <AIcon type="ReloadOutlined" />
-    </a-button>
   </a-space>
 </template>

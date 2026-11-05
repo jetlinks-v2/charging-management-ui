@@ -22,13 +22,16 @@ const columns = [
     :scroll="{ x: 740, y: 280 }"
   >
     <template #bodyCell="{ column, record, index }">
-      <template v-if="column.key === 'amount'">
+      <template v-if="column.dataIndex === 'customerName'">
+        {{ record.customerNames?.length ? record.customerNames.join('、') : record.customerName }}
+      </template>
+      <template v-else-if="column.key === 'amount'">
         <a-input-number
           v-if="editable"
           :value="amounts?.[index]?.amount"
           string-mode
           :precision="2"
-          :min="'0.01'"
+          :min="'0.00'"
           :max="'999999999999999999.99'"
           :aria-label="`${record.subjectName} ${t('Cashier.amount')}`"
           @update:value="(value) => emit('amount', index, String(value ?? ''))"

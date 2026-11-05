@@ -25,8 +25,8 @@ const result = await build({
           contents: args.path.includes('financeCashier')
             ? exports.map((name) => `export const ${name}=(...a)=>globalThis.__cashierApi.${name}(...a)`).join('\n')
             : args.path === 'vue-i18n'
-              ? 'export const useI18n=()=>({t:key=>key})'
-              : 'export const onlyMessage=(...a)=>globalThis.__cashierMessages.push(a)'
+            ? 'export const useI18n=()=>({t:key=>key})'
+            : 'export const onlyMessage=(...a)=>globalThis.__cashierMessages.push(a)'
         }))
       }
     }
@@ -35,7 +35,7 @@ const result = await build({
 const mod = { exports: {} }
 new Function('require', 'module', 'exports', result.outputFiles[0].text)(require, mod, mod.exports)
 const row = { id: 'bill', version: 3, arrears: '10.01', customerName: '龚超', fullName: '5G园区/101' }
-function mount(api = {}, recovery) {
+function mount(api = {}, recovery, overrides = {}) {
   globalThis.__cashierMessages = []
   globalThis.__cashierApi = {
     getCashierOptions: async () => [
@@ -48,7 +48,7 @@ function mount(api = {}, recovery) {
   }
   let state,
     saved = 0
-  const props = reactive({ projectId: 'a', rows: [{ ...row }] })
+  const props = reactive({ projectId: 'a', rows: [{ ...row }], ...overrides })
   const renderer = createRenderer({
     patchProp() {},
     insert() {},
@@ -248,4 +248,27 @@ test('不能可靠保留原请求时不发送收款，损坏的待确认数据�
   assert.equal(calls, 0)
   assert.equal(broken.state.recoveryFailed.value, true)
   broken.unmount()
+})
+
+test('减免带入确认请求并初始化净收款，公司锁定账单公司，恢复沿原减免请求', async () => {
+  const calls = []
+  const reduction = { mode: 'AMOUNT', value: '1.01', reason: '柜台优惠' }
+  const { state, unmount } = mount(
+    {
+      previewCollection: async (_project, payload) => {
+        calls.push(payload)
+        return { token: 'discount', total: '9.00', rows: [row] }
+      }
+    },
+    undefined,
+    { reduction, rows: [{ ...row, companyId: 'company' }] }
+  )
+  await flush()
+  assert.equal(state.model.items[0].amount, '9.00')
+  assert.equal(state.model.tenders[0].amount, '9.00')
+  assert.equal(state.model.companyId, 'company')
+  await state.calculate()
+  assert.deepEqual(calls[0].reduction, reduction)
+  assert.equal(calls[0].items[0].amount, '9.00')
+  unmount()
 })

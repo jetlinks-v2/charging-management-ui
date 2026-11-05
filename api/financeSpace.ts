@@ -4,6 +4,7 @@ import { moduleRegistry } from '@jetlinks-web-core/utils/module-registry'
 export interface FinanceSpace {
   id: string
   name: string
+  fullName?: string
   spaceTypeName?: string
   spaceLocation?: string
   leaf: boolean

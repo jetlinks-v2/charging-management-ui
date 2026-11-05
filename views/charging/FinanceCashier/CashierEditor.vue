@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import type { CashierReduction } from '../../../utils/cashierTree'
 import type { Receivable } from '../../../api/financeReceivable'
 import { FileUpload } from '@jetlinks-web-core/components'
 import { useCashier } from '../../../hooks/finance-cashier/useCashier'
@@ -9,7 +10,7 @@ import CashierBills from './CashierBills.vue'
 import CashierFunding from './CashierFunding.vue'
 import PaymentSummary from './PaymentSummary.vue'
 import './cashier.css'
-const props = defineProps<{ projectId: string; rows: Receivable[] }>()
+const props = defineProps<{ projectId: string; rows: Receivable[]; reduction?: CashierReduction }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
 const state = useCashier(
@@ -145,6 +146,12 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
                 editable
                 @amount="(index, value) => (model.items[index].amount = value)"
               />
+              <div
+                v-if="model.reduction"
+                class="cashier-reduction-info"
+              >
+                {{ t('CashierDesk.reductionApplied') }} · {{ model.reduction.reason }}
+              </div>
               <div class="cashier-inline-total">
                 {{ t('Cashier.total') }}
                 <strong>{{ total }}</strong>
@@ -162,6 +169,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
                 >
                   <a-select
                     :value="model.companyId || undefined"
+                    :disabled="companies.length === 1"
                     :options="companies.map((item) => ({ value: item.id, label: item.name }))"
                     :placeholder="t('Cashier.chooseCompany')"
                     @change="(value) => chooseCompany(String(value))"

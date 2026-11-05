@@ -1,6 +1,7 @@
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Query, type Page } from './archive'
 import type { Receivable } from './financeReceivable'
+import type { CashierReduction } from '../utils/cashierTree'
 const request: Pick<Request, 'get' | 'post'> = hostRequest
 const base = (project: string) => `/property/finance/projects/${encodeURIComponent(project)}/cashier`
 export interface FundingOption {
@@ -29,6 +30,7 @@ export interface CashierInput {
   attachmentFileId?: string
   items: { id: string; version: number; amount: string }[]
   tenders: { method: string; recordedId?: string; amount: string }[]
+  reduction?: CashierReduction
 }
 export interface CollectionPreview {
   token: string
@@ -114,6 +116,11 @@ export interface CollectionRecovery {
 }
 export const getCashierOptions = (project: string) =>
   request.get<CashierCompany[]>(`${base(project)}/_options`, {}, { hiddenError: true }).then(checked)
+export const queryCashierBills = (project: string, query: Query) =>
+  request.post<Page<Receivable>>(`${base(project)}/bills/_query`, query, { hiddenError: true }).then((response) => {
+    checked(response)
+    return response
+  })
 export const getCashierPayers = (project: string, ids: string[]) =>
   request.post<CashierPayer[]>(`${base(project)}/payers/_query`, ids, { hiddenError: true }).then(checked)
 export const previewCollection = (project: string, input: CashierInput) =>

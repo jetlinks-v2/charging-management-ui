@@ -25,6 +25,11 @@ export interface Receivable {
   id: string
   projectId: string
   projectName?: string
+  companyId?: string
+  paymentLocked?: boolean
+  bankCollectionLocked?: boolean
+  discountLocked?: boolean
+  paymentOccupiedAmount?: string
   spaceId: string
   fullName: string
   price?: string
