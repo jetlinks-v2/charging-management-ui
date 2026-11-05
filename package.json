@@ -6,8 +6,9 @@
   "description": "收费管理运行端前端模块",
   "main": "index.ts",
   "scripts": {
-    "dev": "pnpm --filter jetlinks-web-core dev -- -- --module-name charging-management-ui,authentication-manager-ui",
+    "dev": "pnpm --filter jetlinks-web-core dev -- -- --module-name charging-management-ui,property-base-ui,authentication-manager-ui",
     "build": "pnpm --filter jetlinks-web-core build -- -- --module-name charging-management-ui",
+    "build:with-base": "pnpm --filter jetlinks-web-core build -- -- --module-name charging-management-ui,property-base-ui",
     "test": "node --test tests/*.test.mjs",
     "typecheck": "vue-tsc -p tsconfig.json --noEmit"
   }

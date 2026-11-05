@@ -1,40 +1,5 @@
-import {
-  queryPropertyUsers,
-  countPropertyUsers,
-  getPropertyUser,
-  getUserIdentities,
-  setUserIdentities,
-  synchronizeUsers,
-  getUserSyncStatus
-} from './api/user'
-import { getProjectOptions } from './api/project'
-import * as archive from './api/archive'
-import {
-  getOrganizationTree,
-  getOrganization,
-  getOrganizationTypes,
-  setOrganizationType,
-  synchronizeOrganizations,
-  getOrganizationSyncStatus
-} from './api/organization'
-
+// 基础能力统一向 property-base-ui 获取，避免收费模块再次发布同一套资源。
 export default {
-  apis: {
-    ...archive,
-    queryPropertyUsers,
-    countPropertyUsers,
-    getPropertyUser,
-    getUserIdentities,
-    setUserIdentities,
-    synchronizeUsers,
-    getUserSyncStatus,
-    getProjectOptions,
-    getOrganizationTree,
-    getOrganization,
-    getOrganizationTypes,
-    setOrganizationType,
-    synchronizeOrganizations,
-    getOrganizationSyncStatus
-  },
+  apis: {},
   components: {}
 }
