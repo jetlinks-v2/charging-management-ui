@@ -2358,6 +2358,48 @@
             ]
           }
         ]
+      },
+      {
+        "id": "charging-FinanceInvoiceReport",
+        "code": "charging/FinanceInvoiceReport",
+        "name": "开票统计",
+        "url": "/charging/reports/FinanceInvoiceReport",
+        "owner": "app",
+        "sortIndex": 3,
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "开票统计",
+            "en_US": "Invoice coverage",
+            "en": "Invoice coverage"
+          }
+        },
+        "permissions": [
+          {
+            "permission": "property-finance-report-invoice",
+            "actions": [
+              "query"
+            ]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "export",
+            "name": "导出 / 打印",
+            "i18nMessages": {
+              "zh_CN": "导出 / 打印",
+              "en_US": "Export / print",
+              "en": "Export / print"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-report-invoice",
+                "actions": [
+                  "export"
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   }

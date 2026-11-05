@@ -160,3 +160,11 @@ Excel 模板由 `GET /property/{house|customer}/template.xlsx?projectId=` 提供
 筛选草稿需点击查询才生效，翻页、刷新、下载和打印共用已应用条件。发生日落入费用期间才为本期，非本期含未提供期间的流水；未筛选收款日期时隐藏本期/非本期，避免显示虚假分类。退款显示正数，净实收按现金方向可为负数；浏览器不对正式资金金额做浮点计算。
 
 沿用 Ant/JetLinks 报表布局与表格分页，操作失败仅消息提示，清空旧汇总而不渲染后台 JSON。导出和打印使用独立按钮权限 `charging/FinanceReceivedReport:export`。`useReportExport`、`ReportExportActions` 和 `ReportPdfPreview` 为应收/实收报表共用能力，负责冻结筛选、项目守卫、迟到响应失效及预览资源释放；具体金额与来源字段由各自 typed API/hook 承担。
+
+## 开票统计界面
+
+菜单“财务报表 → 开票统计”代码为 `charging/FinanceInvoiceReport`，接口封装 `api/financeInvoiceReport.ts`，状态在 `hooks/finance-report/useInvoiceReport.ts`。查询与导出分别授权 `property-finance-report-invoice:query/export`，部署后增量导入菜单并分配按钮权限。
+
+页面按来源查看当前模拟发票覆盖，展示来源基数、已收、已开和未开金额，提供明细、项目、科目汇总及科目钻取；不包含收据，不表示税务申报或立即可开额度。日期、发票号码及类型均明确匹配来源最新蓝票；红冲后保留历史票号，新蓝票恢复覆盖。金额直接展示服务端精确文本，不在浏览器计算正式财务金额。
+
+项目范围默认当前项目，可单独多选已授权项目。筛选草稿查询后生效，分页、刷新及文件共用已应用条件。查询失败清空旧摘要，错误仅消息提示；导出超过10000行明确拒绝。复用 `ReportSummary`、`ReportExportActions`、`ReportPdfPreview` 和 `useReportExport`，统一展示、文件预览、资源释放及上下文守卫。详情为只读来源统计，不在收银台添加开票功能。
