@@ -96,13 +96,12 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
             />
           </a-form-item>
           <a-form-item
-            name="standardCode"
+            v-if="detail"
             :label="t('Standard.standardCode')"
-            :rules="required('standardCode')"
           >
             <a-input
-              v-model:value="model.standardCode"
-              :maxlength="60"
+              :value="detail?.standardCode"
+              disabled
             />
           </a-form-item>
         </div>

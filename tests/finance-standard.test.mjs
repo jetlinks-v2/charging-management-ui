@@ -392,3 +392,21 @@ test('failed formula check keeps dialog open and does not apply invalid formula'
   assert.deepEqual(applied, [])
   unmount()
 })
+
+test('create and edit submit without standard code so the server owns its identity', async () => {
+  const submitted = []
+  const props = reactive({ open: true, options: options() })
+  const { state, unmount } = mount(() => useStandardForm(props, (input) => submitted.push(input)))
+  state.model.standardName = '新标准'
+  state.model.standardCode = 'CLIENT-INJECTED'
+  await state.submit()
+  assert.equal(submitted.length, 1)
+  assert.equal(Object.hasOwn(submitted[0], 'standardCode'), false)
+  props.detail = row('existing')
+  await nextTick()
+  await state.submit()
+  assert.equal(submitted.length, 2)
+  assert.equal(Object.hasOwn(submitted[1], 'standardCode'), false)
+  assert.equal(submitted[1].version, 7)
+  unmount()
+})

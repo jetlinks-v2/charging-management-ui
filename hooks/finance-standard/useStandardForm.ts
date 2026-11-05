@@ -12,7 +12,6 @@ export function useStandardForm(
   const { t } = useI18n(),
     form = ref<FormInstance>()
   const defaults = (): StandardInput => ({
-    standardCode: '',
     standardName: '',
     subjectId: props.selectedSubjectId || '',
     billingMethod: 'AREA',
@@ -86,7 +85,6 @@ export function useStandardForm(
     // 不提交后端详情/快照字段；关闭逾期时清空旧规则，避免隐藏数据继续参与计算。
     const {
       version,
-      standardCode,
       standardName,
       subjectId,
       billingMethod,
@@ -108,7 +106,6 @@ export function useStandardForm(
     } = model
     save({
       version,
-      standardCode: standardCode.trim(),
       standardName: standardName.trim(),
       subjectId,
       billingMethod,

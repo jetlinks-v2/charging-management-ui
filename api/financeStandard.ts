@@ -21,7 +21,6 @@ export interface FormulaVariable {
 }
 export interface StandardInput {
   version?: number
-  standardCode: string
   standardName: string
   subjectId: string
   billingMethod: string
@@ -43,6 +42,7 @@ export interface StandardInput {
   remark?: string
 }
 export interface FinanceStandard extends StandardInput {
+  standardCode: string
   id: string
   version: number
   projectId: string

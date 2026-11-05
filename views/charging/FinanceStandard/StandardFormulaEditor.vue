@@ -54,11 +54,7 @@ function insert(value: string) {
           {{ item.variableName }}
         </a-button>
       </a-space>
-      <a-space
-        wrap
-        :size="[8, 8]"
-        class="formula-operators"
-      >
+      <div class="formula-operators">
         <a-button
           v-for="operator in ['+', '-', '*', '/', '(', ')']"
           :key="operator"
@@ -74,7 +70,7 @@ function insert(value: string) {
         >
           {{ t('Standard.resetFormula') }}
         </a-button>
-      </a-space>
+      </div>
       <label
         for="standard-formula-expression"
         class="formula-label"
@@ -100,19 +96,25 @@ function insert(value: string) {
 </template>
 <style scoped>
 .formula-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
   padding-top: 8px;
 }
 .formula-label {
   display: block;
-  margin-bottom: 10px;
+  margin: 0;
   font-weight: 500;
 }
 .formula-operators {
   display: flex;
-  margin: 16px 0 24px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 .formula-preview {
-  margin-top: 16px;
   padding: 14px 16px;
   background: var(--bg-2, #fafafa);
   border: 1px solid var(--line, #f0f0f0);
@@ -127,8 +129,5 @@ function insert(value: string) {
   margin: 8px 0 0;
   line-height: 1.7;
   overflow-wrap: anywhere;
-}
-.formula-hint {
-  margin-top: 12px;
 }
 </style>
