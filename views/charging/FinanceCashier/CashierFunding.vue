@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { useCashier } from '../../../hooks/finance-cashier/useCashier'
 const props = defineProps<{
+  compact?: boolean
+  single?: boolean
   state: Pick<ReturnType<typeof useCashier>, 'funding' | 'total' | 'tenderTotal' | 'balanced' | 'addTender'> & {
     model: { tenders: { optionId: string; amount: string }[] }
   }
@@ -25,6 +27,7 @@ const options = computed(() =>
       v-for="(tender, index) in model.tenders"
       :key="index"
       class="cashier-tender"
+      :class="{ 'cashier-tender-single': single }"
     >
       <a-form-item
         :label="t('Cashier.method')"
@@ -47,14 +50,22 @@ const options = computed(() =>
         :rules="[{ required: true, message: t('Cashier.requiredAmount') }]"
       >
         <a-input-number
+          v-if="!single"
           v-model:value="tender.amount"
           string-mode
           :precision="2"
           :min="'0.01'"
           :max="'999999999999999999.99'"
         />
+        <strong
+          v-else
+          class="cashier-fixed-tender cashier-money"
+        >
+          {{ tender.amount }}
+        </strong>
       </a-form-item>
       <a-button
+        v-if="!single && (!compact || model.tenders.length > 1)"
         :disabled="model.tenders.length === 1"
         type="text"
         :aria-label="t('Cashier.removeTender')"
@@ -63,8 +74,12 @@ const options = computed(() =>
         <AIcon type="DeleteOutlined" />
       </a-button>
     </div>
-    <div class="cashier-funding-footer">
+    <div
+      v-if="!single && (!compact || funding.length > 1 || !balanced)"
+      class="cashier-funding-footer"
+    >
       <a-button
+        v-if="!compact || funding.length > 1"
         type="dashed"
         :disabled="model.tenders.length >= funding.length || model.tenders.length >= 10"
         @click="addTender"
@@ -72,7 +87,10 @@ const options = computed(() =>
         <AIcon type="PlusOutlined" />
         {{ t('Cashier.addTender') }}
       </a-button>
-      <span :class="{ 'cashier-unbalanced': !balanced }">
+      <span
+        v-if="!compact || !balanced"
+        :class="{ 'cashier-unbalanced': !balanced }"
+      >
         {{ t('Cashier.fundingTotal') }}
         <strong>{{ tenderTotal }}</strong>
         / {{ total }}

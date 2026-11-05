@@ -667,6 +667,9 @@
     "hint": "按当前账单金额生成，收款后请重新生成通知单。"
   },
   "Cashier": {
+    "uploadReceipt": "点击或拖拽上传缴费凭证",
+    "singlePaymentRequired": "每次收款只能选择一种支付方式",
+    "fullCollectionRequired": "请按所选账单的剩余应收金额全额收款，账单变化后请重新查询",
     "title": "收银台",
     "scopeHint": "选择房屋与待收账单，核对款项后收款。",
     "collect": "收款",

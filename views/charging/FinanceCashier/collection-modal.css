@@ -1,0 +1,121 @@
+.cashier-collection-body {
+  --panel-padding: 1rem;
+  --panel-gap: 0.75rem;
+  gap: 1rem;
+}
+.cashier-collection-body .section {
+  margin-bottom: 0;
+}
+.cashier-collection-body .cashier-form {
+  gap: 1rem;
+}
+.cashier-dialog-context {
+  margin-top: 0.375rem;
+  padding-right: 1.5rem;
+  color: var(--ant-color-text-secondary, var(--ink-2));
+  font-size: var(--fs-12);
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.cashier-fixed-company {
+  display: block;
+  max-width: 24rem;
+  color: var(--ant-color-text-secondary, var(--ink-2));
+  font-size: var(--fs-12);
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.cashier-collection-body .cashier-grid {
+  gap: 0 1.5rem;
+}
+.cashier-collection-body .cashier-grid .ant-form-item,
+.cashier-collection-body .cashier-tender .ant-form-item {
+  margin-bottom: 0;
+}
+.cashier-collection-body .cashier-grid .cashier-company-field {
+  grid-column: 1 / -1;
+  margin-bottom: 1rem;
+}
+.cashier-collection-body .cashier-tender + .cashier-tender {
+  margin-top: 1rem;
+}
+.cashier-collection-body .cashier-tender-single {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.cashier-collection-body .cashier-tender > .ant-btn {
+  align-self: end;
+  margin-top: 0;
+}
+.cashier-collection-body .ant-input-number {
+  width: 100%;
+}
+.cashier-collection-body .ant-table .ant-input-number-input {
+  text-align: right;
+}
+.cashier-collection-body .cashier-supplement .ant-collapse-header {
+  padding: 0.25rem 0;
+}
+.cashier-collection-body .cashier-supplement .ant-collapse-content-box {
+  padding: 1rem 0 0;
+}
+.cashier-collection-body .cashier-fixed-tender {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  justify-content: flex-end;
+}
+.cashier-collection-body .cashier-receipt-field {
+  margin-bottom: 0;
+}
+.cashier-receipt-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  text-align: left;
+}
+.cashier-receipt-dropzone > .anticon {
+  color: var(--ant-color-primary, var(--accent));
+  font-size: var(--fs-32, 2rem);
+}
+.cashier-receipt-title {
+  font-weight: 500;
+}
+.cashier-receipt-hint {
+  margin-top: 0.375rem;
+  color: var(--ant-color-text-secondary, var(--ink-2));
+  font-size: var(--fs-12);
+}
+.cashier-collection-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+.cashier-collection-footer > .ant-space {
+  margin-left: auto;
+}
+.cashier-collection-total {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+.cashier-collection-total strong {
+  font-size: var(--fs-24, 1.5rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .cashier-fixed-company {
+    max-width: 12rem;
+  }
+  .cashier-collection-body .cashier-grid {
+    row-gap: 1rem;
+  }
+  .cashier-collection-body .cashier-tender {
+    row-gap: 0.75rem;
+  }
+}

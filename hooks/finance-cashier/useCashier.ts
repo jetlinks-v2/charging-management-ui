@@ -171,6 +171,22 @@ export function useCashier(
     } catch {
       return
     }
+    if (model.tenders.length !== 1) {
+      onlyMessage(t('Cashier.singlePaymentRequired'), 'error')
+      return
+    }
+    let fullCollection = false
+    try {
+      fullCollection = model.items.every(
+        (item, index) => cents(item.amount) === cents(props.rows[index].arrears) - cents(discounts[index])
+      )
+    } catch {
+      // 非法金额与过期账单统一要求重新查询，不能带入收款预览。
+    }
+    if (!fullCollection) {
+      onlyMessage(t('Cashier.fullCollectionRequired'), 'error')
+      return
+    }
     if (!balanced.value) {
       onlyMessage(t('Cashier.unbalanced'), 'error')
       return

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { CashierReduction } from '../../../utils/cashierTree'
 import type { Receivable } from '../../../api/financeReceivable'
@@ -9,7 +10,9 @@ import { useCollectionRecovery } from '../../../hooks/finance-cashier/useCollect
 import CashierBills from './CashierBills.vue'
 import CashierFunding from './CashierFunding.vue'
 import PaymentSummary from './PaymentSummary.vue'
+import CollectionPreview from './collection/CollectionPreview.vue'
 import './cashier.css'
+import './collection-modal.css'
 const props = defineProps<{ projectId: string; rows: Receivable[]; reduction?: CashierReduction }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
@@ -40,6 +43,11 @@ const {
   submit,
   invalidate
 } = state
+const sameHouse = computed(() => rowsInSameHouse(props.rows))
+function rowsInSameHouse(rows: Receivable[]) {
+  return !!rows[0]?.spaceId && rows.every((row) => row.spaceId === rows[0].spaceId)
+}
+const locked = computed(() => saving.value || calculating.value || uploading.value || uncertain.value)
 useProjectSwitchGuard(() => !!result.value)
 function close() {
   if (!saving.value && !calculating.value && !uploading.value && !uncertain.value) emit('close')
@@ -47,84 +55,35 @@ function close() {
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t(key) }) }]
 </script>
 <template>
-  <JlDrawerShell
-    :open="true"
-    :width="960"
-    icon="WalletOutlined"
-    :title="t(result ? 'Cashier.paymentInfo' : 'Cashier.collect')"
-    :sub="rows.length === 1 ? rows[0].fullName : t('Receivable.selectedCount', { count: rows.length })"
-    @update:open="close"
+  <a-modal
+    open
+    centered
+    :width="1000"
+    :style="{ maxWidth: 'calc(100vw - 2rem)' }"
+    :body-style="{ maxHeight: 'calc(100dvh - 13rem)', overflowY: 'auto' }"
+    wrap-class-name="cashier-collection-modal"
+    :mask-closable="false"
+    :closable="!locked"
+    :keyboard="!locked"
+    @cancel="close"
   >
-    <div class="cashier-editor">
+    <template #title>
+      <div>{{ t(result ? 'Cashier.paymentInfo' : preview ? 'Cashier.confirmTitle' : 'Cashier.collect') }}</div>
+      <div class="cashier-dialog-context">
+        {{ sameHouse ? rows[0].fullName : t('Receivable.selectedCount', { count: rows.length }) }}
+      </div>
+    </template>
+    <div class="cashier-editor cashier-collection-body">
       <PaymentSummary
         v-if="result"
         :detail="result"
       />
       <template v-else>
-        <a-steps
-          :current="preview ? 1 : 0"
-          size="small"
-          :items="[{ title: t('Cashier.edit') }, { title: t('Cashier.confirmTitle') }]"
+        <CollectionPreview
+          v-if="preview"
+          :state="state"
+          :hide-house="sameHouse"
         />
-        <template v-if="preview">
-          <div class="cashier-amount">
-            <span>{{ t('Cashier.total') }}</span>
-            <strong>{{ preview.total }}</strong>
-          </div>
-          <SectionCard
-            icon="ProfileOutlined"
-            :title="t('Cashier.paymentInfo')"
-          >
-            <KvGrid
-              :cols="2"
-              :items="[
-                { label: t('Cashier.company'), value: preview.companyName },
-                { label: t('Cashier.payer'), value: preview.payerName },
-                { label: t('Cashier.paidAt'), value: model.paidAt.replace('T', ' ') },
-                { label: t('Setting.remark'), value: model.remark || '—' }
-              ]"
-            />
-          </SectionCard>
-          <SectionCard
-            icon="UnorderedListOutlined"
-            :title="t('Cashier.bills')"
-          >
-            <CashierBills
-              :rows="preview.rows"
-              :amounts="model.items"
-            />
-          </SectionCard>
-          <SectionCard
-            icon="WalletOutlined"
-            :title="t('Cashier.funding')"
-          >
-            <div
-              v-for="(tender, index) in model.tenders"
-              :key="index"
-              class="cashier-preview-tender"
-            >
-              <span>
-                {{
-                  state.funding.value.find((item) => item.id === tender.optionId)?.text ||
-                  preview.allocations.find((item) => item.tenderIndex === index)?.methodText
-                }}
-                <small>
-                  {{
-                    state.funding.value.find((item) => item.id === tender.optionId)?.bankName ||
-                    preview.allocations.find((item) => item.tenderIndex === index)?.bankName
-                  }}
-                </small>
-              </span>
-              <strong>{{ tender.amount }}</strong>
-            </div>
-          </SectionCard>
-          <a-alert
-            v-if="uncertain"
-            type="warning"
-            show-icon
-            :message="t('Cashier.unknownResult')"
-          />
-        </template>
         <a-spin
           v-else
           :spinning="loading"
@@ -143,8 +102,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
               <CashierBills
                 :rows="rows"
                 :amounts="model.items"
-                editable
-                @amount="(index, value) => (model.items[index].amount = value)"
+                :hide-house="sameHouse"
               />
               <div
                 v-if="model.reduction"
@@ -152,24 +110,27 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
               >
                 {{ t('CashierDesk.reductionApplied') }} · {{ model.reduction.reason }}
               </div>
-              <div class="cashier-inline-total">
-                {{ t('Cashier.total') }}
-                <strong>{{ total }}</strong>
-              </div>
             </SectionCard>
             <SectionCard
               icon="ProfileOutlined"
               :title="t('Cashier.paymentInfo')"
             >
+              <template
+                v-if="companies.length === 1"
+                #actions
+              >
+                <span class="cashier-fixed-company">{{ t('Cashier.company') }}：{{ companies[0].name }}</span>
+              </template>
               <div class="cashier-grid">
                 <a-form-item
+                  v-if="companies.length !== 1"
+                  class="cashier-company-field"
                   :label="t('Cashier.company')"
                   name="companyId"
                   :rules="required('Cashier.company')"
                 >
                   <a-select
                     :value="model.companyId || undefined"
-                    :disabled="companies.length === 1"
                     :options="companies.map((item) => ({ value: item.id, label: item.name }))"
                     :placeholder="t('Cashier.chooseCompany')"
                     @change="(value) => chooseCompany(String(value))"
@@ -204,80 +165,98 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
                     @change="(value) => choosePayer(value ? String(value) : undefined)"
                   />
                 </a-form-item>
-                <a-form-item
-                  :label="t('Cashier.payer')"
-                  name="payerName"
-                  :rules="required('Cashier.payer')"
-                >
-                  <a-input
-                    v-model:value="model.payerName"
-                    :maxlength="128"
-                    disabled
-                  />
-                </a-form-item>
               </div>
             </SectionCard>
-            <CashierFunding :state="state" />
-            <SectionCard
-              icon="PaperClipOutlined"
-              :title="t('Cashier.supplement')"
+            <CashierFunding
+              :state="state"
+              compact
+              single
+            />
+            <a-collapse
+              ghost
+              class="cashier-supplement"
             >
-              <a-form-item :label="t('Setting.remark')">
-                <a-textarea
-                  v-model:value="model.remark"
-                  :maxlength="1000"
-                  :rows="2"
-                  show-count
-                />
-              </a-form-item>
-              <a-form-item :label="t('Cashier.attachmentHint')">
-                <FileUpload
-                  :value="files"
-                  :size="20"
-                  :max-count="1"
-                  :disabled="calculating || saving"
-                  :btn-text="t('Adjustment.upload')"
-                  @upload-change="filesChanged"
-                />
-              </a-form-item>
-            </SectionCard>
+              <a-collapse-panel
+                key="supplement"
+                :header="t('Cashier.supplement')"
+              >
+                <a-form-item :label="t('Setting.remark')">
+                  <a-textarea
+                    v-model:value="model.remark"
+                    :maxlength="1000"
+                    :rows="2"
+                    show-count
+                  />
+                </a-form-item>
+                <a-form-item class="cashier-receipt-field">
+                  <FileUpload
+                    :value="files"
+                    :size="20"
+                    :max-count="1"
+                    drag
+                    :multiple="false"
+                    :disabled="calculating || saving || loading"
+                    @upload-change="filesChanged"
+                  >
+                    <div class="cashier-receipt-dropzone">
+                      <AIcon type="InboxOutlined" />
+                      <div>
+                        <div class="cashier-receipt-title">{{ t('Cashier.uploadReceipt') }}</div>
+                        <div class="cashier-receipt-hint">{{ t('Cashier.attachmentHint') }}</div>
+                      </div>
+                    </div>
+                  </FileUpload>
+                </a-form-item>
+              </a-collapse-panel>
+            </a-collapse>
           </a-form>
         </a-spin>
       </template>
     </div>
-    <template #foot>
-      <a-button
-        :disabled="saving || calculating || uploading || uncertain"
-        @click="close"
-      >
-        {{ t('Finance.close') }}
-      </a-button>
-      <template v-if="!result">
-        <a-button
-          v-if="preview"
-          :disabled="saving || uncertain"
-          @click="invalidate"
+    <template #footer>
+      <div class="cashier-collection-footer">
+        <div
+          v-if="!result"
+          class="cashier-collection-total"
         >
-          {{ t('Adjustment.back') }}
-        </a-button>
-        <a-button
-          v-if="preview"
-          type="primary"
-          :loading="saving"
-          @click="submit"
-        >
-          {{ t(uncertain ? 'Cashier.retry' : 'Cashier.confirm') }}
-        </a-button>
-        <a-button
-          v-else
-          type="primary"
-          :loading="calculating"
-          :disabled="loading || uploading || invalidFiles || state.recoveryFailed.value || !state.balanced.value"
-          @click="calculate"
-        >
-          {{ t('Cashier.preview') }}
-        </a-button>
-      </template>
+          <span>{{ t('Cashier.total') }}</span>
+          <strong>{{ preview?.total || total }}</strong>
+        </div>
+        <a-space>
+          <a-button
+            :disabled="saving || calculating || uploading || uncertain"
+            @click="close"
+          >
+            {{ t('Finance.close') }}
+          </a-button>
+          <template v-if="!result">
+            <a-button
+              v-if="preview"
+              :disabled="saving || uncertain"
+              @click="invalidate"
+            >
+              {{ t('Adjustment.back') }}
+            </a-button>
+            <a-button
+              v-if="preview"
+              type="primary"
+              :loading="saving"
+              @click="submit"
+            >
+              {{ t(uncertain ? 'Cashier.retry' : 'Cashier.confirm') }}
+            </a-button>
+            <a-button
+              v-else
+              type="primary"
+              :loading="calculating"
+              :disabled="loading || uploading || invalidFiles || state.recoveryFailed.value || !state.balanced.value"
+              @click="calculate"
+            >
+              {{ t('Cashier.preview') }}
+            </a-button>
+          </template>
+        </a-space>
+      </div>
     </template>
-  </JlDrawerShell>
+  </a-modal>
 </template>

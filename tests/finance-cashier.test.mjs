@@ -25,8 +25,8 @@ const result = await build({
           contents: args.path.includes('financeCashier')
             ? exports.map((name) => `export const ${name}=(...a)=>globalThis.__cashierApi.${name}(...a)`).join('\n')
             : args.path === 'vue-i18n'
-            ? 'export const useI18n=()=>({t:key=>key})'
-            : 'export const onlyMessage=(...a)=>globalThis.__cashierMessages.push(a)'
+              ? 'export const useI18n=()=>({t:key=>key})'
+              : 'export const onlyMessage=(...a)=>globalThis.__cashierMessages.push(a)'
         }))
       }
     }
@@ -76,22 +76,45 @@ const flush = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0))
   await nextTick()
 }
-test('部分收款和混合支付以精确字符串提交，正式金额采用后端预览', async () => {
+test('全额收款以精确字符串提交，正式金额采用后端预览', async () => {
   const calls = []
   const { state, unmount } = mount({
     previewCollection: async (...args) => {
       calls.push(args)
-      return { token: 'fresh', total: '5.01', rows: [row] }
+      return { token: 'fresh', total: '10.01', rows: [row] }
     }
   })
   await flush()
-  state.model.items[0].amount = '5.01'
-  state.model.tenders = [{ optionId: '1', amount: '5.01' }]
   await state.calculate()
   assert.equal(calls[0][0], 'a')
-  assert.equal(calls[0][1].items[0].amount, '5.01')
-  assert.equal(state.preview.value.total, '5.01')
+  assert.equal(calls[0][1].items[0].amount, '10.01')
+  assert.equal(calls[0][1].tenders.length, 1)
+  assert.equal(state.preview.value.total, '10.01')
   assert.equal(state.preview.value.token, 'fresh')
+  unmount()
+})
+test('部分金额、非法金额和混合支付不能发送收款预览', async () => {
+  let calls = 0
+  const { state, unmount } = mount({
+    previewCollection: async () => {
+      calls++
+    }
+  })
+  await flush()
+  for (const amount of ['5.01', '', 'NaN']) {
+    state.model.items[0].amount = amount
+    state.model.tenders = [{ optionId: '1', amount }]
+    await state.calculate()
+    assert.equal(globalThis.__cashierMessages.at(-1)[0], 'Cashier.fullCollectionRequired')
+  }
+  state.model.items[0].amount = '10.01'
+  state.model.tenders = [
+    { optionId: '1', amount: '5.01' },
+    { optionId: '1', amount: '5.00' }
+  ]
+  await state.calculate()
+  assert.equal(globalThis.__cashierMessages.at(-1)[0], 'Cashier.singlePaymentRequired')
+  assert.equal(calls, 0)
   unmount()
 })
 test('网络结果未知时保留原请求号和输入，重试不重复入账', async () => {

@@ -667,6 +667,9 @@
     "hint": "Generated from current bill amounts. Generate again after receiving payments."
   },
   "Cashier": {
+    "uploadReceipt": "Click or drag to upload a payment receipt",
+    "singlePaymentRequired": "Choose one payment method per collection",
+    "fullCollectionRequired": "Collect the full outstanding amount of the selected bills. Refresh if the bills changed",
     "title": "Cashier",
     "scopeHint": "Select the property and bills, then verify and record payment.",
     "collect": "Collect payment",
