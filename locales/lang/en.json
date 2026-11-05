@@ -1734,6 +1734,43 @@
       "HANDOVER": "Handover",
       "RECEIVABLE": "Receivable",
       "DOCUMENT": "Document"
+    },
+    "reviewRule": "Receivable review",
+    "auto": {
+      "title": "Automatic closing",
+      "runs": "Automatic runs",
+      "enabled": "Enable automatic closing",
+      "enabledHint": "Uses the saved authorization scope. Periods with incomplete handover or review remain open.",
+      "mode": "Schedule",
+      "monthEnd": "Month end",
+      "specifiedDay": "Specified day",
+      "day": "Day of month (1–28)",
+      "monthEndHint": "Runs on the first day of the month after the actual period end. Custom periods use their actual end dates.",
+      "dayHint": "Runs on the first specified day after the actual period end. Failures retry after one hour. Save this schedule again after a manual reopen.",
+      "saved": "Automatic closing schedule saved",
+      "result": "Result",
+      "month": "Accounting period",
+      "feedback": "Feedback",
+      "closed": "Checks passed and period closed",
+      "failedHint": "Not completed. Correct the issue before the next retry.",
+      "noRuns": "No automatic closing runs",
+      "status": {
+        "SUCCEEDED": "Completed",
+        "FAILED": "Not completed"
+      },
+      "errors": {
+        "month_schedule_authority_invalid": "Executor permissions changed. An authorized user must save the schedule again.",
+        "month_schedule_reopened": "This period was reopened manually. Save the schedule again to allow automatic closing.",
+        "month_schedule_failed": "Closing failed. Check the service logs before retrying.",
+        "month_closing_unhanded": "Complete all pending handovers first.",
+        "month_closing_unreviewed": "Approve all pending handovers first.",
+        "month_closing_receivable_review": "Approve all required receivables first.",
+        "month_closing_sequence": "Check period sequence and closing boundary.",
+        "month_closing_source_invalid": "Source records are incomplete or inconsistent. Check the financial records.",
+        "month_closing_source_limit": "This period exceeds the processing limit. Contact an administrator.",
+        "month_closing_preview_changed": "Sources changed during review. The next run will check them again.",
+        "month_schedule_record_failed": "Could not persist the result. Check the database and service logs."
+      }
     }
   },
   "ReceivableReview": {

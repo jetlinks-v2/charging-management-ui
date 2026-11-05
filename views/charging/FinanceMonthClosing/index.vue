@@ -109,6 +109,7 @@ function editorSaved() {
         :description="t('Document.recoveryUnavailable')"
       />
       <ClosingRule
+        :key="projectId"
         v-if="ruleOpen && projectId"
         :project-id="projectId"
         @close="ruleOpen = false"

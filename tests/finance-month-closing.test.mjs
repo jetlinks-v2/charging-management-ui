@@ -7,6 +7,8 @@ import { createRenderer, defineComponent, h, reactive, ref, nextTick } from 'vue
 const require = createRequire(import.meta.url)
 const apiNames = [
   'getAccountingYear',
+  'getClosingSchedule',
+  'saveClosingSchedule',
   'previewClosing',
   'confirmClosing',
   'createAccountingYear',
@@ -54,6 +56,7 @@ async function load(file) {
   new Function('require', 'module', 'exports', built.outputFiles[0].text)(require, m, m.exports)
   return m.exports
 }
+const automatic = await load('hooks/finance-month-closing/useAutomaticClosing.ts')
 const closing = await load('hooks/finance-month-closing/useClosingConfirmation.ts')
 const workspace = await load('hooks/finance-month-closing/useMonthClosingWorkspace.ts')
 const editor = await load('hooks/finance-month-closing/useAccountingEditor.ts')
@@ -374,4 +377,86 @@ test('应收审核未知结果的原项目批次版本与请求号保持，跨�
   assert.equal(m.saves(), 1)
   assert.equal(map.size, 0)
   m.close()
+})
+
+test('automatic schedule loads disabled default and posts selected day with its independent CAS version', async () => {
+  setup()
+  const busy = []
+  const calls = []
+  globalThis.__month.api.getClosingSchedule = async () => ({ version: 7, enabled: false, mode: 'MONTH_END', day: null })
+  globalThis.__month.api.saveClosingSchedule = async (...args) => {
+    calls.push(args)
+    return { ...args[1], version: 8 }
+  }
+  let state
+  const app = mount(() => automatic.useAutomaticClosing('project', (value) => busy.push(value)))
+  state = app.state
+  await flush()
+  assert.equal(state.enabled.value, false)
+  state.enabled.value = true
+  state.mode.value = 'DAY'
+  state.day.value = 5
+  state.reason.value = '  每月结账  '
+  await state.save()
+  assert.deepEqual(calls, [['project', { version: 7, enabled: true, mode: 'DAY', day: 5, reason: '每月结账' }]])
+  assert.deepEqual(busy, [true, false])
+  assert.equal(state.schedule.value.version, 8)
+  assert.equal(state.reason.value, '')
+  app.close()
+})
+
+test('automatic schedule rejects invalid day, preserves reason/version on server conflict, and prevents double submit', async () => {
+  setup()
+  globalThis.__month.api.getClosingSchedule = async () => ({ version: 7, enabled: true, mode: 'DAY', day: 5 })
+  let reject,
+    count = 0,
+    state
+  globalThis.__month.api.saveClosingSchedule = () => {
+    count++
+    return new Promise((_, no) => {
+      reject = no
+    })
+  }
+  const app = mount(() => automatic.useAutomaticClosing('project', () => {}))
+  state = app.state
+  await flush()
+  state.day.value = 31
+  state.reason.value = '保留原因'
+  await state.save()
+  assert.equal(count, 0)
+  state.day.value = 5
+  const pending = state.save()
+  await state.save()
+  assert.equal(count, 1)
+  reject(new Error('并发冲突'))
+  await pending
+  assert.equal(state.schedule.value.version, 7)
+  assert.equal(state.reason.value, '保留原因')
+  assert.equal(state.saving.value, false)
+  assert.equal(globalThis.__month.messages.at(-1)[1], 'error')
+  app.close()
+})
+
+test('month-end schedule submits no leftover specified day and refresh reads current version', async () => {
+  setup()
+  let version = 4,
+    state,
+    posted
+  globalThis.__month.api.getClosingSchedule = async () => ({ version, enabled: false, mode: 'MONTH_END', day: null })
+  globalThis.__month.api.saveClosingSchedule = async (_, input) => {
+    posted = input
+    return { ...input, version: 10 }
+  }
+  const app = mount(() => automatic.useAutomaticClosing('project', () => {}))
+  state = app.state
+  await flush()
+  version = 9
+  await state.load()
+  state.day.value = 27
+  state.reason.value = '停用'
+  await state.save()
+  assert.equal(posted.version, 9)
+  assert.equal(posted.day, null)
+  assert.equal(posted.enabled, false)
+  app.close()
 })

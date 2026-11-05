@@ -129,3 +129,28 @@ export const queryClosingMembers = (project: string, id: string, input: Query, s
       Page<ClosingMember>
     >(`${closing(project)}/operations/${encodeURIComponent(id)}/members/_query`, input, { hiddenError: true, signal })
     .then(page)
+
+export interface ClosingSchedule {
+  version: number | null
+  enabled: boolean
+  mode: 'MONTH_END' | 'DAY'
+  day: number | null
+}
+export interface AutomaticClosingRun {
+  id: string
+  scheduleVersion: number
+  accountMonth?: string
+  status: 'SUCCEEDED' | 'FAILED'
+  errorCode?: string
+  operationId?: string
+  modifierName?: string
+  createTime: number
+}
+export const getClosingSchedule = async (project: string) =>
+  checked<ClosingSchedule>(await request.get(`${closing(project)}/schedule`, {}, { hiddenError: true }))
+export const saveClosingSchedule = async (project: string, input: ClosingSchedule & { reason: string }) =>
+  checked<ClosingSchedule>(await request.put(`${closing(project)}/schedule`, input, { hiddenError: true }))
+export const queryAutomaticClosingRuns = (project: string, input: Query, signal?: AbortSignal) =>
+  request
+    .post<Page<AutomaticClosingRun>>(`${closing(project)}/automatic-runs/_query`, input, { hiddenError: true, signal })
+    .then(page)

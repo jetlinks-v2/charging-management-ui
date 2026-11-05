@@ -1735,6 +1735,43 @@
       "HANDOVER": "交账",
       "RECEIVABLE": "应收款",
       "DOCUMENT": "票据"
+    },
+    "reviewRule": "应收审核规则",
+    "auto": {
+      "title": "自动月结",
+      "runs": "自动执行记录",
+      "enabled": "启用自动月结",
+      "enabledHint": "按当前授权范围执行。未完成交账或审核的账期不会自动关闭。",
+      "mode": "执行方式",
+      "monthEnd": "月末执行",
+      "specifiedDay": "指定日执行",
+      "day": "每月执行日（1–28日）",
+      "monthEndHint": "账期实际结束后，于下月1日执行。自定义账期按其实际结束日期计算。",
+      "dayHint": "在账期实际结束之后的首个指定日执行。失败后1小时重试；人工反结后需重新保存本设置。",
+      "saved": "自动月结设置已保存",
+      "result": "执行结果",
+      "month": "会计账期",
+      "feedback": "执行反馈",
+      "closed": "已通过核对并完成月结",
+      "failedHint": "本次未完成，修正问题后将按重试规则执行。",
+      "noRuns": "暂无自动月结记录",
+      "status": {
+        "SUCCEEDED": "已完成",
+        "FAILED": "未完成"
+      },
+      "errors": {
+        "month_schedule_authority_invalid": "执行人的授权已变化，请由有权限的人员重新保存设置。",
+        "month_schedule_reopened": "该期已人工反结。重新保存自动月结设置后才会再次执行。",
+        "month_schedule_failed": "本次执行失败，未完成月结。请检查服务日志后重试。",
+        "month_closing_unhanded": "存在未交账款项，请先完成交账。",
+        "month_closing_unreviewed": "存在尚未审核的交账，请先完成按钮审核。",
+        "month_closing_receivable_review": "存在未审核通过的应收，请先完成应收审核。",
+        "month_closing_sequence": "账期顺序或关闭边界已变化，请先核对账期。",
+        "month_closing_source_invalid": "来源记录不完整或状态不一致，请先核对账务记录。",
+        "month_closing_source_limit": "本期来源超过处理上限，请联系管理员。",
+        "month_closing_preview_changed": "核对期间来源已变化，下轮将重新核对。",
+        "month_schedule_record_failed": "执行结果记录失败，请检查数据库及服务日志。"
+      }
     }
   },
   "ReceivableReview": {
