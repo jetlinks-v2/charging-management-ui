@@ -37,15 +37,15 @@ async function load(path) {
           builder.onResolve(
             {
               filter:
-                /api\/financeReceivable|@jetlinks-web\/utils|vue-i18n|project\/useProjectContext|archive\/useArchiveScope/
+                /api\/financeReceivable|@jetlinks-web\/utils|vue-i18n|project\/useProjectContext|finance-setting\/useFinanceSpaceScope/
             },
             (args) => ({ path: args.path, namespace: 'mock' })
           )
           builder.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
             contents: args.path.includes('api/')
               ? names.map((n) => `export const ${n}=(...a)=>globalThis.__receivableApi.${n}(...a)`).join('\n')
-              : args.path.includes('useArchiveScope')
-                ? 'export const useArchiveScope=()=>globalThis.__receivableScope;export const flattenSpaces=nodes=>nodes.flatMap(n=>[n,...flattenSpaces(n.children||[])])'
+              : args.path.includes('useFinanceSpaceScope')
+                ? 'export const useFinanceSpaceScope=()=>globalThis.__receivableScope;export const flattenSpaces=nodes=>nodes.flatMap(n=>[n,...flattenSpaces(n.children||[])])'
                 : args.path.includes('useProjectContext')
                   ? 'export const useProjectSwitchGuard=g=>globalThis.__receivableGuards.push(g)'
                   : args.path === 'vue-i18n'

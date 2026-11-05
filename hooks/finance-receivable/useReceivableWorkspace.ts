@@ -10,7 +10,7 @@ import {
   type Receivable,
   type ReceivableAction
 } from '../../api/financeReceivable'
-import { useArchiveScope, flattenSpaces } from '../archive/useArchiveScope'
+import { useFinanceSpaceScope, flattenSpaces } from '../finance-setting/useFinanceSpaceScope'
 import { useProjectSwitchGuard } from '../project/useProjectContext'
 import { requestErrorMessage } from '../../utils/requestError'
 import { excelErrorMessage } from '../../utils/archiveFiles'
@@ -20,7 +20,7 @@ import { sumMoney } from '../../utils/receivableTotals'
 export const receivablePermission = 'charging/FinanceReceivable'
 export function useReceivableWorkspace() {
   const { t } = useI18n()
-  const archive = useArchiveScope()
+  const archive = useFinanceSpaceScope()
   const table = ref<{ reload: () => void }>()
   const terms = ref<Query['terms']>([])
   const status = ref('ALL')

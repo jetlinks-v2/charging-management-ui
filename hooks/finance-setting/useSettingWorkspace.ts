@@ -15,7 +15,7 @@ import {
   type SettingOptions,
   type SettingInput
 } from '../../api/financeSetting'
-import { useArchiveScope, flattenSpaces } from '../archive/useArchiveScope'
+import { useFinanceSpaceScope, flattenSpaces } from '../finance-setting/useFinanceSpaceScope'
 import { useProjectSwitchGuard } from '../project/useProjectContext'
 import { requestErrorMessage } from '../../utils/requestError'
 interface SpaceTreeNode {
@@ -26,7 +26,7 @@ interface SpaceTreeNode {
 export const settingPermission = 'charging/FinanceSetting'
 export function useSettingWorkspace() {
   const { t } = useI18n()
-  const archive = useArchiveScope()
+  const archive = useFinanceSpaceScope()
   const options = ref<SettingOptions>({ projectSubjects: [], standards: [] })
   const table = ref<{ reload: () => void }>()
   const terms = ref<Query['terms']>([])
