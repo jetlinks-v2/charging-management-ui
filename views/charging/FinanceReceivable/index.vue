@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReceivableWorkspace, receivablePermission } from '../../../hooks/finance-receivable/useReceivableWorkspace'
@@ -42,7 +43,7 @@ function adjustmentSaved() {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <div class="subject-workspace">
       <aside class="subject-categories">
@@ -146,7 +147,7 @@ function adjustmentSaved() {
       @close="actionTarget = undefined"
       @save="change"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped src="../FinanceSubject/subject.css"></style>
 <style scoped>

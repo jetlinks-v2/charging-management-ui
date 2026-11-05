@@ -1,0 +1,61 @@
+.subject-categories {
+  background: var(--panel-background, #fff);
+  border: 1px solid var(--line, #f0f0f0);
+  border-radius: 8px;
+  padding: 12px;
+  overflow: auto;
+  min-width: 0;
+}
+.subject-tree-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.subject-tree-search {
+  margin-bottom: 16px;
+}
+.subject-categories :deep(.ant-tree-node-content-wrapper) {
+  min-width: 0;
+}
+.subject-categories :deep(.ant-tree-title) {
+  display: block;
+}
+.subject-tree-node {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  min-width: 0;
+}
+.subject-tree-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.subject-tree-actions {
+  display: flex;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+.subject-categories :deep(.ant-tree-treenode:hover) .subject-tree-actions,
+.subject-categories :deep(.ant-tree-treenode:focus-within) .subject-tree-actions,
+.subject-tree-actions:focus-within {
+  width: auto;
+  overflow: visible;
+  opacity: 1;
+}
+.subject-tree-actions :deep(.ant-btn) {
+  width: 24px;
+  min-width: 24px;
+  padding: 0;
+}
+@media (hover: none) {
+  .subject-tree-actions {
+    width: auto;
+    overflow: visible;
+    opacity: 1;
+  }
+}

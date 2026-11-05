@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { Grid } from 'ant-design-vue'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -70,7 +71,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <section class="handover-workspace">
       <div class="handover-toolbar">
@@ -261,5 +262,5 @@ function filter({ filter }: ConditionFilterChangePayload) {
       v-if="detailOpen"
       :state="state"
     />
-  </j-page-container>
+  </FinancePage>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
@@ -81,7 +82,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <section class="finance-workspace">
       <div class="finance-toolbar">
@@ -284,7 +285,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
       @save="changeNumber"
       @cancel="!saving && (numberTarget = undefined)"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 
 <style src="../finance.css"></style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -37,7 +38,7 @@ const filter = ({ filter }: ConditionFilterChangePayload) => {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <div class="finance-workspace">
       <div class="finance-toolbar">
         <a-button @click="reload">
@@ -235,7 +236,7 @@ const filter = ({ filter }: ConditionFilterChangePayload) => {
         </a-button>
       </template>
     </JlDrawerShell>
-  </j-page-container>
+  </FinancePage>
 </template>
 <style src="../finance.css"></style>
 <style scoped>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { useI18n } from 'vue-i18n'
 import { useDocumentRule } from '../../../hooks/finance-document/useDocumentRule'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
@@ -7,7 +8,7 @@ const { t } = useI18n()
 const { projectId, loading, saving, failed, editing, current, model, load, edit, save } = useDocumentRule()
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <section class="document-workspace">
       <CloudEmpty
@@ -141,5 +142,5 @@ const { projectId, loading, saving, failed, editing, current, model, load, edit,
         </CloudEmpty>
       </a-spin>
     </section>
-  </j-page-container>
+  </FinancePage>
 </template>

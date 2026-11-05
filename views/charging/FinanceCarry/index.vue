@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -63,7 +64,7 @@ function schedule(row: CarryPlan) {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <section class="finance-workspace carry-workspace">
       <div class="carry-heading">
@@ -266,7 +267,7 @@ function schedule(row: CarryPlan) {
         </a-button>
       </template>
     </JlDrawerShell>
-  </j-page-container>
+  </FinancePage>
 </template>
 <style src="../finance.css"></style>
 <style scoped src="./index.css"></style>

@@ -26,7 +26,7 @@ import {
 } from '../../api/financeSubject'
 import { useProjectContext, useProjectSwitchGuard } from '../project/useProjectContext'
 import { requestErrorMessage } from '../../utils/requestError'
-import { categoryTree } from './categoryTree'
+import { categoryTree, filterCategoryTree, categoryKeys } from './categoryTree'
 export const subjectPermission = 'charging/FinanceSubject'
 export const projectSubjectPermission = 'charging/FinanceProjectSubject'
 export function useSubjectCatalog(projectMode = false) {
@@ -45,7 +45,11 @@ export function useSubjectCatalog(projectMode = false) {
     readOnly = ref(true)
   const detail = ref<Subject>()
   const categoryOpen = ref(false),
-    categoryModel = ref<Partial<Category> & { name: string; parentId: string }>({ name: '', parentId: '' })
+    categoryModel = ref<Partial<Category> & { name: string; parentId: string }>({
+      name: '',
+      parentId: '',
+      sortIndex: 1
+    })
   const issueOpen = ref(false),
     issueIds = ref<string[]>([]),
     issueProjects = ref<string[]>([])
@@ -55,6 +59,15 @@ export function useSubjectCatalog(projectMode = false) {
   let generation = 0,
     disposed = false
   const tree = computed(() => categoryTree(categories.value))
+  const categoryKeyword = ref('')
+  const visibleTree = computed(() => filterCategoryTree(tree.value, categoryKeyword.value))
+  const categoryExpandedKeys = ref<string[]>([])
+  const visibleExpandedKeys = computed(() =>
+    categoryKeyword.value.trim() ? categoryKeys(visibleTree.value) : categoryExpandedKeys.value
+  )
+  watch(tree, (value) => {
+    categoryExpandedKeys.value = categoryKeys(value)
+  })
   const params = computed(() => ({
     terms: terms.value,
     categoryId: selectedCategory.value,
@@ -82,7 +95,9 @@ export function useSubjectCatalog(projectMode = false) {
     detail.value = undefined
     if (!id) return
     try {
-      const value = projectMode ? (await getProjectSubject(context.projectId.value, id)).subject : await getSubject(id)
+      const value = projectMode
+        ? (await getProjectSubject(context.projectId.value, id)).subject
+        : await getSubject(id)
       if (!disposed && token === generation) detail.value = value
     } catch (cause) {
       if (token === generation) {
@@ -135,15 +150,28 @@ export function useSubjectCatalog(projectMode = false) {
     }
   }
   function editCategory(row?: Category, child = false) {
-    categoryModel.value = row && !child ? { ...row } : { name: '', parentId: row?.id || '' }
+    categoryModel.value = row && !child ? { ...row } : { name: '', parentId: row?.id || '', sortIndex: 1 }
     categoryOpen.value = true
+  }
+  function editCategoryNode(id: string, child = false) {
+    const row = categories.value.find((item) => item.id === id)
+    if (row) editCategory(row, child)
+  }
+  async function removeCategoryNode(id: string) {
+    const row = categories.value.find((item) => item.id === id)
+    if (row) await removeCategory(row)
   }
   async function submitCategory() {
     if (!categoryModel.value.name.trim()) {
       onlyMessage(t('Subject.required'), 'warning')
       return
     }
-    if (await run(() => saveCategory(categoryModel.value), t('Finance.saved', { name: categoryModel.value.name }))) {
+    if (
+      await run(
+        () => saveCategory(categoryModel.value),
+        t('Finance.saved', { name: categoryModel.value.name })
+      )
+    ) {
       categoryOpen.value = false
       await metadata()
     }
@@ -177,7 +205,8 @@ export function useSubjectCatalog(projectMode = false) {
   }
   async function request(query: Query, options?: { signal: AbortSignal }) {
     if (projectMode) {
-      if (!context.projectId.value) return { success: true, result: { data: [], total: 0, pageIndex: 0, pageSize: 12 } }
+      if (!context.projectId.value)
+        return { success: true, result: { data: [], total: 0, pageIndex: 0, pageSize: 12 } }
       return queryProjectSubjects(context.projectId.value, query, selectedCategory.value, options?.signal)
     }
     return querySubjects(query, selectedCategory.value, options?.signal)
@@ -206,6 +235,10 @@ export function useSubjectCatalog(projectMode = false) {
   return {
     categories,
     tree,
+    categoryKeyword,
+    visibleTree,
+    categoryExpandedKeys,
+    visibleExpandedKeys,
     feeTypes,
     arrearsOptions,
     selectedCategory,
@@ -236,6 +269,8 @@ export function useSubjectCatalog(projectMode = false) {
     remove,
     removeBatch,
     editCategory,
+    editCategoryNode,
+    removeCategoryNode,
     submitCategory,
     removeCategory,
     startIssue,

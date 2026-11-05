@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FinanceProject from '../FinanceProject/index.vue'
@@ -7,7 +8,7 @@ const { t } = useI18n()
 const activeTab = ref('company')
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <div class="tax-settings">
       <a-tabs
         v-model:active-key="activeTab"
@@ -27,7 +28,7 @@ const activeTab = ref('company')
         </a-tab-pane>
       </a-tabs>
     </div>
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped>
 .tax-settings {

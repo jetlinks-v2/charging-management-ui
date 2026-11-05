@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { Grid } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -95,7 +96,7 @@ const selection = computed(() =>
 )
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <section class="document-workspace">
       <div class="document-toolbar">
@@ -277,5 +278,5 @@ const selection = computed(() =>
       @close="verification.close"
       @saved="saved"
     />
-  </j-page-container>
+  </FinancePage>
 </template>

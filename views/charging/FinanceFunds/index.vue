@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -75,7 +76,7 @@ function revokeTopup(entry: FundEntry) {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <section class="funds-workspace">
       <div class="funds-heading">
@@ -277,6 +278,6 @@ function revokeTopup(entry: FundEntry) {
       @close="closeRevoke"
       @saved="saved"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped src="./funds.css"></style>

@@ -226,6 +226,14 @@
     }
   },
   "Subject": {
+    "searchCategories": "Search categories",
+    "noCategoryMatch": "No matching categories. Try a different search.",
+    "importTitle": "Import charge subjects",
+    "templateFile": "Charge subject import template",
+    "chooseFile": "Select file",
+    "dropFile": "Drag a file here or click to upload",
+    "excelOnly": "Only .xls or .xlsx files, up to 10 MB",
+    "parseImport": "Validate and import",
     "title": "Charge subjects",
     "projectSubjects": "Project charge subjects",
     "categories": "Subject categories",

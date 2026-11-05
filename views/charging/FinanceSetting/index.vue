@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useSettingWorkspace, settingPermission } from '../../../hooks/finance-setting/useSettingWorkspace'
@@ -42,7 +43,7 @@ function selectTree(keys: (string | number)[]) {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <div class="subject-workspace">
       <aside class="subject-categories">
@@ -150,7 +151,7 @@ function selectTree(keys: (string | number)[]) {
       :project-id="projectId"
       @close="tasksOpen = false"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped src="../FinanceSubject/subject.css"></style>
 <style scoped>

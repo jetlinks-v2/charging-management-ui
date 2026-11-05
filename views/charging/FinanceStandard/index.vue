@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { useI18n } from 'vue-i18n'
 import { useStandardWorkspace, standardPermission } from '../../../hooks/finance-standard/useStandardWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
@@ -39,7 +40,7 @@ function refresh() {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <div class="subject-workspace">
       <aside class="subject-categories">
@@ -129,7 +130,7 @@ function refresh() {
       @close="variablesOpen = false"
       @changed="metadata"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped src="../FinanceSubject/subject.css"></style>
 <style scoped>

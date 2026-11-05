@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -67,7 +68,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
 const rowKey = (row: ActivitySummary) => row.activity.id
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <section class="finance-workspace">
       <div class="finance-toolbar">
@@ -210,6 +211,6 @@ const rowKey = (row: ActivitySummary) => row.activity.id
       @save="saveEnd"
       @close="dateChange = undefined"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style src="../finance.css"></style>

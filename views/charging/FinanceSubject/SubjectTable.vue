@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
+import ConditionFilter, {
+  type ConditionFilterChangePayload
+} from '@jetlinks-web-core/components/ConditionFilter'
 import type { Query } from '../../../api/archive'
 import type { Subject, ProjectSubject } from '../../../api/financeSubject'
 import {
@@ -61,6 +63,7 @@ const selection = computed(() =>
 </script>
 <template>
   <ConditionFilter
+    class="subject-filter"
     :columns="fields"
     @change="filter"
   />
@@ -152,6 +155,11 @@ const selection = computed(() =>
   </j-pro-table>
 </template>
 <style scoped>
+.subject-filter {
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
 .subject-code {
   font-family: ui-monospace, monospace;
   font-size: 12px;

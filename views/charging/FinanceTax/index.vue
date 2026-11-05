@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, {
@@ -56,7 +57,7 @@ const filter = ({ filter }: ConditionFilterChangePayload) => {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <div class="tax-page">
       <ProjectScopeBar />
       <div
@@ -127,7 +128,7 @@ const filter = ({ filter }: ConditionFilterChangePayload) => {
       :companies="companyOptions"
       @close="importsOpen = false"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style src="../finance.css"></style>
 <style scoped>

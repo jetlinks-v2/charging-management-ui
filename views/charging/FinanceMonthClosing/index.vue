@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { useI18n } from 'vue-i18n'
 import { useMonthClosingWorkspace } from '../../../hooks/finance-month-closing/useMonthClosingWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
@@ -36,7 +37,7 @@ function editorSaved() {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <div class="month-workspace">
       <div class="month-toolbar">
@@ -186,7 +187,7 @@ function editorSaved() {
       @close="closeAction"
       @saved="saved"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped>
 .month-workspace {

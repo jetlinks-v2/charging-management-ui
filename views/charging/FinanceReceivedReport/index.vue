@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ReceivedGroup } from '../../../api/financeReceivedReport'
@@ -21,7 +22,7 @@ const moneyKeys = computed(() =>
 const groups: ReceivedGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT', 'METHOD', 'SOURCE']
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <div class="report-workspace">
       <h2>{{ t('Received.title') }}</h2>
@@ -63,7 +64,7 @@ const groups: ReceivedGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT', 'METHOD', 'SOUR
       :state="{ open: previewOpen, url: previewUrl, title: t('Received.printTitle'), filename: t('Received.title') }"
       @close="closePreview"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped>
 .report-workspace {

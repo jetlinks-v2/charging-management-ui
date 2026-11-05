@@ -20,6 +20,8 @@ const apiNames = [
   'queryProjectSubjects',
   'deleteProjectSubject',
   'getProjectSubject',
+  'subjectTemplate',
+  'importSubjects',
   'issueSubjects'
 ]
 async function load(path) {
@@ -47,7 +49,7 @@ async function load(path) {
                 ? 'export const useProjectContext=()=>globalThis.__subjectContext;export const useProjectSwitchGuard=guard=>globalThis.__subjectGuards.push(guard)'
                 : args.path === 'vue-i18n'
                   ? 'export const useI18n=()=>({t:key=>key})'
-                  : 'export const onlyMessage=(...args)=>globalThis.__subjectMessages.push(args)'
+                  : 'export const onlyMessage=(...args)=>globalThis.__subjectMessages.push(args); export const downloadFileByUrl=()=>{}'
           }))
         }
       }
@@ -60,6 +62,7 @@ async function load(path) {
 const { useSubjectCatalog } = await load('../hooks/finance-subject/useSubjectCatalog.ts')
 const { categoryTree, categoryPath } = await load('../hooks/finance-subject/categoryTree.ts')
 const { useSubjectForm } = await load('../hooks/finance-subject/useSubjectForm.ts')
+const { useSubjectExcel } = await load('../hooks/finance-subject/useSubjectExcel.ts')
 const { useSubjectImportHistory } = await load('../hooks/finance-subject/useSubjectImportHistory.ts')
 const subject = (id) => ({
   id,
@@ -132,7 +135,10 @@ test('arbitrary-depth directory tree and full path distinguish same-named catego
     node = node.children[0]
     assert.equal(node.value, `c${index}`)
   }
-  assert.equal(categoryPath(rows, 'c7'), ['Root', ...Array.from({ length: 8 }, (_, i) => `Child${i}`)].join(' / '))
+  assert.equal(
+    categoryPath(rows, 'c7'),
+    ['Root', ...Array.from({ length: 8 }, (_, i) => `Child${i}`)].join(' / ')
+  )
   assert.equal(categoryPath(rows, 'other'), 'Child7')
 })
 test('stale subject detail cannot overwrite a newer selection and closed drawer stays closed', async () => {
@@ -198,7 +204,10 @@ test('project context scopes list and relation deletion and clears obsolete deta
   await state.select('relation-a')
   assert.equal(state.detail.value.id, 'shared')
   assert.equal(globalThis.__subjectGuards[0](), false)
-  await state.remove({ relation: { id: 'relation-a', projectId: 'a', version: 2 }, subject: subject('shared') })
+  await state.remove({
+    relation: { id: 'relation-a', projectId: 'a', version: 2 },
+    subject: subject('shared')
+  })
   assert.equal(deletes[0][0], 'a')
   assert.equal(deletes[0][1].relation.version, 2)
   globalThis.__subjectContext.projectId.value = 'b'
@@ -297,5 +306,90 @@ test('import history pages only while open and failed record details use one toa
   state.failure(record)
   assert.equal(globalThis.__subjectMessages.length, 1)
   assert.equal(globalThis.__subjectMessages[0][0], 'Excel row 3 invalid')
+  unmount()
+})
+
+test('category search retains matching ancestors and descendants, resets without changing selection', async () => {
+  const { state, unmount } = mount(() => useSubjectCatalog())
+  state.categories.value = [
+    { id: 'a', parentId: '', name: '园区' },
+    { id: 'b', parentId: 'a', name: '物业' },
+    { id: 'c', parentId: 'b', name: '住宅物业费' },
+    { id: 'd', parentId: 'a', name: '停车费' }
+  ]
+  state.selectedCategory.value = 'd'
+  state.categoryKeyword.value = '住宅'
+  assert.deepEqual(
+    state.visibleTree.value.map((n) => n.key),
+    ['a']
+  )
+  assert.deepEqual(
+    state.visibleTree.value[0].children.map((n) => n.key),
+    ['b']
+  )
+  assert.equal(state.visibleTree.value[0].children[0].children[0].key, 'c')
+  state.categoryKeyword.value = '物业'
+  assert.equal(state.visibleTree.value[0].children[0].children.length, 1)
+  state.categoryKeyword.value = '不存在'
+  assert.equal(state.visibleTree.value.length, 0)
+  state.categoryKeyword.value = ''
+  assert.equal(state.visibleTree.value[0].children.length, 2)
+  assert.equal(state.selectedCategory.value, 'd')
+  unmount()
+})
+test('root and child category creation default to sequence 1 while editing preserves sequence and version', async () => {
+  const calls = []
+  const { state, unmount } = mount(() => useSubjectCatalog(), {
+    saveCategory: async (row) => calls.push({ ...row })
+  })
+  state.editCategory()
+  assert.equal(state.categoryModel.value.sortIndex, 1)
+  state.categoryModel.value.name = '新目录'
+  await state.submitCategory()
+  assert.equal(calls[0].sortIndex, 1)
+  const row = { id: 'a', parentId: '', name: '目录', sortIndex: 9, version: 3 }
+  state.editCategory(row, true)
+  assert.equal(state.categoryModel.value.parentId, 'a')
+  assert.equal(state.categoryModel.value.sortIndex, 1)
+  state.editCategory(row)
+  assert.equal(state.categoryModel.value.sortIndex, 9)
+  assert.equal(state.categoryModel.value.version, 3)
+  unmount()
+})
+test('subject import selects without submitting and retains the file after failure, succeeds once on retry', async () => {
+  let reloads = 0,
+    calls = 0,
+    fail = true
+  const pending = deferred()
+  const { state, unmount } = mount(() => useSubjectExcel(() => reloads++), {
+    importSubjects: async (file) => {
+      calls++
+      assert.equal(file.name, '科目.xlsx')
+      if (fail) throw new Error('第3行目录不存在')
+      return pending.promise
+    }
+  })
+  state.openImport()
+  assert.equal(globalThis.__subjectGuards.at(-1)(), false)
+  state.chooseFile(new File(['bad'], 'invalid.csv'))
+  assert.equal(state.file.value, undefined)
+  const file = new File(['data'], '科目.xlsx')
+  state.chooseFile(file)
+  assert.equal(calls, 0)
+  await state.submitImport()
+  assert.equal(state.importOpen.value, true)
+  assert.equal(state.file.value, file)
+  assert.equal(reloads, 0)
+  fail = false
+  const request = state.submitImport()
+  await state.submitImport()
+  state.closeImport()
+  assert.equal(state.importOpen.value, true)
+  assert.equal(calls, 2)
+  pending.resolve({ count: 1 })
+  await request
+  assert.equal(reloads, 1)
+  assert.equal(state.importOpen.value, false)
+  assert.equal(state.file.value, undefined)
   unmount()
 })

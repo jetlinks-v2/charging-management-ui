@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReceivableWorkspace } from '../../../hooks/finance-receivable/useReceivableWorkspace'
@@ -98,7 +99,7 @@ function fundSaved() {
 }
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <div class="subject-workspace">
       <aside class="subject-categories">
@@ -275,7 +276,7 @@ function fundSaved() {
       @close="funds.close"
       @saved="fundSaved"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped src="../FinanceSubject/subject.css"></style>
 <style scoped>

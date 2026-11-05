@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FinancePage from '../components/FinancePage.vue'
 import { useI18n } from 'vue-i18n'
 import type { ReportGroup } from '../../../api/financeReport'
 import { useReceivableReport } from '../../../hooks/finance-report/useReceivableReport'
@@ -23,7 +24,7 @@ const moneyKeys = [
 const groups: ReportGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT']
 </script>
 <template>
-  <j-page-container>
+  <FinancePage>
     <ProjectScopeBar />
     <div class="report-workspace">
       <h2>{{ t('Report.title') }}</h2>
@@ -69,7 +70,7 @@ const groups: ReportGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT']
       :state="{ open: previewOpen, url: previewUrl, title: t('Report.printTitle'), filename: t('Report.title') }"
       @close="closePreview"
     />
-  </j-page-container>
+  </FinancePage>
 </template>
 <style scoped>
 .report-workspace {
