@@ -135,9 +135,13 @@ export const previewFunds = (p: string, input: FundInput) =>
     .then(checked)
 export const confirmFunds = (p: string, requestInput: FundRequest) =>
   request
-    .post<FundResult>(`${base(p)}/${requestInput.input.action.toLowerCase()}/_confirm`, requestInput, {
-      hiddenError: true
-    })
+    .post<FundResult | import('./financeRefundApplication').RefundApplication>(
+      `${base(p)}/${requestInput.input.action.toLowerCase()}/_confirm`,
+      requestInput,
+      {
+        hiddenError: true
+      }
+    )
     .then(checked)
 export const queryFunds = (p: string, q: Query, signal?: AbortSignal) =>
   request.post<Page<FundAccount>>(`${base(p)}/_query`, q, { hiddenError: true, signal }).then((r) => {

@@ -18,7 +18,7 @@ const groups: InvoiceGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT']
 </script>
 <template>
   <FinancePage>
-    <ProjectScopeBar />
+    <ProjectScopeBar multiple />
     <div class="report-workspace">
       <h2>{{ t('InvoiceReport.title') }}</h2>
       <p class="report-scope">{{ t('InvoiceReport.scope') }}</p>

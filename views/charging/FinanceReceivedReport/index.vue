@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import FinancePage from '../components/FinancePage.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ReceivedGroup } from '../../../api/financeReceivedReport'
 import { useReceivedReport } from '../../../hooks/finance-report/useReceivedReport'
@@ -14,16 +13,12 @@ const { t } = useI18n(),
   state = useReceivedReport()
 const { active, summary, loading, exporting, previewOpen, previewUrl, ready, failed, group, closePreview, exportRows } =
   state
-const moneyKeys = computed(() =>
-  active.value.receivedDateStart || active.value.receivedDateEnd
-    ? (['incomeAmount', 'refundAmount', 'netAmount', 'currentPeriodAmount', 'otherPeriodAmount'] as const)
-    : (['incomeAmount', 'refundAmount', 'netAmount'] as const)
-)
+const moneyKeys = ['currentPeriodAmount', 'otherPeriodAmount', 'netAmount', 'incomeAmount', 'refundAmount'] as const
 const groups: ReceivedGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT', 'METHOD', 'SOURCE']
 </script>
 <template>
   <FinancePage>
-    <ProjectScopeBar />
+    <ProjectScopeBar multiple />
     <div class="report-workspace">
       <h2>{{ t('Received.title') }}</h2>
       <p class="report-scope">{{ t('Received.scope') }}</p>
@@ -32,7 +27,22 @@ const groups: ReceivedGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT', 'METHOD', 'SOUR
         <ReportSummary
           :label="t('Report.total')"
           :items="
-            moneyKeys.map((key) => ({ label: t('Received.' + key), value: summary?.[key], unit: t('Report.currency') }))
+            moneyKeys.map((key) => ({
+              label: t('Received.' + key),
+              value:
+                summary?.[key] ??
+                (!active.receivedDateStart &&
+                !active.receivedDateEnd &&
+                ['currentPeriodAmount', 'otherPeriodAmount'].includes(key)
+                  ? t('Received.notCalculated')
+                  : undefined),
+              unit:
+                !active.receivedDateStart &&
+                !active.receivedDateEnd &&
+                ['currentPeriodAmount', 'otherPeriodAmount'].includes(key)
+                  ? ''
+                  : t('Report.currency')
+            }))
           "
         />
       </a-spin>

@@ -96,7 +96,11 @@ export const getRefundOptions = (project: string) =>
 export const previewRefund = (project: string, input: RefundInput) =>
   request.post<RefundPreview>(`${base(project)}/_preview`, input, { hiddenError: true }).then(checked)
 export const confirmRefund = (project: string, input: RefundRequest) =>
-  request.post<RefundDetail>(`${base(project)}/_confirm`, input, { hiddenError: true }).then(checked)
+  request
+    .post<import('./financeRefundApplication').RefundApplication>(`${base(project)}/_confirm`, input, {
+      hiddenError: true
+    })
+    .then(checked)
 export const getRefund = (project: string, id: string) =>
   request.get<RefundDetail>(`${base(project)}/${encodeURIComponent(id)}`, {}, { hiddenError: true }).then(checked)
 export const queryRefunds = (project: string, query: Query, signal?: AbortSignal) =>

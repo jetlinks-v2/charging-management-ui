@@ -19,9 +19,11 @@ export function useReceivedReport() {
   const { t } = useI18n(),
     context = useProjectContext()
   const defaults = (): ReceivedInput => ({
-    projectIds: context.projectId.value ? [context.projectId.value] : [],
+    projectIds: [...context.reportProjectIds.value],
     spaceIds: [],
     subjectIds: [],
+    subjectGroups: [],
+    methodGroups: [],
     paymentMethods: [],
     sourceTypes: [],
     groupBy: 'DETAIL',
@@ -46,12 +48,14 @@ export function useReceivedReport() {
     ...input,
     projectIds: [...input.projectIds],
     spaceIds: [...input.spaceIds],
+    subjectGroups: input.subjectGroups?.map((key) => ({ ...key })),
+    methodGroups: input.methodGroups?.map((key) => ({ ...key })),
     subjectIds: [...input.subjectIds],
     paymentMethods: [...input.paymentMethods],
     sourceTypes: [...input.sourceTypes]
   })
   const { exporting, previewUrl, previewOpen, closePreview, exportRows } = useReportExport({
-    projectId: context.projectId,
+    projectId: computed(() => context.reportProjectIds.value.join(',')),
     enabled: () => ready.value && !loading.value && !failed.value,
     input: () => copy(active.value),
     title: () => t('Received.title'),
@@ -69,11 +73,17 @@ export function useReceivedReport() {
   }
   function apply() {
     if (exporting.value) return
-    if (!draft.projectIds.length) {
+    if (!context.reportProjectIds.value.length) {
       onlyMessage(t('Report.chooseProjects'), 'warning')
       return
     }
-    active.value = { ...copy(draft), groupBy: active.value.groupBy, pageIndex: 0 }
+    const projectIds = draft.projectIds.filter((id) => context.reportProjectIds.value.includes(id))
+    active.value = {
+      ...copy(draft),
+      projectIds: projectIds.length ? projectIds : [...context.reportProjectIds.value],
+      groupBy: active.value.groupBy,
+      pageIndex: 0
+    }
     invalidate()
   }
   function resetState() {
@@ -127,38 +137,56 @@ export function useReceivedReport() {
   function drill(rows: ReceivedRow[]) {
     if (!rows.length || exporting.value) return
     const input = copy(active.value)
-    if (input.groupBy === 'PROJECT') input.projectIds = rows.flatMap((row) => (row.projectId ? [row.projectId] : []))
+    if (input.groupBy === 'PROJECT')
+      input.projectIds = [
+        ...new Set(
+          rows.flatMap((row) => (row.projectId && input.projectIds.includes(row.projectId) ? [row.projectId] : []))
+        )
+      ]
     else if (input.groupBy === 'SUBJECT') {
       input.subjectIds = [...new Set(rows.flatMap((row) => (row.subjectId ? [row.subjectId] : [])))]
+      input.subjectGroups = rows.map((row) => ({ value: row.subjectId, label: row.subjectName }))
       subjectLabel.value = [...new Set(rows.map((row) => row.subjectName))].join('、')
     } else if (input.groupBy === 'METHOD') {
       input.paymentMethods = [...new Set(rows.flatMap((row) => (row.method ? [row.method] : [])))]
+      input.methodGroups = rows.map((row) => ({ value: row.method, label: row.methodText }))
       methodLabel.value = [...new Set(rows.map((row) => row.methodText))].join('、')
     } else if (input.groupBy === 'SOURCE') {
       input.sourceTypes = [...new Set(rows.flatMap((row) => (row.sourceType ? [row.sourceType] : [])))]
     } else return
+    if (!input.projectIds.length) return
     input.groupBy = 'DETAIL'
     input.pageIndex = 0
     active.value = input
     Object.assign(draft, copy(input))
     invalidate()
   }
+  function clearSources() {
+    draft.sourceTypes = []
+    apply()
+  }
   function clearMethods() {
     draft.paymentMethods = []
+    draft.methodGroups = []
     methodLabel.value = ''
+    apply()
+  }
+  function clearProjects() {
+    draft.projectIds = [...context.reportProjectIds.value]
     apply()
   }
   function clearSubjects() {
     draft.subjectIds = []
+    draft.subjectGroups = []
     subjectLabel.value = ''
     apply()
   }
   watch(
-    context.projectId,
+    context.reportProjectIds,
     () => {
       resetState()
     },
-    { flush: 'sync' }
+    { flush: 'sync', deep: true }
   )
   useProjectSwitchGuard(() => !exporting.value && !previewOpen.value)
   onScopeDispose(() => {
@@ -180,6 +208,7 @@ export function useReceivedReport() {
     subjectLabel,
     methodLabel,
     clearMethods,
+    clearSources,
     previewUrl,
     previewOpen,
     request,
@@ -189,6 +218,7 @@ export function useReceivedReport() {
     group,
     drill,
     clearSubjects,
+    clearProjects,
     closePreview,
     exportRows
   }

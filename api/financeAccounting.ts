@@ -125,9 +125,10 @@ export const queryClosingLogs = (project: string, month: string, input: Query, s
     .then(page)
 export const queryClosingMembers = (project: string, id: string, input: Query, signal?: AbortSignal) =>
   request
-    .post<
-      Page<ClosingMember>
-    >(`${closing(project)}/operations/${encodeURIComponent(id)}/members/_query`, input, { hiddenError: true, signal })
+    .post<Page<ClosingMember>>(`${closing(project)}/operations/${encodeURIComponent(id)}/members/_query`, input, {
+      hiddenError: true,
+      signal
+    })
     .then(page)
 
 export interface ClosingSchedule {
@@ -154,3 +155,25 @@ export const queryAutomaticClosingRuns = (project: string, input: Query, signal?
   request
     .post<Page<AutomaticClosingRun>>(`${closing(project)}/automatic-runs/_query`, input, { hiddenError: true, signal })
     .then(page)
+
+export interface ClosingBatchInput {
+  items: { month: string; version: number; requestId: string }[]
+  reason: string
+}
+export interface ClosingBatchResult {
+  month: string
+  status: 'READY' | 'COMPLETED' | 'FAILED' | 'NOT_EXECUTED'
+  errorCode?: string
+  preview?: ClosingPreview
+}
+export const batchClosing = async (
+  project: string,
+  action: ClosingAction,
+  input: ClosingBatchInput,
+  preview: boolean
+) =>
+  checked<ClosingBatchResult[]>(
+    await request.post(`${closing(project)}/batch/_${action.toLowerCase()}${preview ? '/preview' : ''}`, input, {
+      hiddenError: true
+    })
+  )

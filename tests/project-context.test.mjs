@@ -65,25 +65,28 @@ test('编辑守卫阻止切换，解除后只提交新项目一次', async () =>
   remove()
   assert.equal(await context.select('b'), true)
 })
-test('重新建立上下文仅恢复当前账号经过授权核验的会话偏好', async () => {
+test('重新进入收费必须再次确认项目，不自动应用上次偏好', async () => {
   const { context, storage } = setup()
   await context.refresh()
   await context.select('b')
   const restored = createProjectContext({
     load: async () => options,
     identity: () => 'user-a:tenant-a',
-    read: key => storage.get(key) || '',
+    read: (key) => storage.get(key) || '',
     write: (key, value) => storage.set(key, value)
   })
   await restored.refresh()
-  assert.equal(restored.projectId.value, 'b')
+  assert.equal(restored.projectId.value, '')
 })
 test('重复确认不会重复执行守卫，守卫等待期间账号失效不能提交选择', async () => {
   const { context, account } = setup()
   await context.refresh()
   const delayed = defer()
   let calls = 0
-  context.guard(() => { calls++; return delayed.promise })
+  context.guard(() => {
+    calls++
+    return delayed.promise
+  })
   const pending = context.select('a')
   assert.equal(await context.select('b'), false)
   account('other-account')
@@ -104,7 +107,7 @@ test('撤销权限会清空原项目；账号变化不会复用前一个账号�
   account('user-a:tenant-a')
   visible = [options[0]]
   await context.refresh()
-  assert.equal(context.projectId.value, 'a')
+  assert.equal(context.projectId.value, '')
   visible = []
   await context.refresh()
   assert.equal(context.projectId.value, '')
@@ -122,7 +125,7 @@ test('迟到的项目请求不能覆盖新账号或更新的权限结果', async
     context.projects.value.map((p) => p.id),
     ['b']
   )
-  assert.equal(context.projectId.value, 'b')
+  assert.equal(context.projectId.value, '')
 })
 test('请求失败不恢复未经核验的项目且明确暴露失败状态', async () => {
   let fail = false
@@ -137,4 +140,20 @@ test('请求失败不恢复未经核验的项目且明确暴露失败状态', as
   assert.equal(context.failed.value, true)
   assert.equal(context.projectId.value, '')
   assert.deepEqual(context.projects.value, [])
+})
+
+// 普通业务和报表共享同一个选择器，报表范围不能反向污染单项目写账。
+test('报表多项目范围独立于单项目写账且接受统一切换守卫', async () => {
+  const { context } = setup()
+  await context.refresh()
+  assert.equal(await context.selectMany(['a', 'b']), true)
+  assert.deepEqual([...context.reportProjectIds.value], ['a', 'b'])
+  assert.equal(context.projectId.value, '')
+  assert.equal(await context.select('b'), true)
+  assert.deepEqual([...context.reportProjectIds.value], ['a', 'b'])
+  const remove = context.guard(() => false)
+  assert.equal(await context.selectMany(['b']), false)
+  remove()
+  assert.equal(await context.selectMany(['forged']), false)
+  assert.equal(await context.selectMany([]), false)
 })

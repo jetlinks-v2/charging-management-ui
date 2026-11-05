@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import RefundApplicationSummary from '../FinanceRefund/RefundApplicationSummary.vue'
 import type { FundDraft } from '../../../api/financeFunds'
 import { queryFundsHouses } from '../../../api/financeFunds'
 import { useFundEditor } from '../../../hooks/finance-funds/useFundEditor'
@@ -13,12 +14,14 @@ import '../FinanceCashier/cashier.css'
 const title = computed(() =>
   t(
     result.value
-      ? 'Funds.succeeded'
+      ? 'status' in result.value
+        ? 'Refund.application'
+        : 'Funds.succeeded'
       : model.action === 'TOPUP'
-      ? model.type === 'DEPOSIT'
-        ? 'Funds.collectDeposit'
-        : 'Funds.collectAdvance'
-      : 'Funds.' + model.action
+        ? model.type === 'DEPOSIT'
+          ? 'Funds.collectDeposit'
+          : 'Funds.collectAdvance'
+        : 'Funds.' + model.action
   )
 )
 const props = defineProps<{ projectId: string; draft: FundDraft }>()
@@ -58,7 +61,11 @@ function close() {
     @cancel="close"
   >
     <div class="cashier-editor">
-      <template v-if="result">
+      <RefundApplicationSummary
+        v-if="result && 'status' in result"
+        :application="result"
+      />
+      <template v-else-if="result">
         <div class="cashier-success">
           <AIcon type="CheckCircleFilled" />
           <div>

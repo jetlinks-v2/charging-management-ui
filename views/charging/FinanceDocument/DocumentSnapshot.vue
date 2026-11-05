@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getImageUrl } from '@jetlinks-web-core/utils'
-import type { DocumentPreview, DocumentDetail, DocumentBuyer } from '../../../api/financeDocument'
+import type { DocumentPreview, DocumentDetail, DocumentBuyer, DocumentPreviewLine } from '../../../api/financeDocument'
 const props = defineProps<{ value: DocumentPreview | DocumentDetail }>()
 const { t } = useI18n()
 const preview = computed(() => ('token' in props.value ? props.value : undefined))
@@ -21,11 +21,37 @@ const buyerItems = computed(() =>
       'bankAccount',
       'extensionNumber'
     ] as (keyof DocumentBuyer)[]
-  ).map((key) => ({ label: t('Document.buyer.' + key), value: props.value.buyer[key] || '—' }))
+  )
+    .map((key) => ({ label: t('Document.buyer.' + key), value: props.value.buyer[key] || '—' }))
+    .concat([
+      {
+        label: t('Document.buyer.titleType'),
+        value: props.value.buyer.titleType
+          ? t('Document.titleType.' + props.value.buyer.titleType)
+          : t('Document.paymentStates.UNKNOWN')
+      }
+    ])
 )
 const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'fullName', width: 220 },
   { title: t('Setting.subject'), dataIndex: 'subjectName', width: 150 },
+  { title: t('Document.source'), dataIndex: 'sourceId', width: 210 },
+  { title: t('Document.standard'), dataIndex: 'standardName', width: 150 },
+  {
+    title: t('Document.period'),
+    dataIndex: 'startDate',
+    width: 210,
+    customRender: ({ record: line }: { record: DocumentPreviewLine }) =>
+      `${line.startDate || '—'} ~ ${line.endDate || '—'}`
+  },
+  { title: t('Document.issuePaidAmount'), dataIndex: 'paidAmount', width: 130 },
+  { title: t('Document.goodsName'), dataIndex: 'goodsName', width: 150 },
+  {
+    title: t('Document.collectionMethod'),
+    dataIndex: 'collectionMethod',
+    width: 130,
+    customRender: ({ text }: { text: string }) => t('Document.method.' + text)
+  },
   { title: t('Document.issueAmount'), dataIndex: 'amount', width: 130, align: 'right' as const },
   { title: t('Document.taxRate'), dataIndex: 'taxRate', width: 110 },
   { title: t('Document.taxAmount'), dataIndex: 'taxAmount', width: 120, align: 'right' as const },
@@ -55,8 +81,28 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
         { label: t('Document.state'), value: record ? t('Document.status.' + record.status) : t('Document.ready') },
         { label: t('Document.seller'), value: summary.companyName },
         { label: t('Document.sellerTaxNum'), value: summary.sellerTaxNum },
+        {
+          label: t('Document.ruleSnapshot'),
+          value:
+            t('Document.rule.' + value.rule.timeLimitType) + (value.rule.limitDays ? ' / ' + value.rule.limitDays : '')
+        },
         { label: t('Setting.customer'), value: summary.customerName },
         { label: t('Document.sceneTitle'), value: t('Document.scene.' + summary.issueScene) },
+        ...(record
+          ? [
+              {
+                label: t('Document.paymentStatus'),
+                value: t('Document.paymentStates.' + (record.paymentStatus || 'UNKNOWN'))
+              },
+              { label: t('Document.paidAmount'), value: record.paidAmount ?? '—' },
+              {
+                label: t('Document.issuePaymentStatus'),
+                value: t('Document.paymentStates.' + (record.issuePaymentStatus || 'UNKNOWN'))
+              },
+              { label: t('Document.issuePaidAmount'), value: record.issuePaidAmount ?? '—' },
+              { label: t('Document.issuerName'), value: record.issuerName || '—' }
+            ]
+          : []),
         { label: t('Document.issuedAt'), value: record?.issuedAt.replace('T', ' ') || preview?.businessDate },
         ...(record?.documentType === 'INVOICE'
           ? [{ label: t('Document.reopenCount'), value: String(record.reopenCount || 0) }]
@@ -108,7 +154,7 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
       :columns="columns"
       :data-source="lines"
       size="small"
-      :scroll="{ x: 1090 }"
+      :scroll="{ x: 2400 }"
       :pagination="{ pageSize: 10 }"
     />
     <div class="document-totals">

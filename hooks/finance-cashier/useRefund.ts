@@ -11,7 +11,6 @@ import {
   confirmRefund,
   type RefundInput,
   type RefundPreview,
-  type RefundDetail,
   type RefundRequest,
   type RefundRecovery
 } from '../../api/financeRefund'
@@ -35,7 +34,7 @@ export function useRefund(
     recoveryFailed = ref(false)
   const companies = ref<CashierCompany[]>([]),
     preview = ref<RefundPreview>(),
-    result = ref<RefundDetail>()
+    result = ref<import('../../api/financeRefundApplication').RefundApplication>()
   const files = ref<UploadChangeParam['fileList']>([])
   const sourceRows = ref<PaymentRecord[]>(props.rows)
   const uploading = computed(() => files.value.some((file) => file.status === 'uploading'))

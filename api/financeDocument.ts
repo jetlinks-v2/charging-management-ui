@@ -1,12 +1,14 @@
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Page, type Query } from './archive'
 import type { PaymentRequest } from './paymentConfirmation'
+import { excelResponse } from '../utils/archiveFiles'
 import { receiptPdfResponse } from '../utils/receiptPdf'
 
 const request: Pick<Request, 'get' | 'post' | 'put'> = hostRequest
 export type DocumentType = 'INVOICE' | 'RECEIPT'
 export type DocumentSourceType = 'RECEIVABLE' | 'TEMP_PAYMENT' | 'FUND_TOPUP'
 export interface DocumentBuyer {
+  titleType?: 'ENTERPRISE' | 'PERSONAL'
   name: string
   taxNum?: string
   phone?: string
@@ -141,6 +143,20 @@ export interface DocumentRecord {
   reopenCount?: number
   remark?: string
   modifierName?: string
+  fullName?: string
+  subjectName?: string
+  period?: string
+  sourceType?: string
+  paymentStatus?: 'UNPAID' | 'PARTIAL' | 'PAID' | 'UNKNOWN'
+  paidAmount?: string
+  issuePaidAmount?: string
+  issuePaymentStatus?: string
+  issuerName?: string
+  timeLimitType?: DocumentRule['timeLimitType']
+  limitDays?: number
+  maxReopenTimes?: number
+  buyerTitleType?: DocumentBuyer['titleType']
+  sources?: DocumentPreviewLine[]
 }
 export interface DocumentDetail {
   document: DocumentRecord
@@ -218,9 +234,10 @@ export const queryDocumentLogs = (
   signal?: AbortSignal
 ) =>
   request
-    .post<
-      Page<DocumentOperation>
-    >(`${base(project, type)}/${encodeURIComponent(id)}/logs/_query`, query, { hiddenError: true, signal })
+    .post<Page<DocumentOperation>>(`${base(project, type)}/${encodeURIComponent(id)}/logs/_query`, query, {
+      hiddenError: true,
+      signal
+    })
     .then(queryResponse)
 export const queryDocumentCandidates = (
   project: string,
@@ -267,9 +284,11 @@ export const reverseDocument = (
 }
 export const verifyReceipts = (project: string, input: PaymentRequest<ReceiptVerificationInput>) =>
   request
-    .post<
-      DocumentDetail[]
-    >(`${base(project, 'RECEIPT')}/_verify`, { requestId: input.requestId, ...input.input }, { hiddenError: true })
+    .post<DocumentDetail[]>(
+      `${base(project, 'RECEIPT')}/_verify`,
+      { requestId: input.requestId, ...input.input },
+      { hiddenError: true }
+    )
     .then(checked)
 const rulePath = (project: string) => `/property/finance/projects/${encodeURIComponent(project)}/document-rule`
 export const previewDocumentReopen = (project: string, input: DocumentReopenInput) => {
@@ -294,3 +313,12 @@ export const getDocumentRule = (project: string) =>
   request.get<DocumentRule>(rulePath(project), {}, { hiddenError: true }).then(checked)
 export const saveDocumentRule = (project: string, input: DocumentRule & { reason: string }) =>
   request.put<DocumentRule>(rulePath(project), input, { hiddenError: true }).then(checked)
+
+export const exportDocuments = (project: string, type: DocumentType, input: Query) =>
+  request
+    .post(`${base(project, type)}/_export/excel`, input, { responseType: 'blob', hiddenError: true })
+    .then(excelResponse)
+export const getInvoicePdf = (project: string, id: string) =>
+  request
+    .get(`${base(project, 'INVOICE')}/${encodeURIComponent(id)}/pdf`, {}, { responseType: 'blob', hiddenError: true })
+    .then(receiptPdfResponse)

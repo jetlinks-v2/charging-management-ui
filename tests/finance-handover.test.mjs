@@ -121,7 +121,8 @@ test('交账先后端核对金额，确认不把列表金额传回后台', async
     closingDate: '2026-11-05',
     remark: '原交账',
     attachmentFileId: undefined,
-    attachmentName: undefined
+    attachmentName: undefined,
+    attachments: []
   })
   assert.equal(m.state.preview.value.cashAmount, '60.00')
   assert.equal(m.state.preview.value.amount, '100.01')
@@ -226,5 +227,31 @@ test('存储失败时不能发送确认请求', async () => {
   await m.state.submit()
   assert.equal(calls, 0)
   assert.equal(m.state.saving.value, false)
+  m.unmount()
+})
+
+test('多条勾选明细按完整原单去重，五附件保留原文件信息且不提交列表金额', async () => {
+  let input
+  const m = mount({
+    previewHandover: async (_project, value) => {
+      input = value
+      return structuredClone(quote)
+    }
+  })
+  m.props.candidates.push({ ...m.props.candidates[0], selectionKey: 'second-line' })
+  m.state.filesChanged({
+    fileList: [1, 2, 3, 4, 5].map((n) => ({
+      uid: String(n),
+      name: `凭证${n}.pdf`,
+      size: n * 100,
+      status: 'done',
+      response: { result: { id: `file-${n}` } }
+    }))
+  })
+  await m.state.calculate()
+  assert.equal(input.items.length, 1)
+  assert.equal(input.attachments.length, 5)
+  assert.deepEqual(input.attachments[4], { fileId: 'file-5', name: '凭证5.pdf', size: 500 })
+  assert.equal('amount' in input, false)
   m.unmount()
 })

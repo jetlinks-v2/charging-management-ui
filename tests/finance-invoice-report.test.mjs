@@ -51,6 +51,7 @@ function setup(overrides = {}) {
   globalThis.__report = {
     context: {
       projectId: ref('a'),
+      reportProjectIds: ref(['a']),
       projects: ref([
         { id: 'a', name: '甲项目' },
         { id: 'b', name: '乙项目' }
@@ -118,6 +119,9 @@ test('分页、全量摘要使用服务器精确文本；输入草稿不改变�
 test('项目与科目多选下钻保留既有条件、清空旧摘要与选中状态', async () => {
   const v = setup(),
     s = v.state
+  s.draft.customerName = '张'
+  s.apply()
+  __report.context.reportProjectIds.value = ['a', 'b']
   s.draft.customerName = '张'
   s.apply()
   s.group('PROJECT')
@@ -208,7 +212,7 @@ test('账号或全局项目重置使旧导出失效，不弹旧错误或保留�
     v = setup({ export: () => pending.promise }),
     s = v.state
   const task = s.exportRows('pdf', true)
-  __report.context.projectId.value = 'b'
+  __report.context.reportProjectIds.value = ['b']
   assert.deepEqual(s.active.value.projectIds, ['b'])
   assert.equal(s.exporting.value, false)
   pending.resolve(new Blob(['old']))
@@ -240,10 +244,11 @@ test('刷新不应用草稿，无项目申请被明确阻止；销毁后的请�
   s.draft.customerName = '草稿'
   s.reload()
   assert.equal(s.active.value.customerName, undefined)
-  s.draft.projectIds = []
+  __report.context.reportProjectIds.value = []
   s.apply()
   assert.equal(__report.messages.length, 1)
-  assert.deepEqual(s.active.value.projectIds, ['a'])
+  assert.deepEqual(s.active.value.projectIds, [])
+  __report.context.reportProjectIds.value = ['a']
   const task = s.request({})
   v.close()
   pending.resolve(result())
@@ -286,5 +291,41 @@ test('最新模拟票据条件完整提交，刷新和重置不会保留旧条�
     'sourceId'
   ])
     assert.equal(calls[1][key], undefined)
+  v.close()
+})
+
+test('全局多项目是唯一范围来源，恶意项目下钻不能扩大查询或导出', async () => {
+  const calls = [],
+    v = setup({
+      query: async (i) => {
+        calls.push(i)
+        return result()
+      }
+    }),
+    s = v.state
+  __report.context.reportProjectIds.value = ['a', 'b']
+  assert.deepEqual(s.active.value.projectIds, ['a', 'b'])
+  s.draft.projectIds = ['secret']
+  s.apply()
+  assert.deepEqual(s.active.value.projectIds, ['a', 'b'])
+  s.group('PROJECT')
+  s.drill([{ projectId: 'secret' }])
+  assert.equal(s.active.value.groupBy, 'PROJECT')
+  s.drill([{ projectId: 'a' }, { projectId: 'secret' }])
+  await s.request({})
+  assert.deepEqual(calls[0].projectIds, ['a'])
+  __report.context.reportProjectIds.value.push('c')
+  assert.deepEqual(s.active.value.projectIds, ['a', 'b', 'c'])
+  v.close()
+})
+
+test('分组下钻保存编码和名称快照，清除标签同时清除精确快照条件', () => {
+  const v = setup(),
+    s = v.state
+  s.group('SUBJECT')
+  s.drill([{ subjectId: 'same', subjectName: '历史名称' }])
+  assert.deepEqual(s.active.value.subjectGroups, [{ value: 'same', label: '历史名称' }])
+  s.clearSubjects()
+  assert.deepEqual(s.active.value.subjectGroups, [])
   v.close()
 })

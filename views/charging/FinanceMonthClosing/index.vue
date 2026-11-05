@@ -1,15 +1,39 @@
 <script setup lang="ts">
 import FinancePage from '../components/FinancePage.vue'
 import { useI18n } from 'vue-i18n'
+import { onlyMessage } from '@jetlinks-web/utils'
+import { requestErrorMessage } from '../../../utils/requestError'
+import { ref, watch } from 'vue'
+import ClosingBatch from './ClosingBatch.vue'
+import { useFinanceBatchRecovery } from '../../../hooks/finance-handover/useFinanceBatchRecovery'
+import type { ClosingBatchInput, AccountingPeriod, ClosingAction } from '../../../api/financeAccounting'
 import { useMonthClosingWorkspace } from '../../../hooks/finance-month-closing/useMonthClosingWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import PeriodLedger from './PeriodLedger.vue'
 import ClosingRule from './ClosingRule.vue'
 import AccountingYearEditor from './AccountingYearEditor.vue'
 import ClosingConfirmation from './ClosingConfirmation.vue'
-import ClosingRecords from './ClosingRecords.vue'
+import ClosingPeriodDetail from './ClosingPeriodDetail.vue'
 const { t } = useI18n()
 const state = useMonthClosingWorkspace()
+const batchSelected = ref<AccountingPeriod[]>([]),
+  batchAction = ref<ClosingAction>(),
+  detailOpen = ref(false)
+const batchRecovery = useFinanceBatchRecovery<ClosingBatchInput>(state.projectId, 'closing')
+watch(
+  state.projectId,
+  () => {
+    batchSelected.value = []
+    batchAction.value = undefined
+    try {
+      const pending = batchRecovery.read()
+      if (pending) batchAction.value = pending.action as ClosingAction
+    } catch (error) {
+      onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
+    }
+  },
+  { immediate: true }
+)
 const {
   projectId,
   year,
@@ -31,6 +55,14 @@ const {
   closeAction,
   saved
 } = state
+function selectPeriod(month: string) {
+  selectedMonth.value = month
+  detailOpen.value = true
+}
+function batchSaved() {
+  saved()
+  batchSelected.value = []
+}
 function editorSaved() {
   editor.value = undefined
   saved()
@@ -54,6 +86,15 @@ function editorSaved() {
           />
         </a-space>
         <a-space wrap>
+          <j-permission-button
+            v-for="value in ['CLOSE', 'REOPEN'] as const"
+            :key="value"
+            :hasPermission="'charging/FinanceMonthClosing:' + value.toLowerCase()"
+            :disabled="!projectId || blocked || !batchSelected.length"
+            @click="batchAction = value"
+          >
+            {{ t('MonthClosing.batch.' + value) }}
+          </j-permission-button>
           <j-permission-button
             hasPermission="charging/FinanceMonthClosing:save"
             :disabled="!projectId || blocked"
@@ -137,39 +178,28 @@ function editorSaved() {
             :periods="periods"
             :selected="selectedMonth"
             :disabled="blocked"
-            @select="selectedMonth = $event"
+            @select="selectPeriod"
+            @selection="batchSelected = $event"
           />
-          <SectionCard
-            v-if="selected"
-            icon="CalendarOutlined"
-            :title="selected.accountMonth"
-            :sub="selected.startDate + ' ~ ' + selected.endDate"
-            class="month-detail"
-          >
-            <template #actions>
-              <j-permission-button
-                :type="selected.status === 'OPEN' ? 'primary' : 'default'"
-                :danger="selected.status === 'CLOSED'"
-                :hasPermission="'charging/FinanceMonthClosing:' + (selected.status === 'OPEN' ? 'close' : 'reopen')"
-                :disabled="blocked"
-                @click="start(selected, selected.status === 'OPEN' ? 'CLOSE' : 'REOPEN')"
-              >
-                {{ t('MonthClosing.action.' + (selected.status === 'OPEN' ? 'CLOSE' : 'REOPEN')) }}
-              </j-permission-button>
-            </template>
-            <p class="month-guidance">
-              {{ t(selected.status === 'OPEN' ? 'MonthClosing.openHint' : 'MonthClosing.closedHint') }}
-            </p>
-            <h3>{{ t('MonthClosing.logs') }}</h3>
-            <ClosingRecords
-              :key="projectId + selected.accountMonth"
-              :project-id="projectId"
-              :month="selected.accountMonth"
-            />
-          </SectionCard>
+          <ClosingPeriodDetail
+            v-if="detailOpen && selected"
+            :period="selected"
+            :project-id="projectId"
+            :blocked="blocked"
+            @close="detailOpen = false"
+            @action="start(selected, $event)"
+          />
         </template>
       </a-spin>
     </div>
+    <ClosingBatch
+      v-if="batchAction"
+      :project-id="projectId"
+      :periods="batchSelected"
+      :action="batchAction"
+      @close="batchAction = undefined"
+      @saved="batchSaved"
+    />
     <AccountingYearEditor
       v-if="editor"
       :project-id="projectId"

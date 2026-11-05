@@ -51,7 +51,7 @@ const historyOpen = ref(false)
 </script>
 <template>
   <FinancePage>
-    <ProjectScopeBar v-if="projectMode" />
+    <ProjectScopeBar />
     <div class="subject-workspace">
       <SubjectCategories
         :state="state"

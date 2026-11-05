@@ -34,7 +34,7 @@ const { t } = useI18n()
           <a-menu-item>
             <j-permission-button
               type="link"
-              hasPermission="charging/FinanceAllocation:save"
+              hasPermission="charging/FinanceReceipt:allocation-save"
               :disabled="busy || row.usedCount > 0"
               @click="emit('edit')"
             >
@@ -51,7 +51,7 @@ const { t } = useI18n()
               <j-permission-button
                 type="link"
                 danger
-                hasPermission="charging/FinanceAllocation:delete"
+                hasPermission="charging/FinanceReceipt:allocation-delete"
                 :disabled="busy || row.usedCount > 0"
               >
                 {{ t('Finance.delete') }}

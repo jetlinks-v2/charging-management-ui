@@ -6,7 +6,7 @@ import { useRefundRecovery } from '../../../hooks/finance-cashier/useRefundRecov
 import { useProjectSwitchGuard } from '../../../hooks/project/useProjectContext'
 import RefundSources from './RefundSources.vue'
 import RefundForm from './RefundForm.vue'
-import RefundSummary from './RefundSummary.vue'
+import RefundApplicationSummary from './RefundApplicationSummary.vue'
 import '../FinanceCashier/cashier.css'
 const props = defineProps<{ projectId: string; rows: PaymentRecord[] }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
@@ -48,9 +48,9 @@ function close() {
     @update:open="close"
   >
     <div class="cashier-editor">
-      <RefundSummary
+      <RefundApplicationSummary
         v-if="result"
-        :detail="result"
+        :application="result"
       />
       <template v-else>
         <a-steps

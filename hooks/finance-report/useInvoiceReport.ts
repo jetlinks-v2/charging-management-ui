@@ -19,9 +19,10 @@ export function useInvoiceReport() {
   const { t } = useI18n(),
     context = useProjectContext()
   const defaults = (): InvoiceReportInput => ({
-    projectIds: context.projectId.value ? [context.projectId.value] : [],
+    projectIds: [...context.reportProjectIds.value],
     spaceIds: [],
     subjectIds: [],
+    subjectGroups: [],
     groupBy: 'DETAIL',
     pageIndex: 0,
     pageSize: 12
@@ -43,10 +44,11 @@ export function useInvoiceReport() {
     ...input,
     projectIds: [...input.projectIds],
     spaceIds: [...input.spaceIds],
+    subjectGroups: input.subjectGroups?.map((key) => ({ ...key })),
     subjectIds: [...input.subjectIds]
   })
   const { exporting, previewUrl, previewOpen, closePreview, exportRows } = useReportExport({
-    projectId: context.projectId,
+    projectId: computed(() => context.reportProjectIds.value.join(',')),
     enabled: () => ready.value && !loading.value && !failed.value,
     input: () => copy(active.value),
     title: () => t('InvoiceReport.title'),
@@ -64,11 +66,17 @@ export function useInvoiceReport() {
   }
   function apply() {
     if (exporting.value) return
-    if (!draft.projectIds.length) {
+    if (!context.reportProjectIds.value.length) {
       onlyMessage(t('Report.chooseProjects'), 'warning')
       return
     }
-    active.value = { ...copy(draft), groupBy: active.value.groupBy, pageIndex: 0 }
+    const projectIds = draft.projectIds.filter((id) => context.reportProjectIds.value.includes(id))
+    active.value = {
+      ...copy(draft),
+      projectIds: projectIds.length ? projectIds : [...context.reportProjectIds.value],
+      groupBy: active.value.groupBy,
+      pageIndex: 0
+    }
     invalidate()
   }
   function resetState() {
@@ -124,28 +132,40 @@ export function useInvoiceReport() {
   function drill(rows: InvoiceRow[]) {
     if (!rows.length || exporting.value) return
     const input = copy(active.value)
-    if (input.groupBy === 'PROJECT') input.projectIds = rows.flatMap((row) => (row.projectId ? [row.projectId] : []))
+    if (input.groupBy === 'PROJECT')
+      input.projectIds = [
+        ...new Set(
+          rows.flatMap((row) => (row.projectId && input.projectIds.includes(row.projectId) ? [row.projectId] : []))
+        )
+      ]
     else if (input.groupBy === 'SUBJECT') {
       input.subjectIds = [...new Set(rows.flatMap((row) => (row.subjectId ? [row.subjectId] : [])))]
+      input.subjectGroups = rows.map((row) => ({ value: row.subjectId, label: row.subjectName }))
       subjectLabel.value = [...new Set(rows.map((row) => row.subjectName))].join('、')
     } else return
+    if (!input.projectIds.length) return
     input.groupBy = 'DETAIL'
     input.pageIndex = 0
     active.value = input
     Object.assign(draft, copy(input))
     invalidate()
   }
+  function clearProjects() {
+    draft.projectIds = [...context.reportProjectIds.value]
+    apply()
+  }
   function clearSubjects() {
     draft.subjectIds = []
+    draft.subjectGroups = []
     subjectLabel.value = ''
     apply()
   }
   watch(
-    context.projectId,
+    context.reportProjectIds,
     () => {
       resetState()
     },
-    { flush: 'sync' }
+    { flush: 'sync', deep: true }
   )
   useProjectSwitchGuard(() => !exporting.value && !previewOpen.value)
   onScopeDispose(() => {
@@ -174,6 +194,7 @@ export function useInvoiceReport() {
     group,
     drill,
     clearSubjects,
+    clearProjects,
     closePreview,
     exportRows
   }

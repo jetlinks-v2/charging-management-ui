@@ -76,7 +76,7 @@ const close = () => {
             <FileUpload
               :value="files"
               :size="20"
-              :max-count="1"
+              :max-count="5"
               :disabled="locked"
               :btn-text="t('Adjustment.upload')"
               @upload-change="filesChanged"

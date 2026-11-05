@@ -14,9 +14,13 @@ const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'house', width: 220, scopedSlots: true },
   { title: t('Setting.subject'), dataIndex: 'subject', width: 180, scopedSlots: true },
   { title: t('Document.seller'), dataIndex: 'companyName', width: 180 },
+  { title: t('Document.standard'), dataIndex: 'standardName', width: 150 },
+  { title: t('Document.taxRate'), dataIndex: 'taxRate', width: 110 },
+  { title: t('Document.goodsCode'), dataIndex: 'goodsCode', width: 150 },
+  { title: t('Document.paidAmount'), dataIndex: 'paidAmount', width: 130, align: 'right' },
   { title: t('Document.available'), dataIndex: 'available', width: 160, align: 'right', scopedSlots: true }
 ])
-const reason = (code?: string) => t(code?.endsWith('expired') ? 'Document.expired' : 'Document.exhausted')
+const reason = (code?: string) => (code ? t(code) : t('Document.sourceUnavailable'))
 </script>
 <template>
   <div class="document-source-filters">
@@ -45,7 +49,7 @@ const reason = (code?: string) => t(code?.endsWith('expired') ? 'Document.expire
     :pagination="{ pageSize: 12 }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 808 }"
+    :scroll="{ x: 1350 }"
     @request-error="notify"
   >
     <template #select="row">

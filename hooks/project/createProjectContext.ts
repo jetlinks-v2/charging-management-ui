@@ -12,13 +12,13 @@ interface ProjectContextOptions {
 export function createProjectContext(options: ProjectContextOptions) {
   const projects = ref<ProjectOption[]>([])
   const projectId = ref('')
+  const reportProjectIds = ref<string[]>([])
   const loading = ref(false)
   const failed = ref(false)
   const switching = ref(false)
   const guards = new Set<() => boolean | Promise<boolean>>()
   let generation = 0
   let identity = ''
-  let initialized = false
   const storageKey = (value: string) => `property:charging:project:${value}`
   const remember = (value: string) => {
     try {
@@ -30,8 +30,8 @@ export function createProjectContext(options: ProjectContextOptions) {
   function reset() {
     generation++
     projectId.value = ''
+    reportProjectIds.value = []
     projects.value = []
-    initialized = false
     failed.value = false
     loading.value = false
   }
@@ -41,8 +41,8 @@ export function createProjectContext(options: ProjectContextOptions) {
     if (identity !== requestIdentity) {
       identity = requestIdentity
       projectId.value = ''
+      reportProjectIds.value = []
       projects.value = []
-      initialized = false
     }
     loading.value = true
     failed.value = false
@@ -50,26 +50,16 @@ export function createProjectContext(options: ProjectContextOptions) {
       const result = await options.load()
       if (token !== generation || requestIdentity !== options.identity()) return
       projects.value = result
-      let preferred = projectId.value
-      if (!initialized) {
-        try {
-          preferred = options.read(storageKey(identity))
-        } catch {
-          preferred = ''
-        }
-      }
-      projectId.value = result.some((item) => item.id === preferred)
-        ? preferred
-        : result.length === 1
-          ? result[0].id
-          : ''
-      initialized = true
+      // 历史偏好不等于本次确认，即使只有一个项目也必须明确选择。
+      if (!result.some((item) => item.id === projectId.value)) projectId.value = ''
+      reportProjectIds.value = reportProjectIds.value.filter((id) => result.some((item) => item.id === id))
       remember(projectId.value)
     } catch (cause) {
       if (token === generation && requestIdentity === options.identity()) {
         failed.value = true
         projects.value = []
         projectId.value = ''
+        reportProjectIds.value = []
       }
       throw cause
     } finally {
@@ -91,8 +81,31 @@ export function createProjectContext(options: ProjectContextOptions) {
       switching.value = false
     }
   }
+  async function selectMany(ids: string[]) {
+    const unique = [...new Set(ids)]
+    if (
+      loading.value ||
+      switching.value ||
+      !unique.length ||
+      unique.length > 100 ||
+      unique.some((id) => !projects.value.some((item) => item.id === id))
+    )
+      return false
+    switching.value = true
+    const token = generation
+    try {
+      for (const guard of guards) if (!(await guard())) return false
+      if (token !== generation || identity !== options.identity()) return false
+      reportProjectIds.value = unique
+      return true
+    } finally {
+      switching.value = false
+    }
+  }
   return {
     projects: readonly(projects),
+    reportProjectIds: readonly(reportProjectIds),
+    selectMany,
     projectId: readonly(projectId),
     loading: readonly(loading),
     failed: readonly(failed),

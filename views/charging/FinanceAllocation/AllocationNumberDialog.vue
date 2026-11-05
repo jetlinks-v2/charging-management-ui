@@ -50,7 +50,7 @@ const { t } = useI18n()
         <j-permission-button
           type="primary"
           html-type="submit"
-          hasPermission="charging/FinanceAllocation:pool"
+          hasPermission="charging/FinanceReceipt:allocation-pool"
           :loading="busy"
         >
           {{ t('Finance.save') }}

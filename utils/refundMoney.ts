@@ -1,5 +1,7 @@
 import { sumMoney } from './receivableTotals'
 import type { PaymentLine } from '../api/financeCashier'
 export function refundableMoney(line: PaymentLine) {
-  return sumMoney([line.amount, `-${line.refundedAmount || '0'}`])
+  return line.refundReservedAmount && Number(line.refundReservedAmount) > 0
+    ? '0.00'
+    : sumMoney([line.amount, `-${line.refundedAmount || '0'}`])
 }

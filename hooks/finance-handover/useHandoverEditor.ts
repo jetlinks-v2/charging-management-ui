@@ -21,6 +21,7 @@ export function useHandoverEditor(
   const form = reactive({
     closingDate: dayjs().format('YYYY-MM-DD'),
     remark: '',
+    attachments: [] as import('../../api/financeHandover').HandoverAttachment[],
     attachmentFileId: undefined as string | undefined,
     attachmentName: undefined as string | undefined
   })
@@ -30,6 +31,13 @@ export function useHandoverEditor(
   )
   function filesChanged(info: UploadChangeParam) {
     files.value = info.fileList
+    form.attachments = files.value
+      .filter((file) => file.status === 'done' && file.response?.success !== false && file.response?.result?.id)
+      .map((file) => ({
+        fileId: file.response.result.id,
+        name: file.name,
+        size: file.size ?? file.response?.result?.length ?? 0
+      }))
     const file = files.value[0]
     form.attachmentFileId =
       file?.status === 'done' && file.response?.success !== false ? file.response?.result?.id || undefined : undefined
@@ -58,7 +66,11 @@ export function useHandoverEditor(
       !confirmation.failed.value
   )
   const input = (): HandoverInput => ({
-    items: props.candidates.map((row) => ({ type: row.type, id: row.id, version: row.version })),
+    items: [
+      ...new Map(
+        props.candidates.map((row) => [row.type + ':' + row.id, { type: row.type, id: row.id, version: row.version }])
+      ).values()
+    ],
     ...form,
     remark: form.remark.trim() || undefined
   })
@@ -82,10 +94,20 @@ export function useHandoverEditor(
       Object.assign(form, {
         closingDate: restored.closingDate,
         remark: restored.remark || '',
+        attachments: restored.attachments || [],
         attachmentFileId: restored.attachmentFileId,
         attachmentName: restored.attachmentName
       })
-      if (restored.attachmentFileId)
+      if (restored.attachments?.length)
+        files.value = restored.attachments.map((file) => ({
+          uid: file.fileId,
+          name: file.name,
+          size: file.size ?? undefined,
+          status: 'done' as const,
+          url: getImageUrl(file.fileId),
+          response: { result: { id: file.fileId } }
+        }))
+      else if (restored.attachmentFileId)
         files.value = [
           {
             uid: restored.attachmentFileId,

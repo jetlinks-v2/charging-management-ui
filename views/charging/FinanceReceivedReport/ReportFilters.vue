@@ -1,147 +1,235 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import dayjs, { type Dayjs } from 'dayjs'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { onlyMessage } from '@jetlinks-web/utils'
+import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
+import { reportConditions } from '../../../hooks/finance-report/reportConditions'
+import { useProjectContext } from '../../../hooks/project/useProjectContext'
+import { queryReceivedReport, type ReceivedSource } from '../../../api/financeReceivedReport'
+import { requestErrorMessage } from '../../../utils/requestError'
 import type { useReceivedReport } from '../../../hooks/finance-report/useReceivedReport'
 const props = defineProps<{ state: ReturnType<typeof useReceivedReport> }>()
 const { t } = useI18n()
-const { draft, projects, exporting, subjectLabel } = props.state
-const dates = computed<[Dayjs, Dayjs] | undefined>({
-  get: (): [Dayjs, Dayjs] | undefined =>
-    draft.receivedDateStart && draft.receivedDateEnd
-      ? [dayjs(draft.receivedDateStart), dayjs(draft.receivedDateEnd)]
-      : undefined,
-  set: (value: [Dayjs, Dayjs] | undefined) => {
-    draft.receivedDateStart = value?.[0]?.format('YYYY-MM-DD')
-    draft.receivedDateEnd = value?.[1]?.format('YYYY-MM-DD')
+const { draft, exporting } = props.state
+const filterKey = ref(0),
+  context = useProjectContext()
+const key = computed(() => context.reportProjectIds.value.join(',') + ':' + filterKey.value)
+async function paymentMethods() {
+  try {
+    const result = await queryReceivedReport({
+      projectIds: [...context.reportProjectIds.value],
+      spaceIds: [],
+      subjectIds: [],
+      paymentMethods: [],
+      sourceTypes: [],
+      groupBy: 'METHOD',
+      pageIndex: 0,
+      pageSize: 200
+    })
+    if (result.page.total > 200) {
+      onlyMessage(t('Report.methodLimit'), 'warning')
+      return []
+    }
+    const methods = new Map<string, Set<string>>()
+    for (const row of result.page.data)
+      if (row.method) {
+        if (!methods.has(row.method)) methods.set(row.method, new Set())
+        if (row.methodText) methods.get(row.method)!.add(row.methodText)
+      }
+    return [...methods].map(([value, labels]) => ({ value, label: [...labels].join('、') || value }))
+  } catch (error) {
+    onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
+    return []
   }
-})
+}
+const fields = computed(() => [
+  {
+    title: t('Received.customerName'),
+    dataIndex: 'customerName',
+    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+  },
+  {
+    title: t('Received.fullName'),
+    dataIndex: 'fullName',
+    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+  },
+  {
+    title: t('Received.paymentNo'),
+    dataIndex: 'paymentNo',
+    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+  },
+  {
+    title: t('Received.collectorName'),
+    dataIndex: 'collectorName',
+    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+  },
+  {
+    title: t('Received.methodText'),
+    dataIndex: 'method',
+    search: {
+      type: 'select',
+      termOptions: ['eq'],
+      defaultTermType: 'eq',
+      options: paymentMethods
+    }
+  },
+  {
+    title: t('Received.sourceType'),
+    dataIndex: 'source',
+    search: {
+      type: 'select',
+      termOptions: ['eq'],
+      defaultTermType: 'eq',
+      options: [
+        'RECEIVABLE',
+        'TEMPORARY',
+        'REFUND',
+        'TEMPORARY_REFUND',
+        'ADVANCE',
+        'DEPOSIT',
+        'ADVANCE_REFUND',
+        'DEPOSIT_REFUND'
+      ].map((value) => ({ value, label: t('Received.' + value) }))
+    }
+  }
+])
+function change({ filter }: ConditionFilterChangePayload) {
+  if (exporting.value) return
+  try {
+    const { method, source, ...values } = reportConditions(filter.terms, {
+      customerName: 'like',
+      fullName: 'like',
+      paymentNo: 'like',
+      collectorName: 'like',
+      method: 'eq',
+      source: 'eq'
+    })
+    Object.assign(draft, values)
+    draft.methodGroups = []
+    draft.paymentMethods = method ? [method] : []
+    draft.sourceTypes = source ? [source as ReceivedSource] : []
+    props.state.methodLabel.value = ''
+    props.state.apply()
+  } catch {
+    onlyMessage(t('Report.unsupportedCondition'), 'warning')
+  }
+}
+function reset() {
+  if (exporting.value) return
+  props.state.reset()
+  filterKey.value++
+}
 </script>
 <template>
-  <a-form
-    class="report-filters"
-    layout="vertical"
-    :model="draft"
-    :disabled="exporting"
-    @finish="state.apply"
-  >
-    <a-form-item
-      :label="t('Report.projects')"
-      class="report-projects"
-    >
-      <a-select
-        v-model:value="draft.projectIds"
-        mode="multiple"
-        :options="projects.map((p) => ({ value: p.id, label: p.name }))"
-        :max-tag-count="2"
-        :aria-label="t('Report.projects')"
-        show-search
-        option-filter-prop="label"
+  <div class="report-filters">
+    <div :class="{ 'report-frozen': exporting }">
+      <ConditionFilter
+        :key="key"
+        :fields="fields"
+        :disabled="exporting"
+        @change="change"
       />
-    </a-form-item>
-    <a-form-item
-      :label="t('Received.receivedDate')"
+    </div>
+    <a-form
+      layout="inline"
+      :model="draft"
       class="report-dates"
+      @finish="state.apply"
     >
-      <a-range-picker
-        v-model:value="dates"
-        :aria-label="t('Received.receivedDate')"
-        :placeholder="[t('Report.startDate'), t('Report.endDate')]"
-      />
-    </a-form-item>
-    <a-form-item
-      v-for="key in ['customerName', 'fullName', 'paymentNo', 'collectorName'] as const"
-      :key="key"
-      :label="t('Received.' + key)"
-    >
-      <a-input
-        v-model:value="draft[key]"
-        :aria-label="t('Received.' + key)"
-        :maxlength="200"
-        allow-clear
-      />
-    </a-form-item>
-    <a-form-item :label="t('Received.sourceType')">
-      <a-select
-        v-model:value="draft.sourceTypes"
-        mode="multiple"
-        :aria-label="t('Received.sourceType')"
-        :options="
-          ['RECEIVABLE', 'TEMPORARY', 'REFUND', 'ADVANCE', 'DEPOSIT'].map((value) => ({
-            value,
-            label: t('Received.' + value)
-          }))
-        "
-        allow-clear
-      />
-    </a-form-item>
-    <a-form-item class="report-filter-actions">
-      <a-space>
-        <a-button
-          type="primary"
-          html-type="submit"
-        >
-          {{ t('Report.query') }}
-        </a-button>
-        <a-button @click="state.reset">{{ t('Report.reset') }}</a-button>
-      </a-space>
-    </a-form-item>
-    <div
-      v-if="draft.paymentMethods.length"
-      class="report-subject-filter"
+      <a-form-item :label="t('Received.receivedDate') + ' · ' + t('Report.startDate')">
+        <a-date-picker
+          v-model:value="draft.receivedDateStart"
+          value-format="YYYY-MM-DD"
+          :disabled="exporting"
+          allow-clear
+        />
+      </a-form-item>
+      <a-form-item :label="t('Received.receivedDate') + ' · ' + t('Report.endDate')">
+        <a-date-picker
+          v-model:value="draft.receivedDateEnd"
+          value-format="YYYY-MM-DD"
+          :disabled="exporting"
+          allow-clear
+        />
+      </a-form-item>
+      <a-form-item>
+        <a-space>
+          <a-button
+            type="primary"
+            html-type="submit"
+            :disabled="exporting"
+          >
+            {{ t('Report.query') }}
+          </a-button>
+          <a-button
+            :disabled="exporting"
+            @click="reset"
+          >
+            {{ t('Report.reset') }}
+          </a-button>
+        </a-space>
+      </a-form-item>
+    </a-form>
+    <a-space
+      wrap
+      class="report-drill-tags"
     >
       <a-tag
+        v-if="state.active.value.projectIds.length !== context.reportProjectIds.value.length"
+        closable
+        @close.prevent="state.clearProjects"
+      >
+        {{ t('Report.drilledProjects') }}：{{
+          state.active.value.projectIds
+            .map((id) => state.projects.value.find((project) => project.id === id)?.name || id)
+            .join('、')
+        }}
+      </a-tag>
+      <a-tag
+        v-if="draft.subjectIds.length || draft.subjectGroups?.length"
+        closable
+        @close.prevent="state.clearSubjects"
+      >
+        {{ t('Report.subjectName') }}：{{ state.subjectLabel.value }}
+      </a-tag>
+      <a-tag
+        v-if="draft.paymentMethods.length && state.methodLabel.value"
         closable
         @close.prevent="state.clearMethods"
       >
         {{ t('Received.methodText') }}：{{ state.methodLabel.value }}
       </a-tag>
-    </div>
-    <div
-      v-if="draft.subjectIds.length"
-      class="report-subject-filter"
-    >
       <a-tag
+        v-if="draft.sourceTypes.length"
         closable
-        @close.prevent="state.clearSubjects"
+        @close.prevent="state.clearSources"
       >
-        {{ t('Report.subjectName') }}：{{ subjectLabel }}
+        {{ t('Received.sourceType') }}：{{ draft.sourceTypes.map((type) => t('Received.' + type)).join('、') }}
       </a-tag>
-    </div>
-  </a-form>
+    </a-space>
+  </div>
 </template>
 <style scoped>
 .report-filters {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
-  gap: 0 16px;
-  align-items: end;
+  margin-bottom: 16px;
 }
-.report-filters :deep(.ant-form-item) {
-  margin-bottom: 14px;
+.report-frozen {
+  pointer-events: none;
+  opacity: 0.65;
 }
-.report-filters :deep(.ant-picker) {
-  width: 100%;
+.report-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 0;
+  margin-top: 8px;
 }
-.report-filter-actions {
-  align-self: end;
+.report-dates :deep(.ant-form-item) {
+  margin-bottom: 0;
 }
-.report-subject-filter {
-  grid-column: 1/-1;
+.report-dates :deep(.ant-picker) {
+  width: 150px;
 }
-@media (min-width: 1500px) {
-  .report-filters {
-    grid-template-columns: repeat(4, minmax(180px, 1fr));
-  }
-}
-@media (max-width: 900px) {
-  .report-filters {
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-  }
-}
-@media (max-width: 560px) {
-  .report-filters {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.report-drill-tags:not(:empty) {
+  margin-top: 10px;
 }
 </style>

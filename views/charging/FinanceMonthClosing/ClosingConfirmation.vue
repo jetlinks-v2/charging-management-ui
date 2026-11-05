@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useMenuStore } from '@jetlinks-web-core/store'
 import type { AccountingPeriod, ClosingAction } from '../../../api/financeAccounting'
 import { useClosingConfirmation } from '../../../hooks/finance-month-closing/useClosingConfirmation'
+const { jumpPage } = useMenuStore()
 const props = defineProps<{ projectId: string; period: AccountingPeriod; action: ClosingAction }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
@@ -43,6 +45,29 @@ const close = () => {
           )
         "
       />
+      <a-space
+        style="margin: 12px 0"
+        wrap
+      >
+        <a-button
+          type="link"
+          @click="jumpPage('charging/FinanceHandover')"
+        >
+          {{ t('Handover.details') }}
+        </a-button>
+        <a-button
+          type="link"
+          @click="jumpPage('charging/FinanceHandoverRecord')"
+        >
+          {{ t('Handover.records') }}
+        </a-button>
+        <a-button
+          type="link"
+          @click="jumpPage('charging/FinanceReceivable')"
+        >
+          {{ t('MonthClosing.pendingReceivable') }}
+        </a-button>
+      </a-space>
       <a-form layout="vertical">
         <a-form-item
           required

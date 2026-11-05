@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import HandoverStatement from './HandoverStatement.vue'
 import dayjs from 'dayjs'
 import { Grid } from 'ant-design-vue'
 import { FileUpload } from '@jetlinks-web-core/components'
@@ -10,6 +11,7 @@ import type { useHandoverWorkspace } from '../../../hooks/finance-handover/useHa
 import HandoverLines from './HandoverLines.vue'
 const props = defineProps<{ state: ReturnType<typeof useHandoverWorkspace> }>()
 const screens = Grid.useBreakpoint()
+const statementOpen = ref(false)
 const { t, projectId, detail, loading, detailFailed, closeDetail, notify } = props.state
 const columns = computed(() => [
   { title: t('Handover.operation'), dataIndex: 'action', width: 130, scopedSlots: true },
@@ -20,16 +22,23 @@ const columns = computed(() => [
 ])
 const request = (q: Query) => queryHandoverLogs(projectId.value, detail.value!.batch.id, q)
 const files = computed(() =>
-  detail.value?.batch.attachmentFileId
-    ? [
-        {
-          uid: detail.value.batch.attachmentFileId,
-          name: detail.value.batch.attachmentName || '',
-          status: 'done' as const,
-          url: getImageUrl(detail.value.batch.attachmentFileId)
-        }
-      ]
-    : []
+  detail.value?.batch.attachments?.length
+    ? detail.value.batch.attachments.map((file) => ({
+        uid: file.fileId,
+        name: file.name,
+        status: 'done' as const,
+        url: getImageUrl(file.fileId)
+      }))
+    : detail.value?.batch.attachmentFileId
+      ? [
+          {
+            uid: detail.value.batch.attachmentFileId,
+            name: detail.value.batch.attachmentName || '',
+            status: 'done' as const,
+            url: getImageUrl(detail.value.batch.attachmentFileId)
+          }
+        ]
+      : []
 )
 </script>
 <template>
@@ -52,6 +61,7 @@ const files = computed(() =>
           icon="ProfileOutlined"
           :title="t('Handover.summary')"
         >
+          <a-button @click="statementOpen = true">{{ t('Handover.statement') }}</a-button>
           <a-space class="handover-status">
             <a-tag
               :color="
@@ -71,6 +81,8 @@ const files = computed(() =>
             :column="screens.md ? 2 : 1"
             size="small"
           >
+            <a-descriptions-item :label="t('Handover.sourceCount')">{{ detail.batch.sourceCount }}</a-descriptions-item>
+            <a-descriptions-item :label="t('Handover.lineCount')">{{ detail.batch.lineCount }}</a-descriptions-item>
             <a-descriptions-item :label="t('Handover.amount')">￥{{ detail.batch.amount }}</a-descriptions-item>
             <a-descriptions-item :label="t('Handover.cash')">￥{{ detail.batch.cashAmount }}</a-descriptions-item>
             <a-descriptions-item :label="t('Handover.submitter')">{{ detail.batch.submittedBy }}</a-descriptions-item>
@@ -146,4 +158,10 @@ const files = computed(() =>
       <a-button @click="closeDetail">{{ t('Finance.close') }}</a-button>
     </template>
   </JlDrawerShell>
+  <HandoverStatement
+    v-if="statementOpen && detail"
+    :id="detail.batch.id"
+    :project-id="projectId"
+    @close="statementOpen = false"
+  />
 </template>

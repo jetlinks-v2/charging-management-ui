@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useProjectContext } from '../../../hooks/project/useProjectContext'
+import InvoiceSourceDetail from './InvoiceSourceDetail.vue'
 import { useI18n } from 'vue-i18n'
 import type { InvoiceRow } from '../../../api/financeInvoiceReport'
 import type { useInvoiceReport } from '../../../hooks/finance-report/useInvoiceReport'
 const props = defineProps<{ state: ReturnType<typeof useInvoiceReport> }>()
 const { t } = useI18n()
+const detail = ref<InvoiceRow>()
+watch(
+  useProjectContext().reportProjectIds,
+  () => {
+    detail.value = undefined
+  },
+  { deep: true }
+)
 const { active, ready, revision, selected, request } = props.state
 const rowKey = (r: InvoiceRow) => JSON.stringify([r.id, r.sourceType, r.projectId, r.subjectId, r.subjectName])
 const selection = computed(() =>
@@ -18,19 +28,7 @@ const selection = computed(() =>
 const columns = computed(() => {
   const fields =
     active.value.groupBy === 'DETAIL'
-      ? [
-          'projectName',
-          'fullName',
-          'customerName',
-          'subjectName',
-          'id',
-          'sourceType',
-          'invoiceStatus',
-          'invoiceNo',
-          'invoiceType',
-          'invoiceDate',
-          'buyerName'
-        ]
+      ? ['projectName', 'fullName', 'buyerName', 'invoiceNo', 'invoiceStatus', 'invoiceDate']
       : [active.value.groupBy === 'PROJECT' ? 'projectName' : 'subjectName', 'rowCount']
   return [
     ...fields.map((key) => ({
@@ -47,7 +45,10 @@ const columns = computed(() => {
       key,
       width: 180,
       align: 'right'
-    }))
+    })),
+    ...(active.value.groupBy === 'DETAIL'
+      ? [{ title: t('Finance.actions'), dataIndex: 'actions', width: 100, fixed: 'right', scopedSlots: true }]
+      : [])
   ]
 })
 const color = (status?: string) =>
@@ -73,7 +74,7 @@ const color = (status?: string) =>
     :row-selection="selection"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: active.groupBy === 'DETAIL' ? 2600 : 1200 }"
+    :scroll="{ x: active.groupBy === 'DETAIL' ? 1780 : 1200 }"
     :body-style="{ padding: 0 }"
     :alert-show="false"
     class="report-table"
@@ -104,12 +105,25 @@ const color = (status?: string) =>
     <template #sourceType="row">{{ row.sourceType ? t('InvoiceReport.' + row.sourceType) : '—' }}</template>
     <template #invoiceType="row">{{ row.invoiceType ? t('InvoiceReport.' + row.invoiceType) : '—' }}</template>
     <template #invoiceDate="row">{{ row.invoiceDate?.replace('T', ' ') || '—' }}</template>
+    <template #actions="row">
+      <a-button
+        type="link"
+        @click="detail = row"
+      >
+        {{ t('Finance.detail') }}
+      </a-button>
+    </template>
     <template #emptyText>
       <CloudEmpty :description="t(state.failed.value ? 'Finance.failed' : 'InvoiceReport.empty')" />
     </template>
   </j-pro-table>
+  <InvoiceSourceDetail
+    v-if="detail"
+    :row="detail"
+    @close="detail = undefined"
+  />
   <CloudEmpty
-    v-else
+    v-else-if="!ready"
     :description="t('Report.chooseProjects')"
   />
 </template>
@@ -119,5 +133,6 @@ const color = (status?: string) =>
 }
 .report-table :deep(td) {
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 </style>

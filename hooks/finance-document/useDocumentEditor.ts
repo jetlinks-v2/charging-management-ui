@@ -33,7 +33,7 @@ export function useDocumentEditor(
     validating = ref(false)
   const selected = ref<DocumentCandidate[]>([]),
     items = ref<DocumentItem[]>([])
-  const buyer = reactive<DocumentBuyer>({ name: '' })
+  const buyer = reactive<DocumentBuyer>({ name: '', titleType: 'ENTERPRISE' })
   const invoiceType = ref<'1' | '2'>('1'),
     remark = ref('')
   const confirmation = usePaymentConfirmation(

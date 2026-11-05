@@ -19,11 +19,11 @@ import { requestErrorMessage } from '../../utils/requestError'
 import { useProjectContext, useProjectSwitchGuard } from '../project/useProjectContext'
 import { useHandoverRecovery } from './useHandoverRecovery'
 
-export function useHandoverWorkspace() {
+export function useHandoverWorkspace(view?: 'sources' | 'records') {
   const { t } = useI18n(),
     { projectId } = useProjectContext()
   const { hasPerm: canCreate } = usePermission('charging/FinanceHandover:create')
-  const tab = ref(canCreate.value ? 'sources' : 'records'),
+  const tab = ref(view || (canCreate.value ? 'sources' : 'records')),
     type = ref<HandoverSourceType>('PAYMENT'),
     status = ref('ALL')
   const selected = ref<HandoverCandidate[]>([]),

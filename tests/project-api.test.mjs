@@ -35,14 +35,26 @@ test('收费项目选择消费独立基础模块公开资源，缺少模块与�
     assert.deepEqual([module, kind, name], ['property-base-ui', 'apis', 'getProjectOptions'])
   }
   assert.deepEqual(await getProjectOptions(), { status: 'notConfigured' })
-  globalThis.__projectResource = () => async () => ({
+  globalThis.__projectResource = (_module, _kind, name) =>
+    name === 'getOrganizationTree'
+      ? async () => ({
+          success: true,
+          result: [{ id: 'company', name: '公司', children: [{ id: 'p', name: '园区' }] }]
+        })
+      : async () => ({ status: 'ready', options: [{ id: 'p', name: '园区' }] })
+  assert.deepEqual(await getProjectOptions(), {
     status: 'ready',
-    options: []
+    options: [
+      {
+        id: 'p',
+        name: '园区',
+        organizationPath: [
+          { id: 'company', name: '公司' },
+          { id: 'p', name: '园区' }
+        ]
+      }
+    ]
   })
-  assert.deepEqual(await getProjectOptions(), { status: 'ready', options: [] })
-  const expected = { status: 'ready', options: [{ id: 'p', name: '园区' }] }
-  globalThis.__projectResource = () => async () => expected
-  assert.equal(await getProjectOptions(), expected)
 })
 
 test('基础资源查询失败沿用原异常，不伪造空项目或恢复旧基础接口', async () => {

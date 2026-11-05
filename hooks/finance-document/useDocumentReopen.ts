@@ -27,7 +27,7 @@ export function useDocumentReopen(
   const form = ref<FormInstance>(),
     step = ref(0),
     validating = ref(false)
-  const buyer = reactive<DocumentBuyer>({ name: '' })
+  const buyer = reactive<DocumentBuyer>({ name: '', titleType: 'ENTERPRISE' })
   const invoiceType = ref<'1' | '2'>('1'),
     remark = ref('')
   // 表单必须使用稳定模型；临时对象会让字段在change校验时读到旧原因。

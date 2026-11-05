@@ -3,11 +3,21 @@ import { checked, type Page } from './archive'
 import { excelResponse } from '../utils/archiveFiles'
 const request: Pick<Request, 'post'> = hostRequest
 export type ReceivedGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'METHOD' | 'SOURCE'
-export type ReceivedSource = 'RECEIVABLE' | 'TEMPORARY' | 'REFUND' | 'ADVANCE' | 'DEPOSIT'
+export type ReceivedSource =
+  | 'RECEIVABLE'
+  | 'TEMPORARY'
+  | 'REFUND'
+  | 'TEMPORARY_REFUND'
+  | 'ADVANCE'
+  | 'DEPOSIT'
+  | 'ADVANCE_REFUND'
+  | 'DEPOSIT_REFUND'
 export interface ReceivedInput {
   projectIds: string[]
   spaceIds: string[]
   subjectIds: string[]
+  subjectGroups?: { value?: string; label?: string }[]
+  methodGroups?: { value?: string; label?: string }[]
   paymentMethods: string[]
   sourceTypes: ReceivedSource[]
   customerName?: string
@@ -30,6 +40,8 @@ export interface ReceivedAmounts {
 export interface ReceivedRow {
   id?: string
   sourceId?: string
+  sourceNo?: string
+  receivableId?: string
   projectId?: string
   projectName?: string
   spaceId?: string

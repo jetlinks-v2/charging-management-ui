@@ -193,7 +193,7 @@ function submit() {
       <j-permission-button
         type="primary"
         html-type="submit"
-        hasPermission="charging/FinanceAllocation:save"
+        hasPermission="charging/FinanceReceipt:allocation-save"
         :loading="busy"
       >
         {{ t('Finance.save') }}

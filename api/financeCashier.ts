@@ -65,6 +65,7 @@ export interface PaymentLine {
   bankAccount?: string
   amount: string
   refundedAmount: string
+  refundReservedAmount?: string
   modifierName?: string
 }
 export interface PaymentDetail {

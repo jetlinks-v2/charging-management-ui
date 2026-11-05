@@ -4,12 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { useDocumentRule } from '../../../hooks/finance-document/useDocumentRule'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import '../FinanceDocument/document.css'
+withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false })
 const { t } = useI18n()
 const { projectId, loading, saving, failed, editing, current, model, load, edit, save } = useDocumentRule()
 </script>
 <template>
-  <FinancePage>
-    <ProjectScopeBar />
+  <component :is="embedded ? 'div' : FinancePage">
+    <ProjectScopeBar v-if="!embedded" />
     <section class="document-workspace">
       <CloudEmpty
         v-if="!projectId"
@@ -29,7 +30,7 @@ const { projectId, loading, saving, failed, editing, current, model, load, edit,
             <a-space>
               <j-permission-button
                 v-if="!editing"
-                :hasPermission="'charging/FinanceDocumentRule:save'"
+                :hasPermission="'charging/FinanceInvoice:rule-save'"
                 @click="edit"
               >
                 {{ t('Finance.edit') }}
@@ -125,7 +126,7 @@ const { projectId, loading, saving, failed, editing, current, model, load, edit,
               <j-permission-button
                 type="primary"
                 html-type="submit"
-                :hasPermission="'charging/FinanceDocumentRule:save'"
+                :hasPermission="'charging/FinanceInvoice:rule-save'"
                 :loading="saving"
                 :disabled="!model.reason.trim()"
               >
@@ -142,5 +143,5 @@ const { projectId, loading, saving, failed, editing, current, model, load, edit,
         </CloudEmpty>
       </a-spin>
     </section>
-  </FinancePage>
+  </component>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocumentRecord } from '../../../api/financeDocument'
 import { useReceiptPrint } from '../../../hooks/finance-document/useReceiptPrint'
@@ -9,6 +9,7 @@ const { open, busy, url, show, close } = useReceiptPrint(
   () => props.projectId,
   () => props.document
 )
+const frame = ref<HTMLIFrameElement>()
 const filename = computed(() => `${props.document.documentNumber.replace(/[^\w-]/g, '_')}.pdf`)
 </script>
 <template>
@@ -18,7 +19,7 @@ const filename = computed(() => `${props.document.documentNumber.replace(/[^\w-]
     @click="show"
   >
     <AIcon type="PrinterOutlined" />
-    {{ t('Document.print') }}
+    {{ t('Document.receiptPreview') }}
   </j-permission-button>
   <a-modal
     :open="open"
@@ -34,6 +35,7 @@ const filename = computed(() => `${props.document.documentNumber.replace(/[^\w-]
         :tip="t('Document.printLoading')"
       />
       <iframe
+        ref="frame"
         v-else-if="url"
         :src="url + '#view=FitH&navpanes=0'"
         :title="t('Document.printTitle')"
@@ -42,6 +44,12 @@ const filename = computed(() => `${props.document.documentNumber.replace(/[^\w-]
     </div>
     <template #footer>
       <a-button @click="close">{{ t('Finance.close') }}</a-button>
+      <a-button
+        v-if="url"
+        @click="frame?.contentWindow?.print()"
+      >
+        {{ t('Document.print') }}
+      </a-button>
       <a-button
         v-if="url"
         type="primary"

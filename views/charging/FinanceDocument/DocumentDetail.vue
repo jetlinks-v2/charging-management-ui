@@ -4,6 +4,7 @@ import type { useDocumentWorkspace } from '../../../hooks/finance-document/useDo
 import DocumentSnapshot from './DocumentSnapshot.vue'
 import DocumentLogs from './DocumentLogs.vue'
 import ReceiptPrintButton from './ReceiptPrintButton.vue'
+import InvoicePrintButton from './InvoicePrintButton.vue'
 const props = defineProps<{ state: ReturnType<typeof useDocumentWorkspace> }>()
 const { t } = useI18n()
 const { projectId, detail, loading, failed, closeDetail, select } = props.state
@@ -22,6 +23,20 @@ const { projectId, detail, loading, failed, closeDetail, select } = props.state
         class="document-editor"
       >
         <DocumentSnapshot :value="detail" />
+        <a-space wrap>
+          <a-button
+            v-if="detail.document.originalDocumentId"
+            @click="select(detail.document.originalDocumentId)"
+          >
+            {{ t('Document.originalInvoice') }}
+          </a-button>
+          <a-button
+            v-if="detail.document.reverseDocumentId"
+            @click="select(detail.document.reverseDocumentId)"
+          >
+            {{ t('Document.redInvoice') }}
+          </a-button>
+        </a-space>
         <a-space
           v-if="detail.document.previousDocumentId || detail.document.reopenDocumentId"
           wrap
@@ -53,6 +68,12 @@ const { projectId, detail, loading, failed, closeDetail, select } = props.state
     <template #foot>
       <ReceiptPrintButton
         v-if="detail?.document.documentType === 'RECEIPT'"
+        :project-id="projectId"
+        :document="detail.document"
+      />
+      <InvoicePrintButton
+        v-if="detail?.document.documentType === 'INVOICE'"
+        :key="detail.document.id"
         :project-id="projectId"
         :document="detail.document"
       />

@@ -1,40 +1,28 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { onlyMessage } from '@jetlinks-web/utils'
-import { useProjectContext } from '../../../hooks/project/useProjectContext'
+import { useProjectScope } from '../../../hooks/project/useProjectScope'
 import ProjectPicker from './ProjectPicker.vue'
+const props = defineProps<{ multiple?: boolean }>()
 const { t } = useI18n()
-const context = useProjectContext()
-const { projects, projectId, current, loading, failed, switching } = context
-const open = ref(false)
-const organizationPath = computed(() => current.value?.organizationPath?.map((item) => item.name).join(' / '))
-async function refresh() {
-  try {
-    await context.refresh()
-  } catch {
-    onlyMessage(t('ProjectContext.failed'), 'error')
-  }
-}
-async function choose() {
-  open.value = true
-  await refresh()
-}
-async function confirm(id: string) {
-  if (await context.select(id)) open.value = false
-  else onlyMessage(t('ProjectContext.switchBlocked'), 'warning')
-}
+const { context, open, required, label, choose, confirm, refresh } = useProjectScope(() => !!props.multiple)
+const { projects, projectId, current, loading, failed, switching, reportProjectIds } = context
+const organizationPath = computed(() =>
+  props.multiple ? '' : current.value?.organizationPath?.map((item) => item.name).join(' / ')
+)
 </script>
 <template>
   <div class="project-scope-bar">
-    <span class="project-scope-bar__label">{{ t('ProjectContext.currentProject') }}</span>
+    <span class="project-scope-bar__label">
+      {{ t(multiple ? 'ProjectContext.reportProjects' : 'ProjectContext.currentProject') }}
+    </span>
     <a-button
       :loading="loading"
       class="project-scope-bar__trigger"
       @click="choose"
     >
       <AIcon type="EnvironmentOutlined" />
-      <strong>{{ current?.name || t('ProjectContext.choose') }}</strong>
+      <strong>{{ label || t('ProjectContext.choose') }}</strong>
       <AIcon type="DownOutlined" />
     </a-button>
     <span
@@ -50,10 +38,13 @@ async function confirm(id: string) {
     :open="open"
     :projects="projects"
     :current-id="projectId"
+    :selected-ids="reportProjectIds"
+    :multiple="multiple"
+    :required="required"
     :loading="loading"
     :failed="failed"
     :switching="switching"
-    @close="open = false"
+    @close="!required && (open = false)"
     @confirm="confirm"
     @refresh="refresh"
   />

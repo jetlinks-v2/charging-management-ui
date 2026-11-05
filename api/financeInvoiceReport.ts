@@ -1,7 +1,7 @@
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Page } from './archive'
 import { excelResponse } from '../utils/archiveFiles'
-const request: Pick<Request, 'post'> = hostRequest
+const request: Pick<Request, 'get' | 'post'> = hostRequest
 export type InvoiceGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT'
 export type InvoiceStatus = 'UNISSUED' | 'PARTIAL' | 'INVOICED' | 'REVERSED'
 export type InvoiceSource = 'RECEIVABLE' | 'TEMP_PAYMENT' | 'FUND_TOPUP'
@@ -9,6 +9,7 @@ export interface InvoiceReportInput {
   projectIds: string[]
   spaceIds: string[]
   subjectIds: string[]
+  subjectGroups?: { value?: string; label?: string }[]
   customerName?: string
   fullName?: string
   sourceId?: string
@@ -44,6 +45,8 @@ export interface InvoiceRow {
   invoiceType?: '1' | '2'
   invoiceDate?: string
   buyerName?: string
+  invoiceContent?: string
+  remark?: string
   rowCount: number
   amounts: InvoiceAmounts
 }
@@ -59,3 +62,22 @@ export const exportInvoiceReport = (input: InvoiceReportInput, format: 'excel' |
   request
     .post<Blob>(`${base}/_export/${format}`, input, { hiddenError: true, responseType: 'blob' })
     .then(excelResponse)
+
+export interface ReportDocument {
+  id: string
+  documentNumber: string
+  status: string
+  invoiceType?: string
+  issuedAt: string
+  amount: string
+  buyerName: string
+  remark?: string
+}
+export const queryReportDocuments = (project: string, type: InvoiceSource, sourceId: string) =>
+  request
+    .get<ReportDocument[]>(
+      `${base}/${encodeURIComponent(project)}/${encodeURIComponent(type)}/${encodeURIComponent(sourceId)}/documents`,
+      {},
+      { hiddenError: true }
+    )
+    .then(checked)

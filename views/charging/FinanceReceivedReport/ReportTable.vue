@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useProjectContext } from '../../../hooks/project/useProjectContext'
+import ReportRowDetail from '../FinanceReceivableReport/ReportRowDetail.vue'
 import { useI18n } from 'vue-i18n'
 import type { ReceivedRow } from '../../../api/financeReceivedReport'
 import type { useReceivedReport } from '../../../hooks/finance-report/useReceivedReport'
 const props = defineProps<{ state: ReturnType<typeof useReceivedReport> }>()
 const { t } = useI18n()
+const detail = ref<ReceivedRow>()
+watch(
+  useProjectContext().reportProjectIds,
+  () => {
+    detail.value = undefined
+  },
+  { deep: true }
+)
 const { active, ready, revision, request } = props.state
 const groupField = computed(
   () =>
@@ -17,30 +27,19 @@ const rowKey = (row: ReceivedRow) =>
 const columns = computed(() => {
   const fields =
     active.value.groupBy === 'DETAIL'
-      ? [
-          'projectName',
-          'fullName',
-          'customerName',
-          'subjectName',
-          'sourceId',
-          'receivedAt',
-          'calcStartDate',
-          'calcEndDate',
-          'methodText',
-          'sourceType',
-          'collectorName',
-          'remark'
-        ]
+      ? ['projectName', 'fullName', 'customerName', 'sourceNo', 'receivedAt', 'methodText', 'sourceType']
       : [groupField.value, 'rowCount']
   const amounts =
-    active.value.receivedDateStart || active.value.receivedDateEnd
-      ? ['incomeAmount', 'refundAmount', 'netAmount', 'currentPeriodAmount', 'otherPeriodAmount']
-      : ['incomeAmount', 'refundAmount', 'netAmount']
+    active.value.groupBy === 'DETAIL'
+      ? ['netAmount']
+      : active.value.receivedDateStart || active.value.receivedDateEnd
+        ? ['incomeAmount', 'refundAmount', 'netAmount', 'currentPeriodAmount', 'otherPeriodAmount']
+        : ['incomeAmount', 'refundAmount', 'netAmount']
   return [
     ...fields.map((key) => ({
       title: t('Received.' + key),
       dataIndex: key,
-      width: key === 'fullName' ? 230 : key === 'sourceId' ? 300 : 160,
+      width: key === 'fullName' ? 230 : key === 'sourceNo' ? 300 : 160,
       scopedSlots: ['projectName', 'subjectName', 'methodText', 'sourceType', 'receivedAt'].includes(key)
     })),
     ...amounts.map((key) => ({
@@ -49,7 +48,10 @@ const columns = computed(() => {
       key,
       width: 170,
       align: 'right'
-    }))
+    })),
+    ...(active.value.groupBy === 'DETAIL'
+      ? [{ title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 90, fixed: 'right' }]
+      : [])
   ]
 })
 </script>
@@ -65,7 +67,7 @@ const columns = computed(() => {
     :row-key="rowKey"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: active.groupBy === 'DETAIL' ? 3200 : 1200 }"
+    :scroll="{ x: active.groupBy === 'DETAIL' ? 1520 : 1200 }"
     :body-style="{ padding: 0 }"
     :alert-show="false"
     class="report-table"
@@ -91,17 +93,32 @@ const columns = computed(() => {
       <span v-else>{{ row[key] }}</span>
     </template>
     <template #receivedAt="row">{{ row.receivedAt?.replace('T', ' ') }}</template>
+    <template #actions="row">
+      <a-button
+        type="link"
+        @click="detail = row"
+      >
+        {{ t('Finance.detail') }}
+      </a-button>
+    </template>
     <template #emptyText>
       <CloudEmpty :description="t(state.failed.value ? 'Finance.failed' : 'Received.empty')" />
     </template>
   </j-pro-table>
+  <ReportRowDetail
+    v-if="detail"
+    :row="detail"
+    namespace="Received"
+    @close="detail = undefined"
+  />
   <CloudEmpty
-    v-else
+    v-else-if="!ready"
     :description="t('Report.chooseProjects')"
   />
 </template>
 <style scoped>
 .report-table :deep(td) {
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 </style>

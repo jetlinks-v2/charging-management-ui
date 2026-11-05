@@ -387,6 +387,7 @@ test('预览提交用户输入且不覆盖冻结税率，正式开具复用token
   await m.state.calculate()
   assert.equal(m.state.step.value, 2)
   assert.equal(calls[0][2].buyer.name, '购方企业抬头')
+  assert.equal(calls[0][2].buyer.titleType, 'ENTERPRISE')
   assert.equal(calls[0][2].invoiceType, '2')
   assert.equal('taxRate' in calls[0][2].items[0], false)
   await m.state.submit()

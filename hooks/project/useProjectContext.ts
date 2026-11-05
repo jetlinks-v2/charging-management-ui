@@ -28,10 +28,16 @@ export function useProjectContext() {
   })
   shared = context
   // 守卫随页面销毁，账号监听持续整个应用会话，避免首次页面关闭后失去账号隔离。
-  effectScope(true).run(() => watch(identity, () => {
-    context.reset()
-    if (user.userInfo.id) void context.refresh().catch(() => {})
-  }, { flush: 'sync' }))
+  effectScope(true).run(() =>
+    watch(
+      identity,
+      () => {
+        context.reset()
+        if (user.userInfo.id) void context.refresh().catch(() => {})
+      },
+      { flush: 'sync' }
+    )
+  )
   return context
 }
 

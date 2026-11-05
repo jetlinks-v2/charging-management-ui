@@ -1,98 +1,96 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { AccountingPeriod } from '../../../api/financeAccounting'
-defineProps<{ periods: AccountingPeriod[]; selected: string; disabled: boolean }>()
-const emit = defineEmits<{ select: [month: string] }>()
-const { t } = useI18n()
+const props = defineProps<{ periods: AccountingPeriod[]; selected: string; disabled: boolean }>()
+const emit = defineEmits<{ select: [month: string]; selection: [rows: AccountingPeriod[]] }>(),
+  { t } = useI18n()
+const status = ref('ALL'),
+  month = ref(''),
+  closedOn = ref('')
+const fields = computed(() =>
+  ['accountMonth', 'closedOn'].map((key) => ({
+    title: t('MonthClosing.' + key),
+    dataIndex: key,
+    search: { type: 'string' as const }
+  }))
+)
+function filter({ filter: value }: ConditionFilterChangePayload) {
+  month.value = ''
+  closedOn.value = ''
+  for (const term of value.terms || [])
+    if ('column' in term) {
+      if (term.column === 'accountMonth') month.value = String(term.value || '')
+      if (term.column === 'closedOn') closedOn.value = String(term.value || '')
+    }
+}
+const rows = computed(() =>
+  props.periods.filter(
+    (row) =>
+      (status.value === 'ALL' || row.status === status.value) &&
+      row.accountMonth.includes(month.value) &&
+      (!closedOn.value || row.closedOn?.includes(closedOn.value))
+  )
+)
+const request = async () => ({
+  success: true,
+  result: { data: rows.value, total: rows.value.length, pageIndex: 0, pageSize: rows.value.length }
+})
+const columns = computed(() => [
+  { title: t('MonthClosing.accountMonth'), dataIndex: 'accountMonth', width: 110 },
+  { title: t('MonthClosing.startDate'), dataIndex: 'startDate', width: 120 },
+  { title: t('MonthClosing.endDate'), dataIndex: 'endDate', width: 120 },
+  { title: t('Handover.state'), dataIndex: 'status', width: 120, scopedSlots: true },
+  { title: t('MonthClosing.closedOn'), dataIndex: 'closedOn', width: 180 },
+  { title: t('Handover.operator'), dataIndex: 'closedName', width: 140 },
+  { title: t('Finance.actions'), dataIndex: 'actions', width: 130, scopedSlots: true }
+])
+const selection = computed(() => ({
+  onChange: (_keys: unknown, records: AccountingPeriod[]) => emit('selection', records),
+  getCheckboxProps: () => ({ disabled: props.disabled })
+}))
 </script>
 <template>
-  <ResponsiveGrid
-    :min="210"
-    :gap="12"
-    class="period-ledger"
-  >
-    <button
-      v-for="period in periods"
-      :key="period.id"
-      type="button"
-      class="period-choice"
-      :class="{ selected: selected === period.accountMonth }"
+  <div>
+    <a-select
+      v-model:value="status"
       :disabled="disabled"
-      :aria-pressed="selected === period.accountMonth"
-      @click="emit('select', period.accountMonth)"
+      :options="['ALL', 'OPEN', 'CLOSED'].map((value) => ({ value, label: t('MonthClosing.status.' + value) }))"
+      style="width: 160px; margin-bottom: 12px"
+    />
+    <ConditionFilter
+      :fields="fields"
+      @change="filter"
+    />
+    <j-pro-table
+      row-key="id"
+      type="PAGE"
+      mode="TABLE"
+      :columns="columns"
+      :request="request"
+      :params="{ rows }"
+      :row-selection="selection"
+      :no-pagination="false"
+      :pagination="{ pageSize: 12 }"
+      :alert-show="false"
+      :body-style="{ padding: 0 }"
+      :scroll="{ x: 950, y: 'max(12rem, calc(100vh - 30rem))' }"
     >
-      <EntityCard
-        :interactive="false"
-        :title="t('MonthClosing.monthLabel', { month: Number(period.accountMonth.slice(5)) })"
-      >
-        <template #badges>
-          <a-tag :color="period.status === 'CLOSED' ? 'green' : 'default'">
-            {{ t('MonthClosing.status.' + period.status) }}
-          </a-tag>
-        </template>
-        <template #body>
-          <span class="period-range">{{ period.startDate }} ~ {{ period.endDate }}</span>
-        </template>
-        <template #footer>
-          <span>
-            {{
-              period.status === 'CLOSED'
-                ? t('MonthClosing.closedBy', { name: period.closedName || '—' })
-                : t('MonthClosing.awaitingClose')
-            }}
-          </span>
-        </template>
-      </EntityCard>
-    </button>
-  </ResponsiveGrid>
+      <template #status="row">
+        <a-tag :color="row.status === 'CLOSED' ? 'success' : 'default'">
+          {{ t('MonthClosing.status.' + row.status) }}
+        </a-tag>
+      </template>
+      <template #actions="row">
+        <a-button
+          type="link"
+          :disabled="disabled"
+          @click="emit('select', row.accountMonth)"
+        >
+          {{ t('Finance.detail') }}
+        </a-button>
+      </template>
+    </j-pro-table>
+  </div>
 </template>
-<style scoped>
-.period-choice {
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: var(--jet-theme-radius-sm, 6px);
-  background: transparent;
-  text-align: start;
-  min-width: 0;
-  color: inherit;
-  cursor: pointer;
-}
-.period-choice:hover:not(:disabled),
-.period-choice.selected {
-  border-color: var(--ant-primary-color, #1677ff);
-}
-.period-choice:focus-visible {
-  outline: 2px solid var(--ant-primary-color, #1677ff);
-  outline-offset: 3px;
-}
-.period-choice:disabled {
-  cursor: default;
-}
-.period-choice :deep(.entity-card) {
-  box-shadow: none;
-  border-color: var(--ant-color-border-secondary, #e8e8e8);
-  background: var(--ant-component-background, white);
-}
-.period-choice.selected :deep(.entity-card) {
-  background: var(--ant-primary-1, #e6f4ff);
-  border-color: transparent;
-}
-.period-choice :deep(.ec-top) {
-  padding-bottom: 8px;
-}
-.period-choice :deep(.ec-body) {
-  padding: 8px 0;
-}
-.period-choice :deep(.ec-footer) {
-  font-size: 12px;
-  color: var(--ant-color-text-secondary, #595959);
-}
-.period-range {
-  font-size: 12px;
-  white-space: normal;
-  font-variant-numeric: tabular-nums;
-}
-.period-choice :deep(.ant-tag) {
-  margin-inline-end: 0;
-}
-</style>

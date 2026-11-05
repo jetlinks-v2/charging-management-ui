@@ -24,7 +24,10 @@
     "confirm": "Confirm selection",
     "available": "{count} available projects",
     "all": "All projects",
-    "current": "Current"
+    "current": "Current",
+    "selectMatching": "Select all matching projects",
+    "multipleHint": "{count} selected, up to 100 projects",
+    "reportProjects": "Report projects"
   },
   "Finance": {
     "basic": "Company details",
@@ -101,7 +104,8 @@
     "companyDetail": "Invoice company details",
     "bindExisting": "Link existing company",
     "sharedHelp": "This project uses linked shared companies. Changes to company details affect all linked projects.",
-    "sharedEditHelp": "This company is shared. All linked projects will use the updated details after saving."
+    "sharedEditHelp": "This company is shared. All linked projects will use the updated details after saving.",
+    "all": "All"
   },
   "FinanceTax": {
     "create": "New tax item",
@@ -723,7 +727,11 @@
     "edit": "Enter refund details",
     "confirmTitle": "Review refund",
     "info": "Refund details",
-    "sources": "Original payment lines",
+    "sources": {
+      "PAYMENT": "Payment refund",
+      "ADVANCE": "Advance refund",
+      "DEPOSIT": "Deposit refund"
+    },
     "available": "Refundable balance",
     "amount": "Refund amount",
     "total": "Refund total",
@@ -740,7 +748,38 @@
     "unknownResult": "The refund result is unknown. Check the original request to avoid a duplicate refund.",
     "pending": "This project has a refund awaiting confirmation. Check its original result first.",
     "recordsHint": "Trace refunds to their original payments and restored debt.",
-    "empty": "No refund records"
+    "empty": "No refund records",
+    "application": "Refund application",
+    "applicationNumber": "Application number",
+    "reviewReason": "Review note",
+    "reviewer": "Reviewer",
+    "applicationStatus": {
+      "PENDING": "Pending",
+      "REJECTED": "Rejected",
+      "SUCCEEDED": "Refunded"
+    },
+    "approve": "Confirm refund",
+    "reject": "Reject",
+    "history": "Completed transactions",
+    "submitApplication": "Submit refund application",
+    "editApplication": "Edit refund application",
+    "editConflict": "This application has been processed. Refresh and try again.",
+    "editRequired": "Enter a valid amount, recipient, time and reason.",
+    "logs": "Operation history",
+    "sourceType": "Refund source",
+    "logAction": {
+      "SUBMIT": "Submitted",
+      "EDIT": "Edited",
+      "APPROVE": "Refund approved",
+      "REJECT": "Rejected"
+    },
+    "applicationCount": "Applications",
+    "batchApprove": "Approve selected refunds",
+    "batchReject": "Reject selected refunds",
+    "reviewSucceeded": "Succeeded",
+    "reviewFailed": "Failed",
+    "reviewRetryHint": "Refresh and verify this application before selecting it again.",
+    "recoveryUnavailable": "Pending refund recovery is unavailable. Restore browser storage before continuing."
   },
   "Funds": {
     "companyUnresolved": "The project has no valid default collection company. Check its company association.",
@@ -1081,7 +1120,7 @@
     "noSources": "No matching sources. Check the charging records.",
     "selected": "{count} selected; one customer and issuing company per document",
     "issueAmount": "Issue amount (CNY)",
-    "collectionMethod": "Tax collection method",
+    "collectionMethod": "Collection method",
     "differenceAmount": "Deduction (CNY)",
     "voucherTitle": "Deduction voucher",
     "documentInfo": "Document information",
@@ -1123,7 +1162,8 @@
       "address": "Address",
       "depositBank": "Bank",
       "bankAccount": "Bank account",
-      "extensionNumber": "Extension"
+      "extensionNumber": "Extension",
+      "titleType": "Title type"
     },
     "fields": {
       "documentNumber": "Document number",
@@ -1190,7 +1230,7 @@
     "reopen": "Reverse and reissue",
     "recoverReopen": "Recover reissue request",
     "confirmReopen": "Confirm simulated reissue",
-    "originalInvoice": "Original invoice",
+    "originalInvoice": "Original blue invoice",
     "reopenCount": "Reissue count",
     "previousInvoice": "View previous invoice",
     "replacementInvoice": "View replacement invoice",
@@ -1201,7 +1241,48 @@
     "printTitle": "Receipt print preview",
     "printLoading": "Preparing receipt",
     "downloadPdf": "Download PDF",
-    "printFailed": "Unable to prepare receipt. Please try again."
+    "printFailed": "Unable to prepare receipt. Please try again.",
+    "titleType": {
+      "ENTERPRISE": "Enterprise",
+      "PERSONAL": "Personal"
+    },
+    "allocation": "Receipt pool and allocation",
+    "invoiceLedger": "Simulated invoice ledger",
+    "receiptLedger": "Receipt ledger",
+    "simulatedPreview": "Simulated invoice preview",
+    "sourceUnavailable": "Source unavailable",
+    "fullName": "Space",
+    "subjectName": "Charge subject",
+    "business": "Space / customer / subject / period",
+    "sourceScene": "Source / issue scene",
+    "paymentStatus": "Current payment status",
+    "paidAmount": "Current paid amount",
+    "issuePaidAmount": "Paid amount at issue",
+    "issuePaymentStatus": "Payment status at issue",
+    "issuerName": "Issued by",
+    "taxSnapshot": "Tax snapshot at issue",
+    "moreColumns": "More business columns",
+    "lessColumns": "Fewer columns",
+    "exportLedger": "Export ledger Excel",
+    "standard": "Charge standard",
+    "goodsCode": "Tax classification code",
+    "goodsName": "Tax item",
+    "period": "Billing period",
+    "paymentStates": {
+      "UNPAID": "Unpaid",
+      "PARTIAL": "Partially paid",
+      "PAID": "Paid",
+      "UNKNOWN": "Unknown"
+    },
+    "sourceTypes": {
+      "RECEIVABLE": "Receivable",
+      "TEMP_PAYMENT": "Temporary payment",
+      "FUND_TOPUP": "Original advance / deposit top-up"
+    },
+    "redInvoice": "Related red invoice",
+    "ruleSnapshot": "Rules at issue",
+    "filterEquals": "Equals",
+    "receiptPreview": "Receipt preview"
   },
   "Allocation": {
     "create": "New allocation",
@@ -1360,17 +1441,70 @@
       "REJECT": "Rejecting releases sources for a new handover and preserves this record.",
       "UNAPPROVE": "Undo approval returns this batch to pending review. Closed months cannot be reopened here.",
       "CANCEL": "Cancel releases sources while preserving this batch and its operation history."
+    },
+    "details": "Handover details",
+    "sourceType": "Business type",
+    "subjectName": "Charge subject",
+    "fullName": "Space",
+    "methodText": "Payment method",
+    "customerName": "Customer",
+    "occurredStart": "Received from",
+    "occurredEnd": "Received through",
+    "handed": {
+      "ALL": "All handover states",
+      "NO": "Not handed over",
+      "YES": "Handed over"
+    },
+    "handoverNo": "Handover number",
+    "batchResult": "Result",
+    "batchHint": "Process {count} batches independently and return each result.",
+    "batch": {
+      "APPROVE": "Approve selected",
+      "UNAPPROVE": "Unapprove selected"
+    },
+    "ready": "Ready",
+    "statement": "Handover statement",
+    "statementScope": "Fund deposits/returns include advances and deposits. Cash refund total includes fund returns; do not add them twice. Internal movements are separate.",
+    "previewPrint": "Preview / Print",
+    "statementField": {
+      "subjectName": "Subject",
+      "received": "Cash income",
+      "refund": "Cash refund",
+      "cashAmount": "Net cash",
+      "internalAmount": "Internal movements",
+      "amount": "Business amount",
+      "currentReceived": "Current period receipts",
+      "otherReceived": "Other period receipts",
+      "advanceReceived": "Fund deposits",
+      "advanceRefund": "Fund returns"
+    },
+    "sourceCount": "Source documents",
+    "calcStartDate": "Billing start",
+    "calcEndDate": "Billing end",
+    "bankName": "Bank",
+    "receiptNumbers": "Related receipt numbers",
+    "preflightRejected": "The current state, version or closing conditions prevent this action. Refresh and inspect the detail.",
+    "batchCompleted": "Completed",
+    "business": {
+      "RECEIVABLE": "Receivable payment",
+      "TEMPORARY": "Temporary payment",
+      "TOPUP": "Fund deposit",
+      "REFUND": "Refund",
+      "WITHDRAW": "Fund return",
+      "TRANSFER_IN": "Internal transfer in",
+      "TRANSFER_OUT": "Internal transfer out"
     }
   },
   "MonthClosing": {
-    "title": "Monthly closing",
+    "title": "Month closing",
     "year": "Accounting year",
     "period": "Accounting period",
     "monthLabel": "Month {month}",
     "state": "Status",
     "status": {
       "OPEN": "Open",
-      "CLOSED": "Closed"
+      "CLOSED": "Closed",
+      "ALL": "All statuses"
     },
     "closedBy": "Closed by {name}",
     "awaitingClose": "Awaiting reconciliation",
@@ -1483,6 +1617,19 @@
         "month_closing_preview_changed": "Sources changed during review. The next run will check them again.",
         "month_schedule_record_failed": "Could not persist the result. Check the database and service logs."
       }
+    },
+    "accountMonth": "Period",
+    "closedOn": "Closing date",
+    "batch": {
+      "CLOSE": "Close selected",
+      "REOPEN": "Reopen selected"
+    },
+    "batchHint": "Close in ascending order and reopen in descending order. Each period is revalidated; failure stops dependent periods and retains completed work.",
+    "batchStatus": {
+      "READY": "Ready",
+      "COMPLETED": "Completed",
+      "FAILED": "Failed",
+      "NOT_EXECUTED": "Not executed"
     }
   },
   "ReceivableReview": {
@@ -1506,7 +1653,7 @@
   },
   "Report": {
     "title": "Receivable report",
-    "scope": "Approved, active, unsplit bills only. Amounts use the saved calculation date. Select subjects in the subject summary to view their bills.",
+    "scope": "Approved active unsplit bills only. Net due already includes reductions. Outstanding and arrears both floor net due less paid per bill; they do not indicate overdue debt. Unknown historical business dates remain blank and are excluded by date filters.",
     "projects": "Project scope",
     "dueDate": "Due date",
     "customerName": "Customer",
@@ -1531,7 +1678,7 @@
     "remissionAmount": "Reduction",
     "netAmount": "Net due",
     "receivedAmount": "Received",
-    "arrearsAmount": "Outstanding",
+    "arrearsAmount": "Arrears",
     "collectionRate": "Collection rate",
     "total": "Filtered total",
     "currency": "CNY",
@@ -1546,11 +1693,17 @@
     "drillSelected": "View bills for {count} selected items",
     "empty": "No approved bills match the filters",
     "startDate": "Start date",
-    "endDate": "End date"
+    "endDate": "End date",
+    "receivableDate": "Receivable date",
+    "unreceivedAmount": "Outstanding",
+    "remark": "Remark",
+    "unsupportedCondition": "Use one AND contains or equals condition per field.",
+    "drilledProjects": "Drilled projects",
+    "methodLimit": "More than 200 historical method groups. Group by payment method and drill into the required row."
   },
   "Received": {
     "title": "Received report",
-    "scope": "Cash movements only; excludes balance offsets and internal transfers. Other periods include missing billing dates. Set transaction dates to show period totals. Select a group to inspect its rows.",
+    "scope": "Cash movements only, refunds use their own business date and negative amounts. Balance offsets, balance refunds and internal transfers do not duplicate cash. Other periods include movements outside or without billing periods. Periods are not calculated without date filters. Display references combine source type and original ID.",
     "printTitle": "Received report print preview",
     "receivedDate": "Transaction dates",
     "customerName": "Customer",
@@ -1561,7 +1714,7 @@
     "sourceType": "Source type",
     "projectName": "Project",
     "subjectName": "Charge subject",
-    "sourceId": "Payment / refund ID",
+    "sourceId": "Source ID",
     "receivedAt": "Transaction time",
     "calcStartDate": "Billing start",
     "calcEndDate": "Billing end",
@@ -1569,9 +1722,9 @@
     "rowCount": "Rows",
     "incomeAmount": "Income",
     "refundAmount": "Refunds",
-    "netAmount": "Net received",
-    "currentPeriodAmount": "Current period",
-    "otherPeriodAmount": "Other periods",
+    "netAmount": "Total receipts",
+    "currentPeriodAmount": "Current receipts",
+    "otherPeriodAmount": "Other period receipts",
     "DETAIL": "Transactions",
     "PROJECT": "By project",
     "SUBJECT": "By subject",
@@ -1582,11 +1735,18 @@
     "REFUND": "Payment refund",
     "ADVANCE": "Advance",
     "DEPOSIT": "Deposit",
-    "empty": "No cash transactions for these filters"
+    "empty": "No cash transactions for these filters",
+    "sourceNo": "Payment/refund reference",
+    "receivableId": "Receivable ID",
+    "TEMPORARY_REFUND": "Temporary refund",
+    "ADVANCE_REFUND": "Advance refund",
+    "DEPOSIT_REFUND": "Deposit refund",
+    "notCalculated": "Not calculated",
+    "id": "Entry ID"
   },
   "InvoiceReport": {
     "title": "Invoice coverage",
-    "scope": "Current source coverage, simulated invoices only; receipts excluded. Invoice date, number and type match the latest blue invoice. Uninvoiced amounts still require eligibility checks.",
+    "scope": "Each canonical source contributes its basis and receipts once. Invoiced totals use active occupation, released on reversal and restored on reissue. Filters match the latest active blue invoice, or latest reversed blue when none remains active. Details retain all blue, red and reissued invoices.",
     "printTitle": "Invoice coverage preview",
     "dateFilter": "Latest invoice date",
     "customerName": "Customer",
@@ -1618,7 +1778,10 @@
     "DETAIL": "Source details",
     "PROJECT": "By project",
     "SUBJECT": "By subject",
-    "empty": "No invoice sources match the filters"
+    "empty": "No invoice sources match the filters",
+    "invoiceContent": "Invoice content",
+    "remark": "Remark",
+    "relatedDocuments": "Source invoices"
   },
   "ReceivableLedger": {
     "contractCode": "Contract no.",
@@ -1833,5 +1996,9 @@
       "REJECTED": "Rejected",
       "ALL": "All"
     }
+  },
+  "error": {
+    "property_finance_document_expired": "Invoice time limit exceeded",
+    "property_finance_document_quota_insufficient": "Insufficient issuable quota"
   }
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import FinancePage from '../components/FinancePage.vue'
-import { computed } from 'vue'
-import { Grid } from 'ant-design-vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { DocumentType } from '../../../api/financeDocument'
@@ -14,10 +13,13 @@ import DocumentReverse from './DocumentReverse.vue'
 import DocumentReopen from './DocumentReopen.vue'
 import DocumentRowActions from './DocumentRowActions.vue'
 import ReceiptVerification from './ReceiptVerification.vue'
+import DocumentSettings from './DocumentSettings.vue'
+import DocumentRecoveryActions from './DocumentRecoveryActions.vue'
+import { useDocumentColumns } from '../../../hooks/finance-document/useDocumentColumns'
+import { useDocumentFiles } from '../../../hooks/finance-document/useDocumentFiles'
 import './document.css'
 const props = defineProps<{ type: DocumentType }>()
 const { t } = useI18n()
-const screens = Grid.useBreakpoint()
 const state = useDocumentWorkspace(props.type)
 const {
   projectId,
@@ -33,52 +35,23 @@ const {
   detailOpen,
   reverseOpen,
   reverseTarget,
-  issuePending,
-  reversePending,
   reopenOpen,
   reopenTarget,
-  reopenPending,
   reopen,
   closeReopen,
-  recoverReopen,
-  recoveryFailed,
   blocked,
   start,
   closeIssue,
   closeReverse,
   saved,
   reverse,
-  recoverReverse,
   select
 } = state
+const extra = ref(false)
+const { exporting, exportRows } = useDocumentFiles(projectId, props.type, () => params.value)
 const statuses =
   props.type === 'INVOICE' ? ['SIMULATED_ISSUED', 'SIMULATED_REVERSED', 'SIMULATED_RED'] : ['ISSUED', 'VOIDED']
-const fields = computed(() =>
-  ['documentNumber', 'buyerName', 'customerName', 'companyName'].map((key) => ({
-    title: t('Document.fields.' + key),
-    dataIndex: key,
-    search: { type: 'string' as const }
-  }))
-)
-const columns = computed(() => [
-  { title: t('Document.number'), dataIndex: 'number', width: 230, scopedSlots: true },
-  { title: t('Document.state'), dataIndex: 'status', width: 140, scopedSlots: true },
-  ...(props.type === 'RECEIPT'
-    ? [{ title: t('Verification.state'), dataIndex: 'verified', width: 110, scopedSlots: true }]
-    : []),
-  { title: t('Document.buyer.name'), dataIndex: 'buyerName', width: 170 },
-  { title: t('Setting.customer'), dataIndex: 'customerName', width: 140 },
-  { title: t('Document.seller'), dataIndex: 'companyName', width: 190 },
-  { title: t('Document.total'), dataIndex: 'amount', width: 140, align: 'right', scopedSlots: true },
-  { title: t('Document.issuedAt'), dataIndex: 'issuedAt', width: 180, scopedSlots: true },
-  {
-    title: t('Finance.actions'),
-    dataIndex: 'actions',
-    width: 260,
-    fixed: screens.value.md ? 'right' : undefined,
-    scopedSlots: true
-  }
-])
+const { fields, columns } = useDocumentColumns(props.type, extra)
 function filter({ filter }: ConditionFilterChangePayload) {
   terms.value = (filter.terms || []) as Query['terms']
 }
@@ -96,7 +69,7 @@ const selection = computed(() =>
 )
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed>
     <ProjectScopeBar />
     <section class="document-workspace">
       <div class="document-toolbar">
@@ -113,7 +86,20 @@ const selection = computed(() =>
             {{ t('Document.status.' + value) }}
           </a-radio-button>
         </a-radio-group>
-        <a-space>
+        <a-space wrap>
+          <DocumentSettings
+            :type="type"
+            :disabled="!projectId || blocked"
+          />
+          <j-permission-button
+            :hasPermission="permission + ':export'"
+            :disabled="!projectId"
+            :loading="exporting"
+            @click="exportRows('excel')"
+          >
+            {{ t('Document.exportLedger') }}
+          </j-permission-button>
+          <a-button @click="extra = !extra">{{ t(extra ? 'Document.lessColumns' : 'Document.moreColumns') }}</a-button>
           <j-permission-button
             v-if="type === 'RECEIPT'"
             hasPermission="charging/FinanceReceipt:verify"
@@ -140,50 +126,10 @@ const selection = computed(() =>
           </a-button>
         </a-space>
       </div>
-      <a-alert
-        v-if="
-          issuePending ||
-          reversePending ||
-          reopenPending ||
-          recoveryFailed ||
-          verification.pending.value ||
-          verification.failed.value
-        "
-        type="warning"
-        show-icon
-        :message="t(recoveryFailed || verification.failed.value ? 'Document.recoveryUnavailable' : 'Document.pending')"
-      >
-        <template #action>
-          <j-permission-button
-            v-if="verification.pending.value"
-            hasPermission="charging/FinanceReceipt:verify"
-            @click="verification.recover"
-          >
-            {{ t('Verification.recover') }}
-          </j-permission-button>
-          <j-permission-button
-            v-if="issuePending"
-            :hasPermission="permission + ':create'"
-            @click="issueOpen = true"
-          >
-            {{ t('Document.recoverIssue') }}
-          </j-permission-button>
-          <j-permission-button
-            v-if="reopenPending"
-            :hasPermission="permission + ':reopen'"
-            @click="recoverReopen"
-          >
-            {{ t('Document.recoverReopen') }}
-          </j-permission-button>
-          <j-permission-button
-            v-if="reversePending"
-            :hasPermission="permission + (type === 'INVOICE' ? ':reverse' : ':void')"
-            @click="recoverReverse"
-          >
-            {{ t('Document.recoverReverse') }}
-          </j-permission-button>
-        </template>
-      </a-alert>
+      <DocumentRecoveryActions
+        :state="state"
+        :type="type"
+      />
       <ConditionFilter
         :fields="fields"
         @change="filter"
@@ -202,7 +148,7 @@ const selection = computed(() =>
         :pagination="{ pageSize: 12 }"
         :alert-show="false"
         :body-style="{ padding: 0 }"
-        :scroll="{ x: type === 'RECEIPT' ? 1600 : 1350 }"
+        :scroll="{ x: extra ? 2400 : 1750 }"
         @request-error="notify"
       >
         <template #number="row">
@@ -218,6 +164,42 @@ const selection = computed(() =>
           <a-tag :color="row.status === 'SIMULATED_RED' || row.status === 'VOIDED' ? 'default' : 'processing'">
             {{ t('Document.status.' + row.status) }}
           </a-tag>
+        </template>
+        <template #business="row">
+          <a-tooltip :title="row.fullName">
+            <span class="document-space">{{ row.fullName || '—' }}</span>
+          </a-tooltip>
+          <small>{{ row.customerName }} · {{ row.subjectName }}</small>
+          <small>{{ row.period }}</small>
+        </template>
+        <template #sourceScene="row">
+          {{
+            (row.sourceType || '')
+              .split(' / ')
+              .map((v: string) => t('Document.sourceTypes.' + v))
+              .join(' / ')
+          }}
+          <small>{{ t('Document.scene.' + row.issueScene) }}</small>
+        </template>
+        <template #collection="row">
+          {{ t('Document.paymentStates.' + (row.paymentStatus || 'UNKNOWN')) }}
+          <small class="document-money">{{ row.paidAmount ?? '—' }}</small>
+        </template>
+        <template #taxSnapshot="row">
+          <span
+            v-for="(line, i) in row.sources || []"
+            :key="i"
+          >
+            {{ line.goodsName }} · {{ line.taxRate }} · {{ t('Document.method.' + line.collectionMethod) }}
+            <br />
+          </span>
+        </template>
+        <template #ruleSnapshot="row">
+          {{ row.timeLimitType ? t('Document.rule.' + row.timeLimitType) : '—' }}
+          <small v-if="row.limitDays">{{ t('Document.rule.limitDays') }}: {{ row.limitDays }}</small>
+          <small>
+            {{ t('Document.rule.maxReopenTimes') }}: {{ row.maxReopenTimes ?? t('Document.rule.unlimited') }}
+          </small>
         </template>
         <template #amount="row">
           <strong class="document-money">{{ row.amount }}</strong>

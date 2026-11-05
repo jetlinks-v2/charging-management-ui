@@ -7,9 +7,12 @@ export interface ReportInput {
   projectIds: string[]
   spaceIds: string[]
   subjectIds: string[]
+  subjectGroups?: { value?: string; label?: string }[]
   customerName?: string
   fullName?: string
   receivableNo?: string
+  receivableDateStart?: string
+  receivableDateEnd?: string
   dueDateStart?: string
   dueDateEnd?: string
   collectionStatus?: 'UNPAID' | 'PARTIAL' | 'PAID'
@@ -22,6 +25,7 @@ export interface ReportAmounts {
   remissionAmount: string
   netAmount: string
   receivedAmount: string
+  unreceivedAmount: string
   arrearsAmount: string
   collectionRate: string
 }
@@ -36,6 +40,7 @@ export interface ReportRow {
   subjectName?: string
   calcStartDate?: string
   calcEndDate?: string
+  receivableDate?: string
   dueDate?: string
   calculatedAsOfDate?: string
   collectionStatus?: 'UNPAID' | 'PARTIAL' | 'PAID'

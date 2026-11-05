@@ -12,6 +12,7 @@ import AllocationDetail from './AllocationDetail.vue'
 import AllocationEditor from './AllocationEditor.vue'
 import AllocationNumberDialog from './AllocationNumberDialog.vue'
 import './allocation.css'
+withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false })
 const { t } = useI18n()
 const {
   projectId,
@@ -82,13 +83,13 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 </script>
 <template>
-  <FinancePage>
-    <ProjectScopeBar />
+  <component :is="embedded ? 'div' : FinancePage">
+    <ProjectScopeBar v-if="!embedded" />
     <section class="finance-workspace">
       <div class="finance-toolbar">
         <j-permission-button
           type="primary"
-          hasPermission="charging/FinanceAllocation:save"
+          hasPermission="charging/FinanceReceipt:allocation-save"
           :disabled="!projectId || saving"
           @click="select(undefined, false)"
         >
@@ -242,7 +243,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
               <j-permission-button
                 v-if="!row.used"
                 type="link"
-                hasPermission="charging/FinanceAllocation:pool"
+                hasPermission="charging/FinanceReceipt:allocation-pool"
                 :disabled="saving"
                 @click="numberTarget = row"
               >
@@ -285,7 +286,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
       @save="changeNumber"
       @cancel="!saving && (numberTarget = undefined)"
     />
-  </FinancePage>
+  </component>
 </template>
 
 <style src="../finance.css"></style>
