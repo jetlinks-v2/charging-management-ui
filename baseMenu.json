@@ -828,6 +828,7 @@
     "url": "/charging/payment",
     "owner": "app",
     "sortIndex": 74,
+    "icon": "WalletOutlined",
     "i18nMessages": {
       "name": {
         "zh_CN": "收款管理",
@@ -845,6 +846,7 @@
         "url": "/charging/payment/FinanceCashier",
         "owner": "app",
         "sortIndex": 1,
+        "icon": "CalculatorOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "收银台",
@@ -922,6 +924,7 @@
         "url": "/charging/payment/FinancePayment",
         "owner": "app",
         "sortIndex": 2,
+        "icon": "TransactionOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "实收款管理",
@@ -976,6 +979,7 @@
         "url": "/charging/payment/FinanceRefund",
         "owner": "app",
         "sortIndex": 3,
+        "icon": "RollbackOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "退款管理",
@@ -999,6 +1003,7 @@
         "url": "/charging/payment/FinanceFunds",
         "owner": "app",
         "sortIndex": 4,
+        "icon": "WalletOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "预收与押金",
@@ -1113,6 +1118,7 @@
         "url": "/charging/payment/FinanceTemporary",
         "owner": "app",
         "sortIndex": 5,
+        "icon": "MoneyCollectOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "临时收款",
@@ -1252,6 +1258,7 @@
         "url": "/charging/payment/FinanceHandover",
         "owner": "app",
         "sortIndex": 10,
+        "icon": "ReconciliationOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "交账管理",
@@ -1351,6 +1358,7 @@
         "url": "/charging/payment/FinanceMonthClosing",
         "owner": "app",
         "sortIndex": 11,
+        "icon": "CalendarOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "财务月结",
@@ -1456,6 +1464,7 @@
     "url": "/charging/activity",
     "owner": "app",
     "sortIndex": 76,
+    "icon": "GiftOutlined",
     "i18nMessages": {
       "name": {
         "zh_CN": "活动管理",
@@ -1464,9 +1473,6 @@
       }
     },
     "permissions": [],
-    "options": {
-      "icon": "GiftOutlined"
-    },
     "children": [
       {
         "id": "charging-FinanceActivity",
@@ -1475,6 +1481,7 @@
         "url": "/charging/activity/FinanceActivity",
         "owner": "app",
         "sortIndex": 1,
+        "icon": "GiftOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "活动设置",
@@ -1561,6 +1568,7 @@
     "url": "/charging/documents",
     "owner": "app",
     "sortIndex": 77,
+    "icon": "FileTextOutlined",
     "i18nMessages": {
       "name": {
         "zh_CN": "票据管理",
@@ -1569,9 +1577,6 @@
       }
     },
     "permissions": [],
-    "options": {
-      "icon": "FileTextOutlined"
-    },
     "children": [
       {
         "id": "charging-FinanceInvoice",
@@ -1580,6 +1585,7 @@
         "url": "/charging/documents/FinanceInvoice",
         "owner": "app",
         "sortIndex": 1,
+        "icon": "FileTextOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "发票管理",
@@ -1649,6 +1655,7 @@
         "url": "/charging/documents/FinanceReceipt",
         "owner": "app",
         "sortIndex": 2,
+        "icon": "SnippetsOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "收据管理",
@@ -1733,6 +1740,7 @@
         "url": "/charging/documents/FinanceDocumentRule",
         "owner": "app",
         "sortIndex": 3,
+        "icon": "SettingOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "开票规则",
@@ -1772,6 +1780,7 @@
         "url": "/charging/documents/FinanceAllocation",
         "owner": "app",
         "sortIndex": 4,
+        "icon": "ShareAltOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "票据分配",
@@ -1843,6 +1852,7 @@
     "url": "/charging/reports",
     "owner": "app",
     "sortIndex": 77,
+    "icon": "BarChartOutlined",
     "i18nMessages": {
       "name": {
         "zh_CN": "财务报表",
@@ -1860,6 +1870,7 @@
         "url": "/charging/reports/FinanceReceivableReport",
         "owner": "app",
         "sortIndex": 1,
+        "icon": "AreaChartOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "应收统计",
@@ -1899,6 +1910,7 @@
         "url": "/charging/reports/FinanceReceivedReport",
         "owner": "app",
         "sortIndex": 2,
+        "icon": "BarChartOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "实收统计",
@@ -1938,6 +1950,7 @@
         "url": "/charging/reports/FinanceInvoiceReport",
         "owner": "app",
         "sortIndex": 3,
+        "icon": "PieChartOutlined",
         "i18nMessages": {
           "name": {
             "zh_CN": "开票统计",
