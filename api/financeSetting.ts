@@ -53,6 +53,12 @@ export interface ChargeSetting extends Omit<SettingInput, 'variableValues'> {
   configVersion: number
   previousVersionId?: string
   status: 'ACTIVE' | 'STOPPED' | 'SUPERSEDED'
+  reviewState: 'PENDING' | 'APPROVED' | 'REJECTED'
+  reviewedBy?: string
+  reviewedName?: string
+  reviewedAt?: number
+  reviewReason?: string
+  createTime?: number
   billed: boolean
   version: number
   snapshot: {
@@ -130,3 +136,15 @@ export const queryBillingTasks = (project: string, query: Query, signal?: AbortS
     .then(pageResponse)
 export const retryBillingTask = (project: string, key: string) =>
   request.post(`${tasksBase(project)}/${id(key)}/_retry`, {}, { hiddenError: true }).then(checked)
+
+export const reviewSettings = (project: string, rows: ChargeSetting[], action: 'approve' | 'reject', reason: string) =>
+  request
+    .post<SettingSaveResult[]>(
+      `${base(project)}/review/_${action}`,
+      {
+        items: rows.map((row) => ({ id: row.id, version: row.version })),
+        reason
+      },
+      { hiddenError: true }
+    )
+    .then(checked)

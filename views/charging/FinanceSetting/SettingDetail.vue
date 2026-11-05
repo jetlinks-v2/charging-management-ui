@@ -38,6 +38,13 @@ const hasPeriod = computed(() => rule.value.variablesSnapshot.some((row) => row.
 <template>
   <div class="setting-detail">
     <div class="setting-detail-status">
+      <a-tag
+        :color="
+          detail.reviewState === 'APPROVED' ? 'success' : detail.reviewState === 'REJECTED' ? 'error' : 'processing'
+        "
+      >
+        {{ t('SettingReview.states.' + detail.reviewState) }}
+      </a-tag>
       <a-tag :color="detail.status === 'ACTIVE' ? 'success' : 'default'">
         {{ t('Setting.status.' + detail.status) }}
       </a-tag>
@@ -80,6 +87,19 @@ const hasPeriod = computed(() => rule.value.variablesSnapshot.some((row) => row.
       >
         {{ t('Setting.periodHint', { months }) }}
       </p>
+    </SectionCard>
+    <SectionCard
+      v-if="detail.reviewedAt || detail.reviewReason"
+      icon="AuditOutlined"
+      :title="t('SettingReview.result')"
+    >
+      <KvGrid
+        :items="[
+          { label: t('HistoricalAudit.reviewedName'), value: detail.reviewedName || '—' },
+          { label: t('HistoricalAudit.reason'), value: detail.reviewReason || '—' }
+        ]"
+        :gap="20"
+      />
     </SectionCard>
     <SectionCard
       v-if="detail.remark"

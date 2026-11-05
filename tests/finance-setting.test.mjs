@@ -17,7 +17,8 @@ const names = [
   'getSettingHouse',
   'querySettingHouses',
   'queryBillingTasks',
-  'retryBillingTask'
+  'retryBillingTask',
+  'reviewSettings'
 ]
 async function load(path) {
   const result = await build({
@@ -57,6 +58,7 @@ async function load(path) {
   new Function('require', 'module', 'exports', result.outputFiles[0].text)(require, module, module.exports)
   return module.exports
 }
+const { useSettingReview } = await load('../hooks/finance-setting/useSettingReview.ts')
 const { useSettingWorkspace } = await load('../hooks/finance-setting/useSettingWorkspace.ts')
 const { useSettingForm } = await load('../hooks/finance-setting/useSettingForm.ts')
 const { useSettingTargetList } = await load('../hooks/finance-setting/useSettingTargetList.ts')
@@ -561,4 +563,77 @@ test('换项目或关闭时丢弃旧树房屋响应，来源失败不留下可�
   assert.equal(failure.state.failed.value, true)
   assert.equal(failure.state.visibleHouses.value.length, 0)
   failure.unmount()
+})
+
+test('收费设置审批查询保持项目和分页，切换状态清除选择', async () => {
+  const props = reactive({ projectId: 'a' }), calls = []
+  const { state, unmount } = mount(() => useSettingReview(props, () => {}), {
+    querySettings: async (...args) => { calls.push(args); return { success: true, result: { data: [], total: 0 } } }
+  })
+  state.show()
+  await state.request({ pageIndex: 2, pageSize: 12, terms: [] })
+  assert.equal(calls[0][0], 'a')
+  assert.equal(calls[0][1].pageIndex, 2)
+  assert.deepEqual(calls[0][1].terms, [{ column: 'reviewState', termType: 'eq', value: 'PENDING' }])
+  state.selected.value = [{ ...row('one'), reviewState: 'PENDING' }]
+  state.status.value = 'REJECTED'
+  await nextTick()
+  assert.equal(state.selected.value.length, 0)
+  assert.equal(globalThis.__settingGuards.at(-1)(), false)
+  unmount()
+})
+
+test('审批失败保留原因和选择；重试成功刷新并显示已通过详情', async () => {
+  const props = reactive({ projectId: 'a' }), calls = []
+  let attempts = 0, reloaded = 0, saved = 0
+  const pending = { ...row('one'), reviewState: 'PENDING' }
+  const { state, unmount } = mount(() => useSettingReview(props, () => saved++), {
+    getSetting: async () => pending,
+    reviewSettings: async (...args) => {
+      calls.push(args)
+      if (!attempts++) throw new Error('账单版本变化')
+      return [{ setting: { ...pending, reviewState: 'APPROVED', version: 5 }, generated: 1 }]
+    }
+  })
+  state.show()
+  state.table.value = { reload: () => reloaded++ }
+  await state.inspect(pending)
+  state.start('approve', [state.detail.value])
+  state.reason.value = ' 核对通过 '
+  await state.submit()
+  assert.equal(state.decision.value, 'approve')
+  assert.equal(state.reason.value, ' 核对通过 ')
+  assert.equal(reloaded, 0)
+  assert.equal(globalThis.__settingMessages.at(-1)[1], 'error')
+  await state.submit()
+  assert.equal(calls[1][3], '核对通过')
+  assert.equal(calls[1][1][0].version, 4)
+  assert.equal(state.detail.value.reviewState, 'APPROVED')
+  assert.equal(state.decision.value, undefined)
+  assert.equal(saved, 1)
+  assert.equal(reloaded, 1)
+  unmount()
+})
+
+test('审批无原因和非待审批记录不提交，项目改变丢弃迟到详情', async () => {
+  const props = reactive({ projectId: 'a' }), wait = deferred()
+  let writes = 0
+  const { state, unmount } = mount(() => useSettingReview(props, () => {}), {
+    getSetting: async () => wait.promise,
+    reviewSettings: async () => { writes++; return [] }
+  })
+  state.show()
+  state.start('approve', [{ ...row('old'), reviewState: 'APPROVED' }])
+  assert.equal(state.decision.value, undefined)
+  state.start('reject', [{ ...row('old'), reviewState: 'PENDING' }])
+  await state.submit()
+  assert.equal(writes, 0)
+  const loading = state.inspect(row('old'))
+  props.projectId = 'b'
+  wait.resolve({ ...row('old'), reviewState: 'PENDING' })
+  await loading
+  assert.equal(state.detail.value, undefined)
+  assert.equal(state.open.value, false)
+  assert.equal(state.decision.value, undefined)
+  unmount()
 })

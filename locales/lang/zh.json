@@ -439,8 +439,8 @@
     "houseIncomplete": "未完善资料",
     "houseTreeNoMatch": "没有匹配的空间，请调整搜索内容",
     "trustedHint": "单价取自收费标准，计费面积取自房屋资料，账期月数按实际日期计算。",
-    "saveAndGenerate": "保存并生成应收",
-    "saved": "已保存{count}条设置，生成{generated}笔应收",
+    "saveAndGenerate": "提交审批",
+    "saved": "已提交 {count} 条收费设置，审批通过后生成账单",
     "deleted": "已删除未出账的收费设置",
     "stopped": "已结束收费设置，历史应收保留",
     "generated": "生成{generated}笔应收，保留{retained}笔原有应收",
@@ -1776,5 +1776,19 @@
     "amount": "金额项目",
     "result": "审批结果",
     "saved": "审批完成"
+  },
+  "SettingReview": {
+    "button": "审批",
+    "title": "收费设置审批",
+    "state": "审批状态",
+    "empty": "暂无收费设置审批记录",
+    "saved": "审批结果已保存",
+    "result": "审批信息",
+    "states": {
+      "PENDING": "待审批",
+      "APPROVED": "已通过",
+      "REJECTED": "已驳回",
+      "ALL": "全部"
+    }
   }
 }

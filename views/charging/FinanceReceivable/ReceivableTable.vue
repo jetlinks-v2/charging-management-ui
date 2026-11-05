@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { TableSummary, TableSummaryRow, TableSummaryCell } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import ReceivableFilters from './ReceivableFilters.vue'
@@ -9,15 +9,12 @@ import { type useReceivableWorkspace } from '../../../hooks/finance-receivable/u
 import ReceivableBatchActions from './ReceivableBatchActions.vue'
 import ReceivableColumnSettings from './ReceivableColumnSettings.vue'
 import ReceivableRowActions from './ReceivableRowActions.vue'
-import ReceivableReview from './ReceivableReview.vue'
 import { useReceivableColumns } from '../../../hooks/finance-receivable/useReceivableColumns'
 const props = defineProps<{ state: ReturnType<typeof useReceivableWorkspace>; cashier?: boolean }>()
 const { t } = useI18n()
 const { archive, table, params, request, select, actionTarget, notify } = props.state
 const columnState = useReceivableColumns()
 const { columns, scrollWidth } = columnState
-const review = ref<InstanceType<typeof ReceivableReview>>(),
-  reviewBlocked = ref(false)
 const formulaKeys = [
   'contractReceivableAmount',
   'accruedReceivableAmount',
@@ -40,18 +37,10 @@ const selection = computed(() => ({
   <div class="receivable-toolbar">
     <div class="receivable-toolbar-actions">
       <ReceivableBatchActions
-        v-if="!cashier && !reviewBlocked"
+        v-if="!cashier"
         :state="state.batch"
       />
       <slot name="toolbar" />
-      <ReceivableReview
-        v-if="!cashier"
-        ref="review"
-        :project-id="archive.projectId.value"
-        :selected="state.batch.selected.value"
-        @lock="reviewBlocked = $event"
-        @saved="state.reload()"
-      />
     </div>
     <ReceivableColumnSettings :state="columnState" />
   </div>
@@ -95,7 +84,7 @@ const selection = computed(() => ({
     <template #actions="row">
       <ReceivableRowActions
         :row="row"
-        :readonly="cashier || reviewBlocked"
+        :readonly="cashier"
         @select="(mode) => select(row, mode)"
         @action="(action) => (actionTarget = { row, action })"
       />

@@ -439,8 +439,8 @@
     "houseIncomplete": "Incomplete details",
     "houseTreeNoMatch": "No spaces match. Adjust your search.",
     "trustedHint": "Price comes from the standard, area from the house, and months from actual dates.",
-    "saveAndGenerate": "Save and generate bills",
-    "saved": "Saved {count} settings and generated {generated} bills",
+    "saveAndGenerate": "Submit for review",
+    "saved": "{count} charge settings submitted. Bills will be generated after approval",
     "deleted": "Deleted the unbilled setting",
     "stopped": "Setting ended; historical bills are retained",
     "generated": "Generated {generated} bills; retained {retained} existing bills",
@@ -1776,5 +1776,19 @@
     "amount": "Amount item",
     "result": "Review result",
     "saved": "Review completed"
+  },
+  "SettingReview": {
+    "button": "Review",
+    "title": "Charge setting review",
+    "state": "Review status",
+    "empty": "No charge settings to review",
+    "saved": "Review result saved",
+    "result": "Review information",
+    "states": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "ALL": "All"
+    }
   }
 }

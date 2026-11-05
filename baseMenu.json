@@ -547,6 +547,36 @@
                 "actions": ["calculate"]
               }
             ]
+          },
+          {
+            "id": "approve",
+            "name": "审批通过",
+            "i18nMessages": {
+              "zh_CN": "审批通过",
+              "en_US": "Approve",
+              "en": "Approve"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-setting",
+                "actions": ["approve"]
+              }
+            ]
+          },
+          {
+            "id": "reject",
+            "name": "审批驳回",
+            "i18nMessages": {
+              "zh_CN": "审批驳回",
+              "en_US": "Reject",
+              "en": "Reject"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-setting",
+                "actions": ["reject"]
+              }
+            ]
           }
         ]
       },
@@ -728,21 +758,6 @@
               {
                 "permission": "property-finance-receivable",
                 "actions": ["reject"]
-              }
-            ]
-          },
-          {
-            "id": "unapprove",
-            "name": "反审核",
-            "i18nMessages": {
-              "zh_CN": "反审核",
-              "en_US": "Undo approval",
-              "en": "Undo approval"
-            },
-            "permissions": [
-              {
-                "permission": "property-finance-receivable",
-                "actions": ["unapprove"]
               }
             ]
           }

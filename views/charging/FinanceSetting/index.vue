@@ -8,6 +8,7 @@ import SettingTable from './SettingTable.vue'
 import SettingDrawer from './SettingDrawer.vue'
 import SettingStop from './SettingStop.vue'
 import SettingTasks from './SettingTasks.vue'
+import SettingReview from './SettingReview.vue'
 const { t } = useI18n()
 const state = useSettingWorkspace()
 const tasksOpen = ref(false)
@@ -70,6 +71,10 @@ function selectTree(keys: (string | number)[]) {
       <main class="subject-content">
         <div class="subject-content-heading setting-heading">
           <a-space wrap>
+            <SettingReview
+              :project-id="projectId"
+              @saved="state.reload()"
+            />
             <a-button
               :disabled="!projectId"
               @click="tasksOpen = true"

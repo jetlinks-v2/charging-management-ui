@@ -24,6 +24,7 @@ const columns = computed(() => [
   { title: t('Setting.formula'), dataIndex: 'formula', width: 200, scopedSlots: true },
   { title: t('Setting.customer'), dataIndex: 'customerName', width: 160, scopedSlots: true },
   { title: t('Setting.validity'), dataIndex: 'validity', width: 200, scopedSlots: true },
+  { title: t('SettingReview.state'), dataIndex: 'reviewState', width: 110, scopedSlots: true },
   { title: t('Setting.state'), dataIndex: 'status', width: 120, scopedSlots: true },
   { title: t('Finance.actions'), dataIndex: 'actions', width: 150, fixed: 'right', scopedSlots: true }
 ])
@@ -66,7 +67,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
     :pagination="{ pageSize: 12 }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 1470 }"
+    :scroll="{ x: 1580 }"
     @request-error="notify"
   >
     <template #fullName="row">
@@ -93,6 +94,13 @@ function filter({ filter }: ConditionFilterChangePayload) {
     <template #customerName="row">{{ row.customerNames?.join('、') || row.customerName }}</template>
     <template #validity="row">
       {{ row.effectiveStartDate }} ～ {{ row.effectiveEndDate || t('Setting.unlimited') }}
+    </template>
+    <template #reviewState="row">
+      <a-tag
+        :color="row.reviewState === 'APPROVED' ? 'success' : row.reviewState === 'REJECTED' ? 'error' : 'processing'"
+      >
+        {{ t('SettingReview.states.' + row.reviewState) }}
+      </a-tag>
     </template>
     <template #status="row">
       <a-tag :color="periodState(row) === 'ACTIVE' ? 'success' : 'default'">
@@ -129,7 +137,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
           <template #overlay>
             <a-menu>
               <a-menu-item
-                v-if="row.status === 'ACTIVE'"
+                v-if="row.status === 'ACTIVE' && row.reviewState === 'APPROVED'"
                 key="next"
               >
                 <j-permission-button
@@ -141,7 +149,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
                 </j-permission-button>
               </a-menu-item>
               <a-menu-item
-                v-if="row.status === 'ACTIVE'"
+                v-if="row.status === 'ACTIVE' && row.reviewState === 'APPROVED'"
                 key="stop"
               >
                 <j-permission-button
@@ -152,7 +160,10 @@ function filter({ filter }: ConditionFilterChangePayload) {
                   {{ t('Setting.stop') }}
                 </j-permission-button>
               </a-menu-item>
-              <a-menu-item key="generate">
+              <a-menu-item
+                v-if="row.reviewState === 'APPROVED'"
+                key="generate"
+              >
                 <j-permission-button
                   :hasPermission="`${settingPermission}:calculate`"
                   type="text"
