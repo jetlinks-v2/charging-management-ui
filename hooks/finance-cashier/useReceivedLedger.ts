@@ -22,7 +22,6 @@ export function useReceivedLedger(archive: ReturnType<typeof useFinanceSpaceScop
       filters.value = reportConditions(filter.terms, {
         fullName: 'like',
         customerName: 'like',
-        paymentNo: 'like',
         collectorName: 'like'
       })
     } catch {

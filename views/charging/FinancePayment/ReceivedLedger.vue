@@ -10,7 +10,7 @@ const state = useReceivedLedger(props.archive)
 const { input, filter, request, notify, exporting, exportRows } = state
 // 复用实收报表的平面筛选契约，不提供服务器无法执行的分组或 OR 条件。
 const fields = computed(() =>
-  ['fullName', 'customerName', 'paymentNo', 'collectorName'].map((key) => ({
+  ['fullName', 'customerName', 'collectorName'].map((key) => ({
     title: t('Received.' + key),
     dataIndex: key,
     search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
@@ -33,10 +33,10 @@ const columns = computed(() => [
     scopedSlots: ['sourceType', 'receivedAt'].includes(key)
   })),
   { title: t('Cashier.amount'), dataIndex: ['amounts', 'netAmount'], width: 160, align: 'right' },
-  ...['sourceId', 'collectorName', 'remark'].map((key) => ({
+  ...['collectorName', 'remark'].map((key) => ({
     title: t('Received.' + key),
     dataIndex: key,
-    width: key === 'sourceId' ? 300 : 180
+    width: 180
   }))
 ])
 </script>
@@ -69,7 +69,7 @@ const columns = computed(() => [
     :no-pagination="false"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 2300 }"
+    :scroll="{ x: 2000 }"
     @request-error="notify"
   >
     <template #sourceType="row">

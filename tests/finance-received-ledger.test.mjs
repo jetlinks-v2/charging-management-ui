@@ -59,7 +59,6 @@ test('JetLinks条件搜索与分页导出保持相同筛选和空间范围，清
     change([
       term('fullName', '5G园区/1栋'),
       term('customerName', '龚超'),
-      term('paymentNo', 'P001'),
       term('collectorName', '收费员')
     ])
   )
@@ -67,7 +66,6 @@ test('JetLinks条件搜索与分页导出保持相同筛选和空间范围，清
   const payload = calls[0][1]
   assert.equal(payload.fullName, '5G园区/1栋')
   assert.equal(payload.customerName, '龚超')
-  assert.equal(payload.paymentNo, 'P001')
   assert.equal(payload.collectorName, '收费员')
   assert.deepEqual(payload.projectIds, ['project-a'])
   assert.deepEqual(payload.spaceIds, ['building', 'room'])
@@ -78,7 +76,7 @@ test('JetLinks条件搜索与分页导出保持相同筛选和空间范围，清
   assert.deepEqual(exported.spaceIds, payload.spaceIds)
   state.filter(change([]))
   await state.request({ pageIndex: 0 })
-  for (const key of ['fullName', 'customerName', 'paymentNo', 'collectorName'])
+  for (const key of ['fullName', 'customerName', 'collectorName'])
     assert.equal(calls[1][1][key], undefined)
 })
 
