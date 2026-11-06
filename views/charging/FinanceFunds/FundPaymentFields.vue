@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { useFundEditor } from '../../../hooks/finance-funds/useFundEditor'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 const props = defineProps<{ state: ReturnType<typeof useFundEditor>; phase?: 'business' | 'payment' }>()
 const { t, model, funding, optionId, quote, files, filesChanged } = props.state
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t(key) }) }]
@@ -113,13 +113,11 @@ const payment = computed(() => props.phase !== 'business')
     </a-form-item>
     <a-form-item
       v-if="payment"
-      :label="t('Cashier.attachmentHint')"
+      :label="t('FinanceAttachment.label')"
     >
-      <FileUpload
+      <FinanceAttachmentUpload
         :value="files"
         :max-count="1"
-        :size="20"
-        :btn-text="t('Adjustment.upload')"
         @upload-change="filesChanged"
       />
     </a-form-item>

@@ -1370,6 +1370,7 @@
     "operator": "核销人"
   },
   "FinanceHandover": {
+    "handover": "交账",
     "title": "交账管理",
     "pending": "待交账明细",
     "records": "交账记录",
@@ -2001,5 +2002,10 @@
   "error": {
     "property_finance_document_expired": "已超过开票时效",
     "property_finance_document_quota_insufficient": "可开额度不足"
+  },
+  "FinanceAttachment": {
+    "label": "凭证附件",
+    "upload": "点击或拖拽上传凭证",
+    "hint": "最多上传 {count} 个文件，每个不超过 20 MB"
   }
 }

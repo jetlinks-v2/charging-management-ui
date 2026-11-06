@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 import type { useRefund } from '../../../hooks/finance-cashier/useRefund'
 const props = defineProps<{ state: ReturnType<typeof useRefund> }>()
 const { model, company, funding, files, filesChanged, loading, calculating, saving } = props.state
@@ -79,13 +79,11 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         show-count
       />
     </a-form-item>
-    <a-form-item :label="t('Cashier.attachmentHint')">
-      <FileUpload
+    <a-form-item :label="t('FinanceAttachment.label')">
+      <FinanceAttachmentUpload
         :value="files"
-        :size="20"
         :max-count="1"
         :disabled="loading || calculating || saving"
-        :btn-text="t('Adjustment.upload')"
         @upload-change="filesChanged"
       />
     </a-form-item>

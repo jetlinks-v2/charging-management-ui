@@ -1370,6 +1370,7 @@
     "operator": "Verified by"
   },
   "FinanceHandover": {
+    "handover": "Submit handover",
     "title": "Handovers",
     "pending": "Pending sources",
     "records": "Handover records",
@@ -2001,5 +2002,10 @@
   "error": {
     "property_finance_document_expired": "Invoice time limit exceeded",
     "property_finance_document_quota_insufficient": "Insufficient issuable quota"
+  },
+  "FinanceAttachment": {
+    "label": "Supporting documents",
+    "upload": "Click or drag files to upload",
+    "hint": "Up to {count} files, 20 MB each"
   }
 }

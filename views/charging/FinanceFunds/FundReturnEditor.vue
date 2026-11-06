@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 import type { FundReturnDraft } from '../../../api/financeFundReturn'
 import { useFundReturn } from '../../../hooks/finance-funds/useFundReturn'
 import { useProjectSwitchGuard } from '../../../hooks/project/useProjectContext'
@@ -166,12 +166,10 @@ function close() {
                 show-count
               />
             </a-form-item>
-            <a-form-item :label="t('Cashier.attachmentHint')">
-              <FileUpload
+            <a-form-item :label="t('FinanceAttachment.label')">
+              <FinanceAttachmentUpload
                 :value="files"
                 :max-count="1"
-                :size="20"
-                :btn-text="t('Adjustment.upload')"
                 @upload-change="filesChanged"
               />
             </a-form-item>

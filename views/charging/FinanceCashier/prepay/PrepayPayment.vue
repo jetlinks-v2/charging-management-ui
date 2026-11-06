@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../../components/FinanceAttachmentUpload.vue'
 import type { usePrepay } from '../../../../hooks/finance-prepay/usePrepay'
 import CashierFunding from '../CashierFunding.vue'
 const props = defineProps<{ state: ReturnType<typeof usePrepay> }>()
@@ -50,14 +50,12 @@ const { t } = useI18n()
       </a-form-item>
       <a-form-item
         name="attachmentFileId"
-        :label="t('Cashier.attachmentHint')"
+        :label="t('FinanceAttachment.label')"
       >
-        <FileUpload
+        <FinanceAttachmentUpload
           :value="files"
-          :size="20"
           :max-count="1"
           :disabled="uncertain || saving"
-          :btn-text="t('Adjustment.upload')"
           @upload-change="filesChanged"
         />
       </a-form-item>

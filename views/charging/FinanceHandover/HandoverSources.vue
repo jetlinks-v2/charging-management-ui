@@ -10,12 +10,13 @@ import {
 } from '../../../api/financeHandover'
 import type { Query } from '../../../api/archive'
 import type { useHandoverWorkspace } from '../../../hooks/finance-handover/useHandoverWorkspace'
+import { handoverCandidate } from '../../../hooks/finance-handover/useHandoverWorkspace'
 import { useFinanceSpaceScope } from '../../../hooks/finance-setting/useFinanceSpaceScope'
 import { useReportExport } from '../../../hooks/finance-report/useReportExport'
 import FinanceLedgerSpace from '../components/FinanceLedgerSpace.vue'
 const props = defineProps<{ state: ReturnType<typeof useHandoverWorkspace> }>()
 const { t } = useI18n()
-const { projectId, selected, blocked, changed, notify, select, act } = props.state
+const { projectId, selected, blocked, changed, notify, select, act, start, startSingle } = props.state
 const space = useFinanceSpaceScope()
 const filter = reactive({ handed: 'ALL', customerName: '', subjectName: '', occurredStart: '', occurredEnd: '' })
 const { exportRows, exporting } = useReportExport({
@@ -58,9 +59,9 @@ const columns = computed(() => [
   { title: t('FinanceHandover.calcStartDate'), dataIndex: 'calcStartDate', width: 120 },
   { title: t('FinanceHandover.calcEndDate'), dataIndex: 'calcEndDate', width: 120 },
   { title: t('FinanceHandover.receiptNumbers'), dataIndex: 'receiptNumbers', width: 180 },
-  { title: t('FinanceHandover.occurredAt'), dataIndex: 'occurredAt', width: 180 },
+  { title: t('FinanceHandover.occurredAt'), dataIndex: 'occurredAt', width: 180, scopedSlots: true },
   { title: t('FinanceHandover.state'), dataIndex: 'state', width: 120, scopedSlots: true },
-  { title: t('Finance.actions'), dataIndex: 'actions', width: 120, scopedSlots: true }
+  { title: t('Finance.actions'), dataIndex: 'actions', width: 160, fixed: 'right', scopedSlots: true }
 ])
 const mappedRequest = async (q: Query, config?: { signal: AbortSignal }) => {
   const response = await request(q, config)
@@ -85,18 +86,7 @@ const selection = computed(() => ({
   onChange: (_keys: (string | number)[], rows: HandoverDetailRow[]) =>
     changed(
       _keys,
-      rows.map((row) => ({
-        id: row.sourceId,
-        type: row.type,
-        version: row.version,
-        selectionKey: row.id,
-        occurredAt: row.line.occurredAt,
-        customerName: row.line.customerName,
-        companyName: row.line.companyName,
-        amount: row.line.amount,
-        cashAmount: row.line.cashAmount,
-        lineCount: 1
-      }))
+      rows.map(handoverCandidate)
     ),
   getCheckboxProps: (row: HandoverDetailRow) => ({ disabled: blocked.value || !!row.batchId })
 }))
@@ -115,13 +105,20 @@ watch([space.selectedId, () => filter.handed], () => {
           :options="['ALL', 'NO', 'YES'].map((value) => ({ value, label: t('FinanceHandover.handed.' + value) }))"
           class="handover-status-filter"
         />
-        <a-button
-          :loading="exporting"
-          @click="exportRows('excel')"
-        >
-          <AIcon type="DownloadOutlined" />
-          {{ t('Finance.export') }}
-        </a-button>
+        <a-space>
+          <a-button :loading="exporting" @click="exportRows('excel')">
+            <AIcon type="DownloadOutlined" />
+            {{ t('Finance.export') }}
+          </a-button>
+          <j-permission-button
+            type="primary"
+            hasPermission="charging/FinanceHandover:create"
+            :disabled="blocked || !selected.length"
+            @click="start()"
+          >
+            {{ t('FinanceHandover.selected', { count: selected.length }) }}
+          </j-permission-button>
+        </a-space>
       </div>
       <ConditionFilter
         class="collection-filter"
@@ -162,7 +159,17 @@ watch([space.selectedId, () => filter.handed], () => {
         <template #state="row">
           <a-tag>{{ row.status ? t('FinanceHandover.status.' + row.status) : t('FinanceHandover.handed.NO') }}</a-tag>
         </template>
+        <template #occurredAt="row">{{ row.line.occurredAt?.replace('T', ' ') || '—' }}</template>
         <template #actions="row">
+          <j-permission-button
+            v-if="!row.batchId"
+            type="link"
+            hasPermission="charging/FinanceHandover:create"
+            :disabled="blocked"
+            @click="startSingle(row)"
+          >
+            {{ t('FinanceHandover.handover') }}
+          </j-permission-button>
           <j-permission-button
             v-if="row.batchId && row.status === 'PENDING'"
             type="link"

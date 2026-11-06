@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 import type { useTemporaryEditor } from '../../../hooks/finance-temporary/useTemporaryEditor'
 import CashierFunding from '../FinanceCashier/CashierFunding.vue'
 const props = defineProps<{ state: ReturnType<typeof useTemporaryEditor> }>()
@@ -49,13 +49,11 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         show-count
       />
     </a-form-item>
-    <a-form-item :label="t('Cashier.attachmentHint')">
-      <FileUpload
+    <a-form-item :label="t('FinanceAttachment.label')">
+      <FinanceAttachmentUpload
         :value="files"
-        :size="20"
         :max-count="1"
         :disabled="confirmation.calculating.value || confirmation.saving.value"
-        :btn-text="t('Adjustment.upload')"
         @upload-change="filesChanged"
       />
     </a-form-item>

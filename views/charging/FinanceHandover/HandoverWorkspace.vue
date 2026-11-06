@@ -18,11 +18,9 @@ const props = defineProps<{ view: 'sources' | 'records' }>()
 const state = useHandoverWorkspace(props.view)
 const {
   t,
-  canCreate,
   projectId,
   tab,
   status,
-  selected,
   terms,
   table,
   params,
@@ -38,7 +36,6 @@ const {
   pendingAction,
   recoveryFailed,
   notify,
-  start,
   recover,
   closeEditor,
   closeAction,
@@ -103,21 +100,6 @@ function filter({ filter }: ConditionFilterChangePayload) {
               {{ t('FinanceHandover.batch.' + action) }}
             </j-permission-button>
           </template>
-          <a-button
-            :disabled="!projectId || blocked"
-            @click="table?.reload()"
-          >
-            {{ t('Finance.refresh') }}
-          </a-button>
-          <j-permission-button
-            v-if="tab === 'sources'"
-            type="primary"
-            hasPermission="charging/FinanceHandover:create"
-            :disabled="!projectId || blocked || !selected.length"
-            @click="start"
-          >
-            {{ t('FinanceHandover.selected', { count: selected.length }) }}
-          </j-permission-button>
         </a-space>
       </div>
       <a-alert

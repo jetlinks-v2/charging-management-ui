@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 import type { usePaymentToAdvance } from '../../../hooks/finance-cashier/usePaymentToAdvance'
 const props = defineProps<{ state: ReturnType<typeof usePaymentToAdvance> }>()
 const { t } = useI18n()
@@ -111,12 +111,10 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         show-count
       />
     </a-form-item>
-    <a-form-item :label="t('Cashier.attachmentHint')">
-      <FileUpload
+    <a-form-item :label="t('FinanceAttachment.label')">
+      <FinanceAttachmentUpload
         :value="files"
         :max-count="1"
-        :size="20"
-        :btn-text="t('Adjustment.upload')"
         @upload-change="filesChanged"
       />
     </a-form-item>

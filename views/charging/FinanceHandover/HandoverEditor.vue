@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 import type { HandoverCandidate } from '../../../api/financeHandover'
 import { useHandoverEditor } from '../../../hooks/finance-handover/useHandoverEditor'
 import HandoverLines from './HandoverLines.vue'
@@ -28,12 +28,17 @@ const close = () => {
 }
 </script>
 <template>
-  <JlDrawerShell
+  <a-modal
     :open="true"
-    :width="1040"
-    icon="AuditOutlined"
+    centered
+    :width="880"
+    :style="{ maxWidth: 'calc(100vw - 2rem)' }"
+    :body-style="{ maxHeight: 'calc(100dvh - 13rem)', overflowY: 'auto' }"
     :title="t('FinanceHandover.create')"
-    @update:open="close"
+    :mask-closable="false"
+    :closable="canClose"
+    :keyboard="canClose"
+    @cancel="close"
   >
     <div class="handover-content">
       <a-result
@@ -48,6 +53,12 @@ const close = () => {
           show-icon
           type="warning"
           :message="t(failed ? 'Document.recoveryUnavailable' : 'FinanceHandover.unknown')"
+        />
+        <a-alert
+          v-if="!preview"
+          type="info"
+          show-icon
+          :message="t('FinanceHandover.reviewHint', { count: candidates.length })"
         />
         <a-form
           layout="vertical"
@@ -72,23 +83,15 @@ const close = () => {
               show-count
             />
           </a-form-item>
-          <a-form-item :label="t('Cashier.attachmentHint')">
-            <FileUpload
+          <a-form-item class="handover-attachment" :label="t('FinanceAttachment.label')">
+            <FinanceAttachmentUpload
               :value="files"
-              :size="20"
               :max-count="5"
               :disabled="locked"
-              :btn-text="t('Adjustment.upload')"
               @upload-change="filesChanged"
             />
           </a-form-item>
         </a-form>
-        <a-alert
-          v-if="!preview"
-          type="info"
-          show-icon
-          :message="t('FinanceHandover.reviewHint', { count: candidates.length })"
-        />
         <SectionCard
           v-if="preview"
           icon="ProfileOutlined"
@@ -109,7 +112,7 @@ const close = () => {
         </SectionCard>
       </template>
     </div>
-    <template #foot>
+    <template #footer>
       <a-button
         :disabled="!canClose"
         @click="close"
@@ -127,5 +130,5 @@ const close = () => {
         {{ t(uncertain ? 'Cashier.retry' : preview ? 'FinanceHandover.confirm' : 'FinanceHandover.preview') }}
       </j-permission-button>
     </template>
-  </JlDrawerShell>
+  </a-modal>
 </template>

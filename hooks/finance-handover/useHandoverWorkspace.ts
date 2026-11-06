@@ -6,6 +6,7 @@ import {
   queryHandovers,
   getHandover,
   type HandoverCandidate,
+  type HandoverDetailRow,
   type HandoverSourceType,
   type HandoverRecord,
   type HandoverDetail,
@@ -18,6 +19,21 @@ import type { Query } from '../../api/archive'
 import { requestErrorMessage } from '../../utils/requestError'
 import { useProjectContext, useProjectSwitchGuard } from '../project/useProjectContext'
 import { useHandoverRecovery } from './useHandoverRecovery'
+
+export function handoverCandidate(row: HandoverDetailRow): HandoverCandidate {
+  return {
+    id: row.sourceId,
+    type: row.type,
+    version: row.version,
+    selectionKey: row.id,
+    occurredAt: row.line.occurredAt,
+    customerName: row.line.customerName,
+    companyName: row.line.companyName,
+    amount: row.line.amount,
+    cashAmount: row.line.cashAmount,
+    lineCount: 1
+  }
+}
 
 export function useHandoverWorkspace(view?: 'sources' | 'records') {
   const { t } = useI18n(),
@@ -66,10 +82,15 @@ export function useHandoverWorkspace(view?: 'sources' | 'records') {
       notify(e)
     }
   }
-  function start() {
-    if (!canCreate.value || blocked.value || !projectId.value || !selected.value.length) return
-    targets.value = [...selected.value]
+  function start(items: HandoverCandidate[] = selected.value) {
+    if (!canCreate.value || blocked.value || !projectId.value || !items.length) return
+    targets.value = [...items]
     editorOpen.value = true
+  }
+  function startSingle(row: HandoverDetailRow) {
+    // 同一业务可能包含多条明细；交账沿用来源业务及其版本，不提交显示行 ID。
+    if (row.batchId) return
+    start([handoverCandidate(row)])
   }
   function recover() {
     try {
@@ -195,6 +216,7 @@ export function useHandoverWorkspace(view?: 'sources' | 'records') {
     recoveryFailed,
     notify,
     start,
+    startSingle,
     recover,
     closeEditor,
     closeAction,
