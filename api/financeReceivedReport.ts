@@ -3,7 +3,7 @@ import { checked, type Page } from './archive'
 import type { HandoverState } from '../utils/collectionDisplay'
 import { excelResponse } from '../utils/archiveFiles'
 const request: Pick<Request, 'post'> = hostRequest
-export type ReceivedGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'METHOD' | 'SOURCE'
+export type ReceivedGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'METHOD' | 'SOURCE' | 'COLLECTOR'
 export type ReceivedSource =
   | 'RECEIVABLE'
   | 'TEMPORARY'
@@ -14,6 +14,8 @@ export type ReceivedSource =
   | 'ADVANCE_REFUND'
   | 'DEPOSIT_REFUND'
 export interface ReceivedInput {
+  exportMode?: import('./financeReport').ReportExportMode
+  collectorId?: string
   projectIds: string[]
   spaceIds: string[]
   subjectIds: string[]
@@ -33,6 +35,9 @@ export interface ReceivedInput {
   pageSize: number
 }
 export interface ReceivedAmounts {
+  unhandedAmount: string
+  pendingAmount: string
+  approvedAmount: string
   incomeAmount: string
   refundAmount: string
   netAmount: string
@@ -58,6 +63,7 @@ export interface ReceivedRow {
   methodText?: string
   sourceType?: ReceivedSource
   handoverState?: HandoverState
+  collectorId?: string
   collectorName?: string
   remark?: string
   rowCount: number

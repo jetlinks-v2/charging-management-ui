@@ -26,10 +26,11 @@ export function useReceivedReport() {
     methodGroups: [],
     paymentMethods: [],
     sourceTypes: [],
-    groupBy: 'DETAIL',
+    groupBy: 'METHOD',
     pageIndex: 0,
     pageSize: 12
   })
+  const parent = ref<ReceivedInput>()
   const draft = reactive(defaults()),
     active = ref(defaults())
   const summary = ref<ReceivedAmounts>(),
@@ -87,6 +88,8 @@ export function useReceivedReport() {
     invalidate()
   }
   function resetState() {
+    parent.value = undefined
+    for (const key of Object.keys(draft)) delete (draft as unknown as Record<string, unknown>)[key]
     Object.assign(draft, defaults(), {
       customerName: undefined,
       fullName: undefined,
@@ -106,9 +109,20 @@ export function useReceivedReport() {
   function reload() {
     if (!exporting.value) invalidate()
   }
+  function back() {
+    if (!parent.value || exporting.value) return
+    active.value = copy(parent.value)
+    for (const key of Object.keys(draft)) delete (draft as unknown as Record<string, unknown>)[key]
+    Object.assign(draft, copy(parent.value))
+    parent.value = undefined
+    subjectLabel.value = ''
+    invalidate()
+  }
   function group(value: ReceivedGroup) {
     if (exporting.value) return
+    parent.value = undefined
     active.value = { ...copy(active.value), groupBy: value, pageIndex: 0 }
+    Object.assign(draft, copy(active.value))
     invalidate()
   }
   async function request(q: Query, config?: { signal?: AbortSignal }) {
@@ -153,8 +167,12 @@ export function useReceivedReport() {
       methodLabel.value = [...new Set(rows.map((row) => row.methodText))].join('、')
     } else if (input.groupBy === 'SOURCE') {
       input.sourceTypes = [...new Set(rows.flatMap((row) => (row.sourceType ? [row.sourceType] : [])))]
+    } else if (input.groupBy === 'COLLECTOR') {
+      input.collectorId = rows[0].collectorId
+      input.collectorName = rows[0].collectorName
     } else return
     if (!input.projectIds.length) return
+    parent.value = copy(active.value)
     input.groupBy = 'DETAIL'
     input.pageIndex = 0
     active.value = input
@@ -194,6 +212,8 @@ export function useReceivedReport() {
     ++generation
   })
   return {
+    parent,
+    back,
     draft,
     active,
     summary,

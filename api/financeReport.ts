@@ -3,7 +3,10 @@ import { checked, type Page } from './archive'
 import { excelResponse } from '../utils/archiveFiles'
 const request: Pick<Request, 'post'> = hostRequest
 export type ReportGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT'
+export type ReportExportMode = 'CURRENT' | 'DETAIL' | 'BOTH'
 export interface ReportInput {
+  exportMode?: ReportExportMode
+  overdueOnly?: boolean
   projectIds: string[]
   spaceIds: string[]
   subjectIds: string[]
@@ -26,6 +29,7 @@ export interface ReportAmounts {
   netAmount: string
   receivedAmount: string
   unreceivedAmount: string
+  overdueAmount: string
   arrearsAmount: string
   collectionRate: string
 }
@@ -45,6 +49,7 @@ export interface ReportRow {
   calculatedAsOfDate?: string
   collectionStatus?: 'UNPAID' | 'PARTIAL' | 'PAID'
   remark?: string
+  overdueDays?: number
   billCount: number
   amounts: ReportAmounts
 }

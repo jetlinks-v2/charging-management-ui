@@ -28,12 +28,22 @@ const selection = computed(() =>
 const columns = computed(() => {
   const fields =
     active.value.groupBy === 'DETAIL'
-      ? ['projectName', 'fullName', 'customerName', 'subjectName', 'receivableDate', 'dueDate', 'collectionStatus']
+      ? [
+          'projectName',
+          'fullName',
+          'customerName',
+          'subjectName',
+          'receivableDate',
+          'dueDate',
+          'overdueDays',
+          'collectionStatus'
+        ]
       : [active.value.groupBy === 'PROJECT' ? 'projectName' : 'subjectName', 'billCount']
   return [
     ...fields.map((key) => ({
       title: t('Report.' + key),
       dataIndex: key,
+      ellipsis: true,
       width: key === 'fullName' ? 230 : key === 'id' ? 280 : 140,
       scopedSlots: ['projectName', 'subjectName', 'collectionStatus'].includes(key)
     })),
@@ -45,7 +55,7 @@ const columns = computed(() => {
           'netAmount',
           'receivedAmount',
           'unreceivedAmount',
-          'arrearsAmount',
+          'overdueAmount',
           'collectionRate'
         ]
     ).map((key) => ({ title: t('Report.' + key), dataIndex: ['amounts', key], key, width: 170, align: 'right' })),
@@ -76,7 +86,7 @@ const badge = (key?: string) => (key === 'PAID' ? 'green' : key === 'PARTIAL' ? 
     :row-selection="selection"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: active.groupBy === 'DETAIL' ? 1640 : 1350 }"
+    :scroll="{ x: active.groupBy === 'DETAIL' ? 1800 : 1350, y: 'auto' }"
     :body-style="{ padding: 0 }"
     :alert-show="false"
     class="report-table"

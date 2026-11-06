@@ -6,6 +6,11 @@ export type InvoiceGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT'
 export type InvoiceStatus = 'UNISSUED' | 'PARTIAL' | 'INVOICED' | 'REVERSED'
 export type InvoiceSource = 'RECEIVABLE' | 'TEMP_PAYMENT' | 'FUND_TOPUP'
 export interface InvoiceReportInput {
+  exportMode?: import('./financeReport').ReportExportMode
+  ledger?: boolean
+  ticketColor?: 'BLUE' | 'RED'
+  ticketStatus?: string
+  buyerName?: string
   projectIds: string[]
   spaceIds: string[]
   subjectIds: string[]
@@ -24,6 +29,10 @@ export interface InvoiceReportInput {
   pageSize: number
 }
 export interface InvoiceAmounts {
+  netAmount?: string
+  taxAmount?: string
+  differenceAmount?: string
+  outputTax?: string
   receivableAmount: string
   receivedAmount: string
   invoicedAmount: string
@@ -47,6 +56,14 @@ export interface InvoiceRow {
   buyerName?: string
   invoiceContent?: string
   remark?: string
+  ticketColor?: string
+  status?: string
+  originalInvoiceNo?: string
+  buyerTaxNum?: string
+  sellerTaxNum?: string
+  companyName?: string
+  collectionMethod?: string
+  modifierName?: string
   rowCount: number
   amounts: InvoiceAmounts
 }
@@ -57,10 +74,15 @@ export interface InvoiceReport {
 }
 const base = '/property/finance/reports/invoices'
 export const queryInvoiceReport = (input: InvoiceReportInput, signal?: AbortSignal) =>
-  request.post<InvoiceReport>(`${base}/_query`, input, { hiddenError: true, signal }).then(checked)
+  request
+    .post<InvoiceReport>(`${base}${input.ledger ? '/ledger' : ''}/_query`, input, { hiddenError: true, signal })
+    .then(checked)
 export const exportInvoiceReport = (input: InvoiceReportInput, format: 'excel' | 'pdf') =>
   request
-    .post<Blob>(`${base}/_export/${format}`, input, { hiddenError: true, responseType: 'blob' })
+    .post<Blob>(`${base}${input.ledger ? '/ledger' : ''}/_export/${format}`, input, {
+      hiddenError: true,
+      responseType: 'blob'
+    })
     .then(excelResponse)
 
 export interface ReportDocument {

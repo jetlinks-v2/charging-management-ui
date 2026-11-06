@@ -1,151 +1,165 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
-import { reportConditions } from '../../../hooks/finance-report/reportConditions'
+import { reportConditions, type ReportDateRanges } from '../../../hooks/finance-report/reportConditions'
 import { useProjectContext } from '../../../hooks/project/useProjectContext'
 import type { useInvoiceReport } from '../../../hooks/finance-report/useInvoiceReport'
 const props = defineProps<{ state: ReturnType<typeof useInvoiceReport> }>()
 const { t } = useI18n()
 const { draft, exporting } = props.state
-const filterKey = ref(0),
-  context = useProjectContext()
-const key = computed(() => context.reportProjectIds.value.join(',') + ':' + filterKey.value)
-const fields = computed(() => [
-  {
-    title: t('InvoiceReport.customerName'),
-    dataIndex: 'customerName',
-    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
-  },
-  {
-    title: t('InvoiceReport.fullName'),
-    dataIndex: 'fullName',
-    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
-  },
-  {
-    title: t('InvoiceReport.sourceId'),
-    dataIndex: 'sourceId',
-    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
-  },
-  {
-    title: t('InvoiceReport.invoiceNo'),
-    dataIndex: 'invoiceNo',
-    search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
-  },
-  {
-    title: t('InvoiceReport.sourceType'),
-    dataIndex: 'sourceType',
-    search: {
-      type: 'select',
-      termOptions: ['eq'],
-      defaultTermType: 'eq',
-      options: ['RECEIVABLE', 'TEMP_PAYMENT', 'FUND_TOPUP'].map((value) => ({
-        value,
-        label: t('InvoiceReport.' + value)
-      }))
+const context = useProjectContext()
+const dateRanges: ReportDateRanges = {
+  invoiceDate: ['invoiceDateStart', 'invoiceDateEnd']
+}
+// 主筛选回显来自草稿；返回汇总或重置后不保留隐藏的旧条件。
+const terms = computed(() =>
+  fields.value.flatMap((field) => {
+    const key = field.dataIndex
+    const values = draft as unknown as Record<string, unknown>
+    const range = dateRanges[key]
+    const value = range
+      ? range.every((name) => values[name])
+        ? range.map((name) => values[name])
+        : undefined
+      : (draft as unknown as Record<string, unknown>)[key]
+    return value == null || value === ''
+      ? []
+      : [{ column: key, termType: field.search.defaultTermType, value, type: 'and' }]
+  })
+)
+const fields = computed(() =>
+  [
+    ...Object.keys(dateRanges).map((key) => ({
+      title: t(draft.ledger ? 'ReportUI.invoiceDate' : 'InvoiceReport.invoiceDate'),
+      dataIndex: key,
+      search: {
+        type: 'date',
+        termOptions: ['btw'],
+        defaultTermType: 'btw',
+        componentProps: { format: 'YYYY-MM-DD', showTime: false }
+      }
+    })),
+
+    ...(draft.ledger
+      ? [
+          {
+            title: t('ReportUI.buyerTitle'),
+            dataIndex: 'buyerName',
+            search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+          },
+          ...(['ticketColor', 'ticketStatus'] as const).map((key) => ({
+            title: t('InvoiceReport.' + (key === 'ticketStatus' ? 'status' : key)),
+            dataIndex: key,
+            search: {
+              type: 'select',
+              termOptions: ['eq'],
+              defaultTermType: 'eq',
+              options: (key === 'ticketColor'
+                ? ['BLUE', 'RED']
+                : ['SIMULATED_ISSUED', 'SIMULATED_REVERSED', 'SIMULATED_RED']
+              ).map((value) => ({ value, label: t('InvoiceReport.' + value) }))
+            }
+          }))
+        ]
+      : []),
+    {
+      title: t('InvoiceReport.customerName'),
+      dataIndex: 'customerName',
+      search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+    },
+    {
+      title: t('InvoiceReport.fullName'),
+      dataIndex: 'fullName',
+      search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+    },
+    {
+      title: t(draft.ledger ? 'ReportUI.invoiceNo' : 'InvoiceReport.invoiceNo'),
+      dataIndex: 'invoiceNo',
+      search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
+    },
+    {
+      title: t('InvoiceReport.sourceType'),
+      dataIndex: 'sourceType',
+      search: {
+        type: 'select',
+        termOptions: ['eq'],
+        defaultTermType: 'eq',
+        options: ['RECEIVABLE', 'TEMP_PAYMENT', 'FUND_TOPUP'].map((value) => ({
+          value,
+          label: t('InvoiceReport.' + value)
+        }))
+      }
+    },
+    {
+      title: t('InvoiceReport.invoiceStatus'),
+      dataIndex: 'invoiceStatus',
+      search: {
+        type: 'select',
+        termOptions: ['eq'],
+        defaultTermType: 'eq',
+        options: ['UNISSUED', 'PARTIAL', 'INVOICED', 'REVERSED'].map((value) => ({
+          value,
+          label: t('InvoiceReport.' + value)
+        }))
+      }
+    },
+    {
+      title: t(draft.ledger ? 'ReportUI.invoiceType' : 'InvoiceReport.invoiceType'),
+      dataIndex: 'invoiceType',
+      search: {
+        type: 'select',
+        termOptions: ['eq'],
+        defaultTermType: 'eq',
+        options: ['1', '2'].map((value) => ({ value, label: t('InvoiceReport.' + value) }))
+      }
     }
-  },
-  {
-    title: t('InvoiceReport.invoiceStatus'),
-    dataIndex: 'invoiceStatus',
-    search: {
-      type: 'select',
-      termOptions: ['eq'],
-      defaultTermType: 'eq',
-      options: ['UNISSUED', 'PARTIAL', 'INVOICED', 'REVERSED'].map((value) => ({
-        value,
-        label: t('InvoiceReport.' + value)
-      }))
-    }
-  },
-  {
-    title: t('InvoiceReport.invoiceType'),
-    dataIndex: 'invoiceType',
-    search: {
-      type: 'select',
-      termOptions: ['eq'],
-      defaultTermType: 'eq',
-      options: ['1', '2'].map((value) => ({ value, label: t('InvoiceReport.' + value) }))
-    }
-  }
-])
+  ].filter((field) => !draft.ledger || field.dataIndex !== 'invoiceStatus')
+)
 function change({ filter }: ConditionFilterChangePayload) {
   if (exporting.value) return
   try {
     Object.assign(
       draft,
-      reportConditions(filter.terms, {
-        customerName: 'like',
-        fullName: 'like',
-        sourceId: 'like',
-        invoiceNo: 'like',
-        sourceType: 'eq',
-        invoiceStatus: 'eq',
-        invoiceType: 'eq'
-      })
+      reportConditions(
+        filter.terms,
+        {
+          customerName: 'like',
+          fullName: 'like',
+          buyerName: 'like',
+          ticketColor: 'eq',
+          ticketStatus: 'eq',
+          invoiceNo: 'like',
+          sourceType: 'eq',
+          invoiceStatus: 'eq',
+          invoiceType: 'eq'
+        },
+        dateRanges
+      )
     )
     props.state.apply()
   } catch {
     onlyMessage(t('Report.unsupportedCondition'), 'warning')
   }
 }
-function reset() {
-  if (exporting.value) return
-  props.state.reset()
-  filterKey.value++
-}
 </script>
 <template>
   <div class="report-filters">
-    <div :class="{ 'report-frozen': exporting }">
-      <ConditionFilter
-        :key="key"
-        :fields="fields"
-        :disabled="exporting"
-        @change="change"
-      />
+    <div class="report-search-row">
+      <div
+        class="report-search"
+        :class="{ 'report-frozen': exporting }"
+      >
+        <ConditionFilter
+          :model-value="terms"
+          :fields="fields"
+          :disabled="exporting"
+          @change="change"
+        />
+      </div>
+      <div class="report-actions"><slot name="actions" /></div>
     </div>
-    <a-form
-      layout="inline"
-      :model="draft"
-      class="report-dates"
-      @finish="state.apply"
-    >
-      <a-form-item :label="t('InvoiceReport.invoiceDate') + ' · ' + t('Report.startDate')">
-        <a-date-picker
-          v-model:value="draft.invoiceDateStart"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item :label="t('InvoiceReport.invoiceDate') + ' · ' + t('Report.endDate')">
-        <a-date-picker
-          v-model:value="draft.invoiceDateEnd"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button
-            type="primary"
-            html-type="submit"
-            :disabled="exporting"
-          >
-            {{ t('Report.query') }}
-          </a-button>
-          <a-button
-            :disabled="exporting"
-            @click="reset"
-          >
-            {{ t('Report.reset') }}
-          </a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
     <a-space
       wrap
       class="report-drill-tags"
@@ -173,25 +187,16 @@ function reset() {
 </template>
 <style scoped>
 .report-filters {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .report-frozen {
   pointer-events: none;
   opacity: 0.65;
 }
-.report-dates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 0;
-  margin-top: 8px;
-}
-.report-dates :deep(.ant-form-item) {
-  margin-bottom: 0;
-}
-.report-dates :deep(.ant-picker) {
-  width: 150px;
-}
-.report-drill-tags:not(:empty) {
-  margin-top: 10px;
+
+.report-drill-tags:empty {
+  display: none;
 }
 </style>

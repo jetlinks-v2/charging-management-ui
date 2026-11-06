@@ -1,0 +1,79 @@
+/* 报表只让表格体滚动，摘要和分页始终留在当前视口。 */
+.finance-page > .report-workspace {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  margin-top: 16px;
+  background: var(--ant-color-bg-container, #fff);
+  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 16px;
+  overflow: hidden;
+}
+.report-workspace > :not(.report-data) {
+  flex-shrink: 0;
+}
+.report-workspace .report-search-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.report-workspace .report-search {
+  flex: 1;
+  min-width: 0;
+}
+.report-workspace .report-actions {
+  flex-shrink: 0;
+}
+.report-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.report-data,
+.report-data > .ant-spin-nested-loading,
+.report-data > .ant-spin-nested-loading > .ant-spin-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.report-data .report-table {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.report-table .ant-table-container {
+  display: flex;
+  flex-direction: column;
+}
+.report-table .ant-table-header,
+.report-table .jtable-pagination {
+  flex-shrink: 0;
+}
+.report-table .ant-table-body {
+  flex: 1;
+  min-height: 0;
+}
+.report-workspace .report-table td {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.report-workspace .report-drill {
+  align-self: flex-start;
+  margin: 0 0 10px;
+}
+@media (max-width: 1400px) {
+  .finance-page > .report-workspace {
+    padding: 16px 20px;
+    gap: 12px;
+  }
+  .report-workspace .ant-radio-button-wrapper {
+    padding-inline: 12px;
+  }
+}

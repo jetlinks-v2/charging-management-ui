@@ -1,57 +1,67 @@
 <script setup lang="ts">
-import FinancePage from '../components/FinancePage.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { ReceivedGroup } from '../../../api/financeReceivedReport'
-import { useReceivedReport } from '../../../hooks/finance-report/useReceivedReport'
+import FinancePage from '../components/FinancePage.vue'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
-import ReportFilters from './ReportFilters.vue'
-import ReportTable from './ReportTable.vue'
 import ReportExportActions from '../components/ReportExportActions.vue'
 import ReportPdfPreview from '../components/ReportPdfPreview.vue'
 import ReportSummary from '../components/ReportSummary.vue'
+import ReportFilters from './ReportFilters.vue'
+import ReportTable from './ReportTable.vue'
+import { useReceivedReport } from '../../../hooks/finance-report/useReceivedReport'
+import '../components/report-layout.css'
 const { t } = useI18n(),
   state = useReceivedReport()
-const { active, summary, loading, exporting, previewOpen, previewUrl, ready, failed, group, closePreview, exportRows } =
-  state
-const moneyKeys = ['currentPeriodAmount', 'otherPeriodAmount', 'netAmount', 'incomeAmount', 'refundAmount'] as const
-const groups: ReceivedGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT', 'METHOD', 'SOURCE']
+const {
+  active,
+  summary,
+  loading,
+  exporting,
+  ready,
+  failed,
+  parent,
+  previewOpen,
+  previewUrl,
+  closePreview,
+  exportRows
+} = state
+const moneyKeys = computed(() => [
+  'incomeAmount',
+  'refundAmount',
+  'netAmount',
+  ...(active.value.receivedDateStart || active.value.receivedDateEnd
+    ? ['currentPeriodAmount', 'otherPeriodAmount']
+    : [])
+])
+const groups = ['METHOD', 'SUBJECT', 'COLLECTOR', 'SOURCE', 'PROJECT', 'DETAIL'] as const
+const summaryItems = computed(() =>
+  moneyKeys.value.map((key) => ({
+    label: t('Received.' + key),
+    value: summary.value?.[key as keyof NonNullable<typeof summary.value>],
+    unit: key === 'collectionRate' ? '%' : t('Report.currency')
+  }))
+)
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed>
     <ProjectScopeBar multiple />
-    <div class="report-workspace">
-      <h2>{{ t('Received.title') }}</h2>
-      <p class="report-scope">{{ t('Received.scope') }}</p>
-      <ReportFilters :state="state" />
-      <a-spin :spinning="loading">
-        <ReportSummary
-          :label="t('Report.total')"
-          :items="
-            moneyKeys.map((key) => ({
-              label: t('Received.' + key),
-              value:
-                summary?.[key] ??
-                (!active.receivedDateStart &&
-                !active.receivedDateEnd &&
-                ['currentPeriodAmount', 'otherPeriodAmount'].includes(key)
-                  ? t('Received.notCalculated')
-                  : undefined),
-              unit:
-                !active.receivedDateStart &&
-                !active.receivedDateEnd &&
-                ['currentPeriodAmount', 'otherPeriodAmount'].includes(key)
-                  ? ''
-                  : t('Report.currency')
-            }))
-          "
-        />
-      </a-spin>
+    <section class="report-workspace">
+      <ReportFilters :state="state">
+        <template #actions>
+          <ReportExportActions
+            permission="charging/FinanceReceivedReport:export"
+            :state="{ ready, loading, failed, exporting }"
+            :detail-only="active.groupBy === 'DETAIL'"
+            @export="exportRows"
+          />
+        </template>
+      </ReportFilters>
       <div class="report-toolbar">
         <a-radio-group
           :value="active.groupBy"
           :disabled="exporting"
           :aria-label="t('Report.view')"
-          @change="group($event.target.value)"
+          @change="state.group($event.target.value)"
         >
           <a-radio-button
             v-for="key in groups"
@@ -61,49 +71,29 @@ const groups: ReceivedGroup[] = ['DETAIL', 'PROJECT', 'SUBJECT', 'METHOD', 'SOUR
             {{ t('Received.' + key) }}
           </a-radio-button>
         </a-radio-group>
-        <ReportExportActions
-          permission="charging/FinanceReceivedReport:export"
-          :state="{ ready, loading, failed, exporting }"
-          @export="exportRows"
-          @refresh="state.reload"
-        />
+        <a-button
+          v-if="parent"
+          type="link"
+          :disabled="exporting"
+          @click="state.back"
+        >
+          <AIcon type="ArrowLeftOutlined" />
+          {{ t('ReportUI.back') }}
+        </a-button>
       </div>
-      <a-spin :spinning="exporting"><ReportTable :state="state" /></a-spin>
-    </div>
+      <ReportSummary
+        :label="t('Report.total')"
+        :items="summaryItems"
+      />
+      <div class="report-data">
+        <a-spin :spinning="exporting">
+          <ReportTable :state="state" />
+        </a-spin>
+      </div>
+    </section>
     <ReportPdfPreview
       :state="{ open: previewOpen, url: previewUrl, title: t('Received.printTitle'), filename: t('Received.title') }"
       @close="closePreview"
     />
   </FinancePage>
 </template>
-<style scoped>
-.report-workspace {
-  padding: 20px 24px;
-  min-width: 0;
-  background: var(--ant-color-bg-container, #fff);
-}
-h2 {
-  margin: 0 0 6px;
-  font-size: 18px;
-  font-weight: 600;
-}
-.report-scope {
-  margin: 0 0 20px;
-  color: var(--ant-color-text-secondary, #595959);
-  line-height: 1.6;
-}
-.report-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-@media (max-width: 560px) {
-  .report-workspace {
-    padding: 16px 12px;
-  }
-}
-</style>

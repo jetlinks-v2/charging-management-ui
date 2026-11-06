@@ -23,10 +23,11 @@ export function useInvoiceReport() {
     spaceIds: [],
     subjectIds: [],
     subjectGroups: [],
-    groupBy: 'DETAIL',
+    groupBy: 'SUBJECT',
     pageIndex: 0,
     pageSize: 12
   })
+  const parent = ref<InvoiceReportInput>()
   const draft = reactive(defaults()),
     active = ref(defaults())
   const summary = ref<InvoiceAmounts>(),
@@ -80,6 +81,8 @@ export function useInvoiceReport() {
     invalidate()
   }
   function resetState() {
+    parent.value = undefined
+    for (const key of Object.keys(draft)) delete (draft as unknown as Record<string, unknown>)[key]
     Object.assign(draft, defaults(), {
       customerName: undefined,
       fullName: undefined,
@@ -101,9 +104,37 @@ export function useInvoiceReport() {
   function reload() {
     if (!exporting.value) invalidate()
   }
+  function back() {
+    if (!parent.value || exporting.value) return
+    active.value = copy(parent.value)
+    for (const key of Object.keys(draft)) delete (draft as unknown as Record<string, unknown>)[key]
+    Object.assign(draft, copy(parent.value))
+    parent.value = undefined
+    subjectLabel.value = ''
+    invalidate()
+  }
+  function view(value: InvoiceGroup | 'TICKET') {
+    if (exporting.value) return
+    active.value = {
+      ...copy(active.value),
+      groupBy: value === 'TICKET' ? 'DETAIL' : value,
+      ledger: value === 'TICKET',
+      pageIndex: 0
+    }
+    if (!active.value.ledger) {
+      active.value.ticketColor = undefined
+      active.value.ticketStatus = undefined
+      active.value.buyerName = undefined
+    } else active.value.invoiceStatus = undefined
+    Object.assign(draft, copy(active.value))
+    parent.value = undefined
+    invalidate()
+  }
   function group(value: InvoiceGroup) {
     if (exporting.value) return
+    parent.value = undefined
     active.value = { ...copy(active.value), groupBy: value, pageIndex: 0 }
+    Object.assign(draft, copy(active.value))
     invalidate()
   }
   async function request(q: Query, config?: { signal?: AbortSignal }) {
@@ -144,6 +175,7 @@ export function useInvoiceReport() {
       subjectLabel.value = [...new Set(rows.map((row) => row.subjectName))].join('、')
     } else return
     if (!input.projectIds.length) return
+    parent.value = copy(active.value)
     input.groupBy = 'DETAIL'
     input.pageIndex = 0
     active.value = input
@@ -173,6 +205,9 @@ export function useInvoiceReport() {
     ++generation
   })
   return {
+    view,
+    parent,
+    back,
     draft,
     active,
     summary,

@@ -31,10 +31,53 @@ const columns = computed(() => {
     active.value.groupBy === 'DETAIL'
       ? ['projectName', 'fullName', 'buyerName', 'invoiceNo', 'invoiceStatus', 'invoiceDate']
       : [active.value.groupBy === 'PROJECT' ? 'projectName' : 'subjectName', 'rowCount']
+  if (active.value.ledger)
+    return [
+      ...[
+        'projectName',
+        'invoiceNo',
+        'ticketColor',
+        'status',
+        'originalInvoiceNo',
+        'buyerName',
+        'buyerTaxNum',
+        'companyName',
+        'sellerTaxNum',
+        'fullName',
+        'subjectName',
+        'invoiceDate',
+        'invoiceType',
+        'collectionMethod'
+      ].map((key) => ({
+        title: t(
+          ['invoiceNo', 'buyerName', 'invoiceDate', 'invoiceType'].includes(key)
+            ? 'ReportUI.' + (key === 'buyerName' ? 'buyerTitle' : key)
+            : 'InvoiceReport.' + key
+        ),
+        dataIndex: key,
+        ellipsis: true,
+        width: key === 'fullName' ? 240 : 180,
+        scopedSlots: ['ticketColor', 'status', 'invoiceDate', 'invoiceType', 'collectionMethod'].includes(key)
+      })),
+      ...['invoicedAmount', 'netAmount', 'taxAmount', 'differenceAmount', 'outputTax'].map((key) => ({
+        title: t('InvoiceReport.' + key),
+        dataIndex: ['amounts', key],
+        key,
+        width: 180,
+        align: 'right'
+      })),
+      ...['modifierName', 'remark'].map((key) => ({
+        title: t('InvoiceReport.' + key),
+        dataIndex: key,
+        ellipsis: true,
+        width: 180
+      }))
+    ]
   return [
     ...fields.map((key) => ({
       title: t('InvoiceReport.' + key),
       dataIndex: key,
+      ellipsis: true,
       width: ['fullName', 'id', 'invoiceNo'].includes(key) ? 240 : 150,
       scopedSlots: ['projectName', 'subjectName', 'invoiceStatus', 'sourceType', 'invoiceType', 'invoiceDate'].includes(
         key
@@ -75,7 +118,7 @@ const color = (status?: string) =>
     :row-selection="selection"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: active.groupBy === 'DETAIL' ? 1780 : 1200 }"
+    :scroll="{ x: active.ledger ? 4000 : active.groupBy === 'DETAIL' ? 1780 : 1200, y: 'auto' }"
     :body-style="{ padding: 0 }"
     :alert-show="false"
     class="report-table"
@@ -99,6 +142,22 @@ const color = (status?: string) =>
         {{ row.subjectName }}
       </a-button>
       <span v-else>{{ row.subjectName }}</span>
+    </template>
+    <template #ticketColor="row">
+      <a-tag :color="row.ticketColor === 'RED' ? 'red' : 'blue'">{{ t('InvoiceReport.' + row.ticketColor) }}</a-tag>
+    </template>
+    <template #status="row">
+      <a-tag :color="row.status === 'SIMULATED_REVERSED' ? 'orange' : row.ticketColor === 'RED' ? 'red' : 'green'">
+        {{ t('InvoiceReport.' + row.status) }}
+      </a-tag>
+    </template>
+    <template #collectionMethod="row">
+      {{
+        (row.collectionMethod || '')
+          .split(' / ')
+          .map((value: string) => t('InvoiceReport.' + value))
+          .join(' / ') || '—'
+      }}
     </template>
     <template #invoiceStatus="row">
       <a-tag :color="color(row.invoiceStatus)">{{ t('InvoiceReport.' + row.invoiceStatus) }}</a-tag>

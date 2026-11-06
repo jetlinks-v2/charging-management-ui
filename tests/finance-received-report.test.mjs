@@ -24,10 +24,10 @@ const built = await build({
           contents: a.path.includes('financeReceivedReport')
             ? 'export const queryReceivedReport=(...a)=>globalThis.__report.api.query(...a);export const exportReceivedReport=(...a)=>globalThis.__report.api.export(...a)'
             : a.path.includes('useProjectContext')
-              ? 'export const useProjectContext=()=>globalThis.__report.context;export const useProjectSwitchGuard=g=>globalThis.__report.guards.push(g)'
-              : a.path === 'vue-i18n'
-                ? 'export const useI18n=()=>({t:k=>k})'
-                : 'export const onlyMessage=(...a)=>globalThis.__report.messages.push(a);export const downloadFileByUrl=(...a)=>globalThis.__report.downloads.push(a)'
+            ? 'export const useProjectContext=()=>globalThis.__report.context;export const useProjectSwitchGuard=g=>globalThis.__report.guards.push(g)'
+            : a.path === 'vue-i18n'
+            ? 'export const useI18n=()=>({t:k=>k})'
+            : 'export const onlyMessage=(...a)=>globalThis.__report.messages.push(a);export const downloadFileByUrl=(...a)=>globalThis.__report.downloads.push(a)'
         }))
       }
     }
@@ -195,8 +195,8 @@ test('导出只读取已应用筛选并冻结范围；重置与项目切换守�
   assert.equal(s.exporting.value, true)
   assert.equal(__report.guards[0](), false)
   assert.equal(calls[0].i.customerName, undefined)
-  s.group('SUBJECT')
-  assert.equal(s.active.value.groupBy, 'DETAIL')
+  s.group('PROJECT')
+  assert.equal(s.active.value.groupBy, 'METHOD')
   s.reset()
   assert.equal(s.draft.customerName, '未查询草稿')
   pending.resolve(new Blob(['pdf'], { type: 'application/pdf' }))
@@ -319,5 +319,28 @@ test('分组下钻保存编码和名称快照，清除标签同时清除精确�
   assert.deepEqual(s.active.value.subjectGroups, [{ value: 'same', label: '历史名称' }])
   s.clearSubjects()
   assert.deepEqual(s.active.value.subjectGroups, [])
+  v.close()
+})
+
+test('下钻后返回恢复已应用范围，不泄漏明细条件；双表导出携带同一范围', async () => {
+  const calls = [],
+    v = setup({
+      export: async (input) => {
+        calls.push(input)
+        return new Blob(['ok'])
+      }
+    }),
+    s = v.state
+  s.draft.customerName = '客户'
+  s.apply()
+  s.group('PROJECT')
+  const before = JSON.parse(JSON.stringify(s.active.value))
+  s.drill([{ projectId: 'a', projectName: '甲项目' }])
+  assert.equal(s.active.value.groupBy, 'DETAIL')
+  s.back()
+  assert.deepEqual(JSON.parse(JSON.stringify(s.active.value)), before)
+  await s.exportRows('excel', false, 'BOTH')
+  assert.equal(calls[0].exportMode, 'BOTH')
+  assert.equal(calls[0].customerName, '客户')
   v.close()
 })

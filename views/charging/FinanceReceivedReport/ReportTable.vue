@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { collectionTypeColors, handoverStateColors } from '../../../utils/collectionDisplay'
 import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed, ref, watch } from 'vue'
 import { useProjectContext } from '../../../hooks/project/useProjectContext'
@@ -19,29 +20,63 @@ watch(
 const { active, ready, revision, request } = props.state
 const groupField = computed(
   () =>
-    ({ PROJECT: 'projectName', SUBJECT: 'subjectName', METHOD: 'methodText', SOURCE: 'sourceType', DETAIL: '' })[
-      active.value.groupBy
-    ]
+    ({
+      PROJECT: 'projectName',
+      SUBJECT: 'subjectName',
+      METHOD: 'methodText',
+      SOURCE: 'sourceType',
+      COLLECTOR: 'collectorName',
+      DETAIL: ''
+    }[active.value.groupBy])
 )
 const rowKey = (row: ReceivedRow) =>
-  JSON.stringify([row.id, row.projectId, row.subjectId, row.subjectName, row.method, row.methodText, row.sourceType])
+  JSON.stringify([
+    row.id,
+    row.projectId,
+    row.subjectId,
+    row.subjectName,
+    row.method,
+    row.methodText,
+    row.sourceType,
+    row.collectorId,
+    row.collectorName
+  ])
 const columns = computed(() => {
   const fields =
     active.value.groupBy === 'DETAIL'
-      ? ['projectName', 'fullName', 'customerName', 'sourceNo', 'receivedAt', 'methodText', 'sourceType']
+      ? [
+          'projectName',
+          'fullName',
+          'customerName',
+          'receivedAt',
+          'methodText',
+          'sourceType',
+          'collectorName',
+          'handoverState'
+        ]
       : [groupField.value, 'rowCount']
   const amounts =
     active.value.groupBy === 'DETAIL'
       ? ['netAmount']
       : active.value.receivedDateStart || active.value.receivedDateEnd
-        ? ['incomeAmount', 'refundAmount', 'netAmount', 'currentPeriodAmount', 'otherPeriodAmount']
-        : ['incomeAmount', 'refundAmount', 'netAmount']
+      ? ['incomeAmount', 'refundAmount', 'netAmount', 'currentPeriodAmount', 'otherPeriodAmount']
+      : ['incomeAmount', 'refundAmount', 'netAmount']
+  if (active.value.groupBy === 'COLLECTOR') amounts.push('unhandedAmount', 'pendingAmount', 'approvedAmount')
   return [
     ...fields.map((key) => ({
       title: t('Received.' + key),
       dataIndex: key,
+      ellipsis: true,
       width: key === 'fullName' ? 230 : key === 'sourceNo' ? 300 : 160,
-      scopedSlots: ['projectName', 'subjectName', 'methodText', 'sourceType', 'receivedAt'].includes(key)
+      scopedSlots: [
+        'projectName',
+        'subjectName',
+        'methodText',
+        'sourceType',
+        'receivedAt',
+        'collectorName',
+        'handoverState'
+      ].includes(key)
     })),
     ...amounts.map((key) => ({
       title: t('Received.' + key),
@@ -68,13 +103,13 @@ const columns = computed(() => {
     :row-key="rowKey"
     :no-pagination="false"
     :pagination="{ pageSize: 12 }"
-    :scroll="{ x: active.groupBy === 'DETAIL' ? 1520 : 1200 }"
+    :scroll="{ x: active.groupBy === 'DETAIL' ? 2100 : 1400, y: 'auto' }"
     :body-style="{ padding: 0 }"
     :alert-show="false"
     class="report-table"
   >
     <template
-      v-for="key in ['projectName', 'subjectName', 'methodText', 'sourceType'] as const"
+      v-for="key in ['projectName', 'subjectName', 'methodText', 'sourceType', 'collectorName'] as const"
       :key="key"
       #[key]="row"
     >
@@ -87,11 +122,16 @@ const columns = computed(() => {
       </a-button>
       <a-tag
         v-else-if="key === 'sourceType'"
-        :color="row.amounts.netAmount.startsWith('-') ? 'orange' : 'blue'"
+        :color="collectionTypeColors[row.sourceType]"
       >
         {{ t('Received.' + row.sourceType) }}
       </a-tag>
       <span v-else>{{ row[key] }}</span>
+    </template>
+    <template #handoverState="row">
+      <a-tag :color="handoverStateColors[row.handoverState || 'UNHANDED']">
+        {{ t('Received.' + (row.handoverState || 'UNHANDED')) }}
+      </a-tag>
     </template>
     <template #receivedAt="row">{{ formatFinanceTime(row.receivedAt) }}</template>
     <template #actions="row">

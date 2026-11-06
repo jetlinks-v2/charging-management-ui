@@ -1,18 +1,47 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
-import { reportConditions } from '../../../hooks/finance-report/reportConditions'
+import { reportConditions, type ReportDateRanges } from '../../../hooks/finance-report/reportConditions'
 import { useProjectContext } from '../../../hooks/project/useProjectContext'
 import type { useReceivableReport } from '../../../hooks/finance-report/useReceivableReport'
 const props = defineProps<{ state: ReturnType<typeof useReceivableReport> }>()
 const { t } = useI18n()
 const { draft, exporting } = props.state
-const filterKey = ref(0),
-  context = useProjectContext()
-const key = computed(() => context.reportProjectIds.value.join(',') + ':' + filterKey.value)
+const context = useProjectContext()
+const dateRanges: ReportDateRanges = {
+  receivableDate: ['receivableDateStart', 'receivableDateEnd'],
+  dueDate: ['dueDateStart', 'dueDateEnd']
+}
+// 主筛选回显来自草稿；返回汇总或重置后不保留隐藏的旧条件。
+const terms = computed(() =>
+  fields.value.flatMap((field) => {
+    const key = field.dataIndex
+    const values = draft as unknown as Record<string, unknown>
+    const range = dateRanges[key]
+    const value = range
+      ? range.every((name) => values[name])
+        ? range.map((name) => values[name])
+        : undefined
+      : (draft as unknown as Record<string, unknown>)[key]
+    return value == null || value === ''
+      ? []
+      : [{ column: key, termType: field.search.defaultTermType, value, type: 'and' }]
+  })
+)
 const fields = computed(() => [
+  ...Object.keys(dateRanges).map((key) => ({
+    title: t(key === 'dueDate' ? 'Report.dueDate' : 'Report.receivableDate'),
+    dataIndex: key,
+    search: {
+      type: 'date',
+      termOptions: ['btw'],
+      defaultTermType: 'btw',
+      componentProps: { format: 'YYYY-MM-DD', showTime: false }
+    }
+  })),
+
   {
     title: t('Report.customerName'),
     dataIndex: 'customerName',
@@ -44,90 +73,39 @@ function change({ filter }: ConditionFilterChangePayload) {
   try {
     Object.assign(
       draft,
-      reportConditions(filter.terms, {
-        customerName: 'like',
-        fullName: 'like',
-        receivableNo: 'like',
-        collectionStatus: 'eq'
-      })
+      reportConditions(
+        filter.terms,
+        {
+          customerName: 'like',
+          fullName: 'like',
+          receivableNo: 'like',
+          collectionStatus: 'eq'
+        },
+        dateRanges
+      )
     )
     props.state.apply()
   } catch {
     onlyMessage(t('Report.unsupportedCondition'), 'warning')
   }
 }
-function reset() {
-  if (exporting.value) return
-  props.state.reset()
-  filterKey.value++
-}
 </script>
 <template>
   <div class="report-filters">
-    <div :class="{ 'report-frozen': exporting }">
-      <ConditionFilter
-        :key="key"
-        :fields="fields"
-        :disabled="exporting"
-        @change="change"
-      />
+    <div class="report-search-row">
+      <div
+        class="report-search"
+        :class="{ 'report-frozen': exporting }"
+      >
+        <ConditionFilter
+          :model-value="terms"
+          :fields="fields"
+          :disabled="exporting"
+          @change="change"
+        />
+      </div>
+      <div class="report-actions"><slot name="actions" /></div>
     </div>
-    <a-form
-      layout="inline"
-      :model="draft"
-      class="report-dates"
-      @finish="state.apply"
-    >
-      <a-form-item :label="t('Report.receivableDate') + ' · ' + t('Report.startDate')">
-        <a-date-picker
-          v-model:value="draft.receivableDateStart"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item :label="t('Report.receivableDate') + ' · ' + t('Report.endDate')">
-        <a-date-picker
-          v-model:value="draft.receivableDateEnd"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item :label="t('Report.dueDate') + ' · ' + t('Report.startDate')">
-        <a-date-picker
-          v-model:value="draft.dueDateStart"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item :label="t('Report.dueDate') + ' · ' + t('Report.endDate')">
-        <a-date-picker
-          v-model:value="draft.dueDateEnd"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button
-            type="primary"
-            html-type="submit"
-            :disabled="exporting"
-          >
-            {{ t('Report.query') }}
-          </a-button>
-          <a-button
-            :disabled="exporting"
-            @click="reset"
-          >
-            {{ t('Report.reset') }}
-          </a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
     <a-space
       wrap
       class="report-drill-tags"
@@ -155,25 +133,16 @@ function reset() {
 </template>
 <style scoped>
 .report-filters {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .report-frozen {
   pointer-events: none;
   opacity: 0.65;
 }
-.report-dates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 0;
-  margin-top: 8px;
-}
-.report-dates :deep(.ant-form-item) {
-  margin-bottom: 0;
-}
-.report-dates :deep(.ant-picker) {
-  width: 150px;
-}
-.report-drill-tags:not(:empty) {
-  margin-top: 10px;
+
+.report-drill-tags:empty {
+  display: none;
 }
 </style>

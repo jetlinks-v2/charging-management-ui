@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
-import { reportConditions } from '../../../hooks/finance-report/reportConditions'
+import { reportConditions, type ReportDateRanges } from '../../../hooks/finance-report/reportConditions'
 import { useProjectContext } from '../../../hooks/project/useProjectContext'
 import { queryReceivedReport, type ReceivedSource } from '../../../api/financeReceivedReport'
 import { requestErrorMessage } from '../../../utils/requestError'
@@ -11,9 +11,30 @@ import type { useReceivedReport } from '../../../hooks/finance-report/useReceive
 const props = defineProps<{ state: ReturnType<typeof useReceivedReport> }>()
 const { t } = useI18n()
 const { draft, exporting } = props.state
-const filterKey = ref(0),
-  context = useProjectContext()
-const key = computed(() => context.reportProjectIds.value.join(',') + ':' + filterKey.value)
+const context = useProjectContext()
+const dateRanges: ReportDateRanges = {
+  receivedDate: ['receivedDateStart', 'receivedDateEnd']
+}
+// 主筛选回显来自草稿；返回汇总或重置后不保留隐藏的旧条件。
+const terms = computed(() =>
+  fields.value.flatMap((field) => {
+    const key = field.dataIndex
+    const values = draft as unknown as Record<string, unknown>
+    const range = dateRanges[key]
+    const value = range
+      ? range.every((name) => values[name])
+        ? range.map((name) => values[name])
+        : undefined
+      : key === 'method'
+      ? draft.paymentMethods?.[0]
+      : key === 'source'
+      ? draft.sourceTypes?.[0]
+      : (draft as unknown as Record<string, unknown>)[key]
+    return value == null || value === ''
+      ? []
+      : [{ column: key, termType: field.search.defaultTermType, value, type: 'and' }]
+  })
+)
 async function paymentMethods() {
   try {
     const result = await queryReceivedReport({
@@ -43,6 +64,27 @@ async function paymentMethods() {
   }
 }
 const fields = computed(() => [
+  ...Object.keys(dateRanges).map((key) => ({
+    title: t('Received.receivedDate'),
+    dataIndex: key,
+    search: {
+      type: 'date',
+      termOptions: ['btw'],
+      defaultTermType: 'btw',
+      componentProps: { format: 'YYYY-MM-DD', showTime: false }
+    }
+  })),
+
+  {
+    title: t('Received.handoverState'),
+    dataIndex: 'handoverState',
+    search: {
+      type: 'select',
+      termOptions: ['eq'],
+      defaultTermType: 'eq',
+      options: ['UNHANDED', 'PENDING', 'APPROVED'].map((value) => ({ value, label: t('Received.' + value) }))
+    }
+  },
   {
     title: t('Received.customerName'),
     dataIndex: 'customerName',
@@ -96,14 +138,21 @@ const fields = computed(() => [
 function change({ filter }: ConditionFilterChangePayload) {
   if (exporting.value) return
   try {
-    const { method, source, ...values } = reportConditions(filter.terms, {
-      customerName: 'like',
-      fullName: 'like',
-      paymentNo: 'like',
-      collectorName: 'like',
-      method: 'eq',
-      source: 'eq'
-    })
+    const { method, source, ...values } = reportConditions(
+      filter.terms,
+      {
+        customerName: 'like',
+        fullName: 'like',
+        paymentNo: 'like',
+        collectorName: 'like',
+        handoverState: 'eq',
+        method: 'eq',
+        source: 'eq'
+      },
+      dateRanges
+    )
+    // 修改或移除收银员条件时，同时清除下钻带入的精确账号，避免隐藏条件继续限制结果。
+    if (values.collectorName !== draft.collectorName) draft.collectorId = undefined
     Object.assign(draft, values)
     draft.methodGroups = []
     draft.paymentMethods = method ? [method] : []
@@ -114,62 +163,23 @@ function change({ filter }: ConditionFilterChangePayload) {
     onlyMessage(t('Report.unsupportedCondition'), 'warning')
   }
 }
-function reset() {
-  if (exporting.value) return
-  props.state.reset()
-  filterKey.value++
-}
 </script>
 <template>
   <div class="report-filters">
-    <div :class="{ 'report-frozen': exporting }">
-      <ConditionFilter
-        :key="key"
-        :fields="fields"
-        :disabled="exporting"
-        @change="change"
-      />
+    <div class="report-search-row">
+      <div
+        class="report-search"
+        :class="{ 'report-frozen': exporting }"
+      >
+        <ConditionFilter
+          :model-value="terms"
+          :fields="fields"
+          :disabled="exporting"
+          @change="change"
+        />
+      </div>
+      <div class="report-actions"><slot name="actions" /></div>
     </div>
-    <a-form
-      layout="inline"
-      :model="draft"
-      class="report-dates"
-      @finish="state.apply"
-    >
-      <a-form-item :label="t('Received.receivedDate') + ' · ' + t('Report.startDate')">
-        <a-date-picker
-          v-model:value="draft.receivedDateStart"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item :label="t('Received.receivedDate') + ' · ' + t('Report.endDate')">
-        <a-date-picker
-          v-model:value="draft.receivedDateEnd"
-          value-format="YYYY-MM-DD"
-          :disabled="exporting"
-          allow-clear
-        />
-      </a-form-item>
-      <a-form-item>
-        <a-space>
-          <a-button
-            type="primary"
-            html-type="submit"
-            :disabled="exporting"
-          >
-            {{ t('Report.query') }}
-          </a-button>
-          <a-button
-            :disabled="exporting"
-            @click="reset"
-          >
-            {{ t('Report.reset') }}
-          </a-button>
-        </a-space>
-      </a-form-item>
-    </a-form>
     <a-space
       wrap
       class="report-drill-tags"
@@ -211,25 +221,16 @@ function reset() {
 </template>
 <style scoped>
 .report-filters {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .report-frozen {
   pointer-events: none;
   opacity: 0.65;
 }
-.report-dates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 0;
-  margin-top: 8px;
-}
-.report-dates :deep(.ant-form-item) {
-  margin-bottom: 0;
-}
-.report-dates :deep(.ant-picker) {
-  width: 150px;
-}
-.report-drill-tags:not(:empty) {
-  margin-top: 10px;
+
+.report-drill-tags:empty {
+  display: none;
 }
 </style>

@@ -21,9 +21,9 @@ export function useReportExport<Input>(options: {
     if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
     previewUrl.value = ''
   }
-  async function exportRows(format: 'excel' | 'pdf', preview = false) {
+  async function exportRows(format: 'excel' | 'pdf', preview = false, mode: 'CURRENT' | 'DETAIL' | 'BOTH' = 'CURRENT') {
     if (!options.enabled() || exporting.value) return
-    const input = options.input(),
+    const input = { ...options.input(), exportMode: mode },
       token = ++generation
     exporting.value = true
     try {

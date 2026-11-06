@@ -6,6 +6,7 @@ const { t } = useI18n()
 </script>
 <template>
   <a-modal
+    centered
     :open="state.open"
     :title="state.title"
     :width="1280"
@@ -34,7 +35,7 @@ const { t } = useI18n()
 .report-pdf {
   display: block;
   width: 100%;
-  height: 72vh;
+  height: min(72vh, calc(100dvh - 10rem));
   border: 0;
 }
 </style>

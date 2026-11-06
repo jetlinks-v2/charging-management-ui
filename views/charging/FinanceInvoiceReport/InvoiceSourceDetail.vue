@@ -64,7 +64,7 @@ async function select(id: string) {
       :column="2"
       size="small"
     >
-      <a-descriptions-item :label="t('InvoiceReport.id')">{{ row.id }}</a-descriptions-item>
+      <a-descriptions-item :label="t('InvoiceReport.projectName')">{{ row.projectName || '—' }}</a-descriptions-item>
       <a-descriptions-item :label="t('InvoiceReport.fullName')">{{ row.fullName }}</a-descriptions-item>
       <a-descriptions-item :label="t('InvoiceReport.invoiceContent')">
         {{ row.invoiceContent || '—' }}
@@ -77,16 +77,20 @@ async function select(id: string) {
         row-key="id"
         :pagination="false"
         :scroll="{ x: 900 }"
+        table-layout="fixed"
         size="small"
         class="related-documents"
       >
         <a-table-column
           key="documentNumber"
-          :title="t('Document.documentNumber')"
+          :title="t('Document.number')"
+          :width="420"
         >
           <template #default="{ record }">
             <a-button
               type="link"
+              class="document-number"
+              :title="record.documentNumber"
               @click="select(record.id)"
             >
               {{ record.documentNumber }}
@@ -95,21 +99,24 @@ async function select(id: string) {
         </a-table-column>
         <a-table-column
           key="status"
-          :title="t('Document.status')"
+          :title="t('Document.state')"
+          :width="120"
         >
-          <template #default="{ record }">{{ t('Document.' + record.status) }}</template>
+          <template #default="{ record }">{{ t('Document.status.' + record.status) }}</template>
         </a-table-column>
         <a-table-column
           key="issuedAt"
           data-index="issuedAt"
-          :title="t('InvoiceReport.invoiceDate')"
+          :title="t('ReportUI.invoiceDate')"
+          :width="180"
         >
           <template #default="{ record }">{{ formatFinanceTime(record.issuedAt) }}</template>
         </a-table-column>
         <a-table-column
           key="amount"
           data-index="amount"
-          :title="t('Document.amount')"
+          :title="t('Document.total')"
+          :width="180"
           align="right"
         />
       </a-table>
@@ -126,5 +133,10 @@ async function select(id: string) {
 <style scoped>
 .related-documents {
   margin: 16px 0;
+}
+.document-number {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
