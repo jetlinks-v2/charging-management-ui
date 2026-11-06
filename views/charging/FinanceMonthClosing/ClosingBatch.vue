@@ -159,14 +159,15 @@ const columns = [
       >
         {{ t('Finance.close') }}
       </a-button>
-      <a-button
+      <j-permission-button
+        :hasPermission="'charging/FinanceMonthClosing:' + action.toLowerCase()"
         type="primary"
         :loading="busy"
         :disabled="!reason.trim() || (!uncertain && rows.some((row) => row.status === 'FAILED'))"
         @click="run(!!rows.length)"
       >
         {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'Handover.confirm' : 'Handover.preview') }}
-      </a-button>
+      </j-permission-button>
     </template>
   </a-modal>
 </template>

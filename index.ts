@@ -2,6 +2,7 @@ import { getModuleRoutesMap } from '@jetlinks-web/utils'
 import { moduleRegistry } from '@jetlinks-web-core/utils/module-registry'
 import registerSetting from './register'
 import { name } from './package.json'
+import { chargingMenuFilter } from './utils/menuNavigation'
 
 const routerModules = import.meta.glob('./views/**/index.vue')
 
@@ -13,5 +14,6 @@ export default {
   getExtraRoutesMap: () => ({}),
   getComponents: () => ({}),
   getCoreRouteOverrides: () => [],
+  getMenuFilters: () => [chargingMenuFilter],
   register
 }

@@ -128,15 +128,16 @@ const columns = [
       >
         {{ t('Finance.close') }}
       </a-button>
-      <a-button
+      <j-permission-button
         v-if="!completed"
+        :hasPermission="'charging/FinanceHandoverRecord:' + action.toLowerCase()"
         type="primary"
         :loading="busy"
         :disabled="!reason.trim()"
         @click="run(!!rows.length)"
       >
         {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'Handover.confirm' : 'Handover.preview') }}
-      </a-button>
+      </j-permission-button>
     </template>
   </a-modal>
 </template>

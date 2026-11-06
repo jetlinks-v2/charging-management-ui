@@ -71,7 +71,7 @@ const close = () => {
       <j-permission-button
         v-if="!result && !failed"
         type="primary"
-        :hasPermission="'charging/FinanceHandover:' + action.toLowerCase()"
+        :hasPermission="'charging/FinanceHandoverRecord:' + action.toLowerCase()"
         :disabled="!reason.trim()"
         :loading="saving"
         @click="submit"

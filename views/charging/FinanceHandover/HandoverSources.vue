@@ -162,7 +162,7 @@ watch([space.selectedId, () => filter.handed], () => {
           <j-permission-button
             v-if="row.batchId && row.status === 'PENDING'"
             type="link"
-            hasPermission="charging/FinanceHandover:cancel"
+            hasPermission="charging/FinanceHandoverRecord:cancel"
             :disabled="blocked"
             @click="cancel(row)"
           >

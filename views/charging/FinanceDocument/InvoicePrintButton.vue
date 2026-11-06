@@ -19,7 +19,7 @@ const frame = ref<HTMLIFrameElement>()
 </script>
 <template>
   <j-permission-button
-    hasPermission="charging/FinanceInvoice:query"
+    hasPermission="charging/FinanceInvoice:preview"
     :loading="exporting"
     @click="exportRows('pdf', true)"
   >

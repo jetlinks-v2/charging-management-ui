@@ -8,15 +8,14 @@ test('收费不再重复提供物业基础菜单，开发与联合构建加载�
   const read = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
   const menus = read('../baseMenu.json')
   assert.ok(menus.length > 0)
-  const nodes = menus.flatMap((menu) => [menu, ...(menu.children || [])])
+  const visit = (items) => items.flatMap((menu) => [menu, ...visit(menu.children || [])])
+  const nodes = visit(menus)
   assert.equal(
     nodes.some((menu) => menu.id === 'charging-basic'),
     false
   )
   for (const node of nodes.filter((node) => node.code && !node.children?.length)) {
-    assert.ok(
-      readFileSync(new URL(`../views/${node.code}/index.vue`, import.meta.url), 'utf8').includes('<template>')
-    )
+    assert.ok(readFileSync(new URL(`../views/${node.code}/index.vue`, import.meta.url), 'utf8').includes('<template>'))
   }
   const { scripts } = read('../package.json')
   assert.match(scripts.dev, /charging-management-ui,property-base-ui,authentication-manager-ui/)
