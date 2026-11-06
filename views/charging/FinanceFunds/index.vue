@@ -14,10 +14,11 @@ import FundRevokeEditor from './FundRevokeEditor.vue'
 import '../FinanceCashier/cashier.css'
 import FinanceLedgerSpace from '../components/FinanceLedgerSpace.vue'
 const { t } = useI18n()
-const props = defineProps<{ fundType?: FundType }>()
+// 旧版预收款菜单仍可能直达此页，默认限定为预收款；押金由独立入口显式指定。
+const props = withDefaults(defineProps<{ fundType?: FundType }>(), { fundType: 'ADVANCE' })
 const permission = props.fundType === 'DEPOSIT' ? 'charging/FinanceDeposit' : 'charging/FinanceFunds'
 const state = useFundsWorkspace(props.fundType)
-const { projectId, table, type, terms, params, request, open, loading, failed, detail, select, close, saved, notify } =
+const { projectId, table, terms, params, request, open, loading, failed, detail, select, close, saved, notify } =
   state
 const { draft, pending, failed: recoveryFailed, recover, start, close: closeEditor } = state.flow
 const {
@@ -127,23 +128,6 @@ function revokeTopup(entry: FundEntry) {
             </j-permission-button>
           </template>
         </a-alert>
-        <a-tabs
-          v-if="!fundType"
-          v-model:active-key="type"
-        >
-          <a-tab-pane
-            key=""
-            :tab="t('Funds.all')"
-          />
-          <a-tab-pane
-            key="ADVANCE"
-            :tab="t('Funds.ADVANCE')"
-          />
-          <a-tab-pane
-            key="DEPOSIT"
-            :tab="t('Funds.DEPOSIT')"
-          />
-        </a-tabs>
         <ConditionFilter
           class="collection-filter"
           :fields="fields"
