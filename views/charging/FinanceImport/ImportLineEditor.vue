@@ -48,7 +48,7 @@ const { t, form, model, fields, busy, rules, submit } = useImportLineEditor(prop
               :show-time="field.type === 'datetime' ? { format: 'HH:mm' } : false"
               :format="field.type === 'datetime' ? 'YYYY-MM-DD HH:mm' : field.type === 'month' ? 'YYYY-MM' : 'YYYY-MM-DD'"
               :value-format="
-                field.type === 'datetime' ? 'YYYY-MM-DDTHH:mm:ss' : field.type === 'month' ? 'YYYY-MM' : 'YYYY-MM-DD'
+                field.type === 'datetime' ? 'YYYY-MM-DD HH:mm' : field.type === 'month' ? 'YYYY-MM' : 'YYYY-MM-DD'
               "
               :disabled="busy || field.readonly"
               style="width: 100%"

@@ -55,6 +55,28 @@ async function load(path) {
 const { useCollectionImport } = await load('../hooks/finance-import/useCollectionImport.ts')
 const { useImportLineEditor } = await load('../hooks/finance-import/useImportLineEditor.ts')
 const { useHistoricalAudit } = await load('../hooks/finance-receivable/useHistoricalAudit.ts')
+test('收款编辑兼容服务端分钟与秒格式，保存时间统一到分钟', async () => {
+  for (const paidAt of ['2026-11-06T20:10', '2026-11-06T20:10:35', '2026-11-06 20:10']) {
+    let submitted
+    const props = {
+      projectId: 'p',
+      kind: 'DEPOSIT',
+      record: { id: 'b', version: 0 },
+      line: { id: 'l', version: 0, payload: { paidAt, amount: '50.00' } }
+    }
+    const { state, unmount } = mount(() => useImportLineEditor(props, () => {}), {
+      editCollectionImportLine: async (...args) => {
+        submitted = args[4]
+        return { record: props.record, line: props.line }
+      }
+    })
+    state.form.value = { validate: async () => {} }
+    assert.equal(state.model.paidAt, '2026-11-06 20:10')
+    await state.submit()
+    assert.equal(submitted.paidAt, '2026-11-06 20:10')
+    unmount()
+  }
+})
 const deferred = () => {
   let resolve
   const promise = new Promise((r) => (resolve = r))

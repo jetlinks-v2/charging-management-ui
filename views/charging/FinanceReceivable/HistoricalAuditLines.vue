@@ -149,7 +149,11 @@ const selection = computed(() => ({
         :key="field.key"
         #[field.key]="row"
       >
-        {{ row.payload?.[field.key] || row.receivable[field.key] || '—' }}
+        {{
+          field.type === 'datetime'
+            ? formatFinanceTime(row.payload?.[field.key] ?? row.receivable[field.key])
+            : (row.payload?.[field.key] ?? row.receivable[field.key] ?? '—')
+        }}
       </template>
       <template #actions="row">
         <a-space

@@ -40,7 +40,7 @@ function adjustmentSaved() {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed>
     <ProjectScopeBar />
     <div class="subject-workspace">
       <aside class="subject-categories">
@@ -53,15 +53,6 @@ function adjustmentSaved() {
           :aria-label="t('Archive.searchSpace')"
           allow-clear
         />
-        <a-button
-          block
-          :type="selectedId ? 'text' : 'primary'"
-          :ghost="!selectedId"
-          class="receivable-all"
-          @click="selectedId = undefined"
-        >
-          {{ t('Archive.allSpaces') }}
-        </a-button>
         <a-spin :spinning="treeLoading">
           <a-tree
             v-if="tree.length"
@@ -141,13 +132,36 @@ function adjustmentSaved() {
 </template>
 <style scoped src="../FinanceSubject/subject.css"></style>
 <style scoped>
-.receivable-heading {
-  flex-wrap: wrap;
+.subject-workspace,
+.subject-content {
+  min-height: 0;
+  overflow: hidden;
 }
-.receivable-all {
-  margin: 12px 0;
+.subject-categories {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
-.subject-categories :deep(.ant-spin-container) {
-  min-height: 260px;
+.subject-categories > :not(.ant-spin-nested-loading),
+.subject-content > :not(.jtable-body-spin) {
+  flex-shrink: 0;
+}
+.subject-categories :deep(.ant-spin-nested-loading) {
+  flex: 1;
+  min-height: 0;
+  margin-top: 12px;
+  overflow: auto;
+}
+@container (max-width: 650px) {
+  .subject-workspace {
+    overflow: auto;
+  }
+  .subject-categories {
+    min-height: 180px;
+  }
+  .subject-content {
+    min-height: 400px;
+  }
 }
 </style>

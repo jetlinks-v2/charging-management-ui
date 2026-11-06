@@ -10,6 +10,7 @@ import {
 import { editCollectionImportLine, type CollectionImportKind } from '../../api/financeCollectionImport'
 import { collectionImportFields, historicalImportFields } from '../../utils/financeImportFields'
 import { requestErrorMessage } from '../../utils/requestError'
+import { formatFinanceTime } from '../../utils/financeTime'
 import { useProjectSwitchGuard } from '../project/useProjectContext'
 
 export function useImportLineEditor(
@@ -23,7 +24,11 @@ export function useImportLineEditor(
   const original = { ...(props.kind ? props.line.payload : props.line.receivable) }
   const model = reactive<Record<string, string>>(
     Object.fromEntries(
-      fields.value.map((field) => [field.key, String(original[field.key as keyof typeof original] ?? '')])
+      fields.value.map((field) => {
+        const value = String(original[field.key as keyof typeof original] ?? '')
+        const formatted = field.type === 'datetime' ? formatFinanceTime(value) : value
+        return [field.key, formatted === '—' ? '' : formatted]
+      })
     )
   )
   let disposed = false
