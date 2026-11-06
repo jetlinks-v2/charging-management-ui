@@ -18,6 +18,40 @@
     "buttons": [],
     "children": [
       {
+        "id": "charging-FinanceOverview",
+        "code": "charging/FinanceOverview",
+        "name": "收费概览",
+        "url": "/charging/overview/FinanceOverview",
+        "owner": "app",
+        "sortIndex": 71,
+        "icon": "DashboardOutlined",
+        "i18nMessages": {
+          "name": {
+            "zh_CN": "收费概览",
+            "en_US": "Overview",
+            "en": "Overview"
+          }
+        },
+        "assetType": "organization",
+        "accessSupport": {
+          "text": "支持",
+          "value": "support"
+        },
+        "supportDataAccess": true,
+        "showPage": [
+          "property-finance-overview"
+        ],
+        "permissions": [
+          {
+            "permission": "property-finance-overview",
+            "actions": [
+              "query"
+            ]
+          }
+        ],
+        "buttons": []
+      },
+      {
         "id": "charging-finance",
         "code": "charging/finance",
         "name": "计费管理",
