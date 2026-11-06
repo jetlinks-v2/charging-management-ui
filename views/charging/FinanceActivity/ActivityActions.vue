@@ -51,7 +51,7 @@ const { t } = useI18n()
               <j-permission-button
                 type="link"
                 hasPermission="charging/FinanceActivity:state"
-                :disabled="busy"
+                :disabled="busy || row.activity.reviewState !== 'APPROVED'"
               >
                 {{ t(row.activity.enabled ? 'Activity.disable' : 'Activity.enable') }}
               </j-permission-button>

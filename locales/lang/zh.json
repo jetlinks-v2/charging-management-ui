@@ -1059,7 +1059,19 @@
     "stateConfirm": "确认更改活动启停状态？",
     "deleteConfirm": "确认删除此活动？操作记录将保留。",
     "changed": "活动已更新",
-    "empty": "暂无活动，可先新增活动设置。"
+    "empty": "暂无活动，可先新增活动设置。",
+    "confirmSpaces": "确认选择",
+    "chooseSpaces": "选择优惠空间",
+    "selectedSpaces": "已选 {count} 个空间",
+    "reviewButton": "审批",
+    "reviewTitle": "活动审批",
+    "reviewState": "审批状态",
+    "reviewSaved": "活动审批已完成",
+    "reviewEmpty": "暂无待处理的活动",
+    "APPROVE": "审批通过",
+    "REJECT": "驳回",
+    "reviewer": "审批人",
+    "reviewTime": "审批时间"
   },
   "Prepay": {
     "title": "预缴收费",

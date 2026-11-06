@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ActivityTargets from './ActivityTargets.vue'
 import type { ActivityInput, ActivityOptions } from '../../../api/financeActivity'
 const props = defineProps<{ model: ActivityInput; options: ActivityOptions; saving: boolean }>()
 const { t } = useI18n()
-const spaceOptions = computed(() => props.options.spaces.map((node) => ({ value: node.id, label: node.fullName })))
 const quarter = computed(() =>
   props.options.standards.find((row) => row.id === props.model.standardId)?.settlementMethod.startsWith('QUARTER')
 )
@@ -42,26 +42,11 @@ function setMonth(index: number, field: 'paidMonths' | 'giftMonths', value: unkn
 }
 </script>
 <template>
-  <SectionCard
-    icon="EnvironmentOutlined"
-    :title="t('Activity.targets')"
-  >
-    <a-form-item
-      name="targetIds"
-      :rules="required('targets')"
-    >
-      <a-select
-        v-model:value="model.targetIds"
-        mode="multiple"
-        show-search
-        :options="spaceOptions"
-        option-filter-prop="label"
-        :placeholder="t('Activity.chooseTargets')"
-        :max-tag-count="4"
-      />
-    </a-form-item>
-    <p class="activity-note">{{ t('Activity.targetsHint') }}</p>
-  </SectionCard>
+  <ActivityTargets
+    :model="model"
+    :options="options"
+    :saving="saving"
+  />
   <SectionCard
     icon="GiftOutlined"
     :title="t('Activity.tiers')"

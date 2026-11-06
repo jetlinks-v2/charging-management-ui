@@ -29,6 +29,10 @@ export interface ActivitySummary {
     startDate: string
     endDate: string
     enabled: boolean
+    reviewState: 'PENDING' | 'APPROVED' | 'REJECTED'
+    reviewedName?: string
+    reviewedAt?: number
+    reviewReason?: string
     createTime: number
   }
   activityTypeName: string
@@ -113,3 +117,20 @@ export const queryActivityLogs = (project: string, id: string, query: Query, sig
       hiddenError: true
     })
     .then(paged)
+
+export const reviewActivities = (
+  project: string,
+  rows: ActivitySummary[],
+  action: 'approve' | 'reject',
+  reason: string
+) =>
+  request
+    .post<ActivityDetail[]>(
+      `${base(project)}/_${action}`,
+      {
+        items: rows.map(({ activity }) => ({ id: activity.id, version: activity.version })),
+        reason
+      },
+      { hiddenError: true }
+    )
+    .then(checked)

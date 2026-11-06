@@ -12,6 +12,7 @@ import ActivityEditor from './ActivityEditor.vue'
 import ActivityDetail from './ActivityDetail.vue'
 import ActivityDate from './ActivityDate.vue'
 import ActivityHistory from './ActivityHistory.vue'
+import ActivityReview from './ActivityReview.vue'
 const { t } = useI18n()
 const {
   projectId,
@@ -59,6 +60,7 @@ const columns = computed(() => [
   { title: t('Activity.subject'), dataIndex: 'subjectName', width: 160 },
   { title: t('Activity.standard'), dataIndex: 'standardName', width: 160 },
   { title: t('Activity.progress'), dataIndex: 'runtimeStatus', scopedSlots: true, width: 110 },
+  { title: t('Activity.reviewState'), dataIndex: 'reviewState', scopedSlots: true, width: 110 },
   { title: t('Activity.state'), dataIndex: 'state', scopedSlots: true, width: 100 },
   { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 230, fixed: 'right' }
 ])
@@ -68,9 +70,9 @@ function filter({ filter }: ConditionFilterChangePayload) {
 const rowKey = (row: ActivitySummary) => row.activity.id
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed>
     <ProjectScopeBar />
-    <section class="finance-workspace">
+    <section class="finance-workspace activity-workspace">
       <div class="finance-toolbar">
         <j-permission-button
           type="primary"
@@ -81,15 +83,14 @@ const rowKey = (row: ActivitySummary) => row.activity.id
           <AIcon type="PlusOutlined" />
           {{ t('Activity.create') }}
         </j-permission-button>
-        <a-button
-          :disabled="!projectId || saving || uploading"
-          :aria-label="t('Finance.refresh')"
-          @click="reload"
-        >
-          <AIcon type="ReloadOutlined" />
-        </a-button>
+        <ActivityReview
+          v-if="projectId"
+          :project-id="projectId"
+          @saved="reload"
+        />
       </div>
       <ConditionFilter
+        class="activity-filter"
         :fields="fields"
         @change="filter"
       />
@@ -106,7 +107,8 @@ const rowKey = (row: ActivitySummary) => row.activity.id
         :no-pagination="false"
         :alert-show="false"
         :body-style="{ padding: 0 }"
-        :scroll="{ x: 1340 }"
+        class="activity-table"
+        :scroll="{ x: 1450, y: 'auto' }"
         @request-error="notify"
       >
         <template #name="row">
@@ -119,6 +121,19 @@ const rowKey = (row: ActivitySummary) => row.activity.id
           </a-button>
         </template>
         <template #period="row">{{ row.activity.startDate }} ~ {{ row.activity.endDate }}</template>
+        <template #reviewState="row">
+          <a-tag
+            :color="
+              row.activity.reviewState === 'APPROVED'
+                ? 'green'
+                : row.activity.reviewState === 'REJECTED'
+                ? 'red'
+                : 'orange'
+            "
+          >
+            {{ t('SettingReview.states.' + row.activity.reviewState) }}
+          </a-tag>
+        </template>
         <template #state="row">
           <a-tag :color="row.activity.enabled ? 'green' : undefined">
             {{ t(row.activity.enabled ? 'Activity.enabled' : 'Activity.disabled') }}
@@ -145,7 +160,7 @@ const rowKey = (row: ActivitySummary) => row.activity.id
       </j-pro-table>
       <CloudEmpty
         v-else
-        :description="t('ProjectScope.chooseFirst')"
+        :description="t('ProjectContext.selectHint')"
       />
     </section>
     <JlDrawerShell
@@ -214,3 +229,36 @@ const rowKey = (row: ActivitySummary) => row.activity.id
   </FinancePage>
 </template>
 <style src="../finance.css"></style>
+
+<style scoped>
+.activity-workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.activity-workspace > :not(.activity-table) {
+  flex-shrink: 0;
+}
+.activity-filter {
+  margin-bottom: 20px;
+}
+.activity-table {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.activity-table :deep(.ant-table-container) {
+  display: flex;
+  flex-direction: column;
+}
+.activity-table :deep(.ant-table-body) {
+  flex: 1;
+  min-height: 0;
+}
+.activity-table :deep(.ant-table-header),
+.activity-table :deep(.jtable-pagination) {
+  flex-shrink: 0;
+}
+</style>

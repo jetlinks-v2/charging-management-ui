@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { FormInstance, UploadChangeParam, UploadFile } from 'ant-design-vue'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 import { getImageUrl } from '@jetlinks-web-core/utils'
 import type { ActivityDetail, ActivityInput, ActivityOptions } from '../../../api/financeActivity'
 import ActivityBenefits from './ActivityBenefits.vue'
@@ -215,14 +215,14 @@ const periodValidation = () =>
       icon="PaperClipOutlined"
       :title="t('Activity.attachments')"
     >
-      <FileUpload
-        :value="files"
-        :size="20"
-        :max-count="20"
-        :disabled="saving"
-        :btn-text="t('Adjustment.upload')"
-        @upload-change="filesChanged"
-      />
+      <div class="activity-attachment-field">
+        <FinanceAttachmentUpload
+          :value="files"
+          :max-count="20"
+          :disabled="saving"
+          @upload-change="filesChanged"
+        />
+      </div>
       <p
         v-if="invalidFiles && !uploading"
         class="activity-note"

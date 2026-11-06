@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { useI18n } from 'vue-i18n'
 import { FileUpload } from '@jetlinks-web-core/components'
 import { getImageUrl } from '@jetlinks-web-core/utils'
@@ -42,6 +43,23 @@ const columns = computed(() => [
       <KvGrid
         :cols="2"
         :items="basic"
+      />
+    </SectionCard>
+    <SectionCard
+      icon="AuditOutlined"
+      :title="t('Activity.reviewState')"
+    >
+      <KvGrid
+        :cols="2"
+        :items="[
+          { label: t('Activity.reviewState'), value: t('SettingReview.states.' + detail.activity.reviewState) },
+          { label: t('Activity.reviewer'), value: detail.activity.reviewedName || '—' },
+          {
+            label: t('Activity.reviewTime'),
+            value: detail.activity.reviewedAt ? formatFinanceTime(detail.activity.reviewedAt) : '—'
+          },
+          { label: t('HistoricalAudit.reason'), value: detail.activity.reviewReason || '—' }
+        ]"
       />
     </SectionCard>
     <SectionCard

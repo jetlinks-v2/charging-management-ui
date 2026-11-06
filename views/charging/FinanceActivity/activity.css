@@ -27,3 +27,8 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.activity-attachment-field {
+  display: flow-root;
+  margin-bottom: 24px;
+}

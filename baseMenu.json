@@ -1975,107 +1975,118 @@
         ]
       },
       {
-        "id": "charging-activity",
-        "code": "charging/activity",
-        "name": "活动管理",
-        "url": "/charging/activity",
+        "id": "charging-FinanceActivity",
+        "code": "charging/FinanceActivity",
+        "name": "活动设置",
+        "url": "/charging/activity/FinanceActivity",
         "owner": "app",
         "sortIndex": 76,
         "icon": "GiftOutlined",
         "i18nMessages": {
           "name": {
-            "zh_CN": "活动管理",
-            "en_US": "Activities",
-            "en": "Activities"
+            "zh_CN": "活动设置",
+            "en_US": "Activity settings",
+            "en": "Activity settings"
           }
         },
-        "permissions": [],
-        "children": [
+        "assetType": "organization",
+        "accessSupport": { "text": "支持", "value": "support" },
+        "supportDataAccess": true,
+        "showPage": ["property-finance-activity"],
+        "permissions": [
           {
-            "id": "charging-FinanceActivity",
-            "code": "charging/FinanceActivity",
-            "name": "活动设置",
-            "url": "/charging/activity/FinanceActivity",
-            "owner": "app",
-            "sortIndex": 1,
-            "icon": "GiftOutlined",
+            "permission": "property-finance-activity",
+            "actions": ["query"]
+          }
+        ],
+        "buttons": [
+          {
+            "id": "save",
+            "name": "保存",
             "i18nMessages": {
-              "name": {
-                "zh_CN": "活动设置",
-                "en_US": "Activity settings",
-                "en": "Activity settings"
-              }
+              "zh_CN": "保存",
+              "en_US": "Save",
+              "en": "Save"
             },
-            "assetType": "organization",
-            "accessSupport": { "text": "支持", "value": "support" },
-            "supportDataAccess": true,
-            "showPage": ["property-finance-activity"],
             "permissions": [
               {
                 "permission": "property-finance-activity",
-                "actions": ["query"]
+                "actions": ["save"]
               }
-            ],
-            "buttons": [
+            ]
+          },
+          {
+            "id": "state",
+            "name": "启用停用",
+            "i18nMessages": {
+              "zh_CN": "启用停用",
+              "en_US": "Enable or disable",
+              "en": "Enable or disable"
+            },
+            "permissions": [
               {
-                "id": "save",
-                "name": "保存",
-                "i18nMessages": {
-                  "zh_CN": "保存",
-                  "en_US": "Save",
-                  "en": "Save"
-                },
-                "permissions": [
-                  {
-                    "permission": "property-finance-activity",
-                    "actions": ["save"]
-                  }
-                ]
-              },
+                "permission": "property-finance-activity",
+                "actions": ["state"]
+              }
+            ]
+          },
+          {
+            "id": "date",
+            "name": "调整活动时间",
+            "i18nMessages": {
+              "zh_CN": "调整活动时间",
+              "en_US": "Change activity dates",
+              "en": "Change activity dates"
+            },
+            "permissions": [
               {
-                "id": "state",
-                "name": "启用停用",
-                "i18nMessages": {
-                  "zh_CN": "启用停用",
-                  "en_US": "Enable or disable",
-                  "en": "Enable or disable"
-                },
-                "permissions": [
-                  {
-                    "permission": "property-finance-activity",
-                    "actions": ["state"]
-                  }
-                ]
-              },
+                "permission": "property-finance-activity",
+                "actions": ["date"]
+              }
+            ]
+          },
+          {
+            "id": "delete",
+            "name": "删除",
+            "i18nMessages": {
+              "zh_CN": "删除",
+              "en_US": "Delete",
+              "en": "Delete"
+            },
+            "permissions": [
               {
-                "id": "date",
-                "name": "调整活动时间",
-                "i18nMessages": {
-                  "zh_CN": "调整活动时间",
-                  "en_US": "Change activity dates",
-                  "en": "Change activity dates"
-                },
-                "permissions": [
-                  {
-                    "permission": "property-finance-activity",
-                    "actions": ["date"]
-                  }
-                ]
-              },
+                "permission": "property-finance-activity",
+                "actions": ["delete"]
+              }
+            ]
+          },
+          {
+            "id": "approve",
+            "name": "审批通过",
+            "i18nMessages": {
+              "zh_CN": "审批通过",
+              "en_US": "Approve",
+              "en": "Approve"
+            },
+            "permissions": [
               {
-                "id": "delete",
-                "name": "删除",
-                "i18nMessages": {
-                  "zh_CN": "删除",
-                  "en_US": "Delete",
-                  "en": "Delete"
-                },
-                "permissions": [
-                  {
-                    "permission": "property-finance-activity",
-                    "actions": ["delete"]
-                  }
-                ]
+                "permission": "property-finance-activity",
+                "actions": ["approve"]
+              }
+            ]
+          },
+          {
+            "id": "reject",
+            "name": "驳回",
+            "i18nMessages": {
+              "zh_CN": "驳回",
+              "en_US": "Reject",
+              "en": "Reject"
+            },
+            "permissions": [
+              {
+                "permission": "property-finance-activity",
+                "actions": ["reject"]
               }
             ]
           }

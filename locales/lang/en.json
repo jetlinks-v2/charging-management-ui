@@ -1059,7 +1059,19 @@
     "stateConfirm": "Change this activity state?",
     "deleteConfirm": "Delete this activity? Operation history will remain.",
     "changed": "Activity updated",
-    "empty": "No activities yet. Create an activity to begin."
+    "empty": "No activities yet. Create an activity to begin.",
+    "confirmSpaces": "Confirm selection",
+    "chooseSpaces": "Select eligible spaces",
+    "selectedSpaces": "{count} spaces selected",
+    "reviewButton": "Review",
+    "reviewTitle": "Activity review",
+    "reviewState": "Review status",
+    "reviewSaved": "Activity review completed",
+    "reviewEmpty": "No activities to review",
+    "APPROVE": "Approved",
+    "REJECT": "Rejected",
+    "reviewer": "Reviewed by",
+    "reviewTime": "Review time"
   },
   "Prepay": {
     "title": "Prepay charges",
