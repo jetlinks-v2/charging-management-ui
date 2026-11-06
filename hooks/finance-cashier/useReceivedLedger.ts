@@ -5,6 +5,8 @@ import type { useFinanceSpaceScope } from '../finance-setting/useFinanceSpaceSco
 import { flattenSpaces } from '../finance-setting/useFinanceSpaceScope'
 import type { Query } from '../../api/archive'
 import type { ReceivedInput } from '../../api/financeReceivedReport'
+import type { ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
+import { reportConditions } from '../finance-report/reportConditions'
 import { exportReceivedLedger, queryReceivedLedger } from '../../api/financeReceivedLedger'
 import { requestErrorMessage } from '../../utils/requestError'
 import { useReportExport } from '../finance-report/useReportExport'
@@ -13,13 +15,19 @@ import { useReportExport } from '../finance-report/useReportExport'
 export function useReceivedLedger(archive: ReturnType<typeof useFinanceSpaceScope>) {
   const { t } = useI18n()
   const filters = ref<Partial<ReceivedInput>>({})
-  const draft = ref<Partial<ReceivedInput>>({})
-  const applyFilters = () => {
-    filters.value = { ...draft.value }
-  }
-  const resetFilters = () => {
-    draft.value = {}
-    filters.value = {}
+  function filter({ filter }: ConditionFilterChangePayload) {
+    if (exporting.value) return
+    try {
+      // 搜索、分页和导出共用已应用条件；不把不支持的 OR 或重复字段静默压成平面条件。
+      filters.value = reportConditions(filter.terms, {
+        fullName: 'like',
+        customerName: 'like',
+        paymentNo: 'like',
+        collectorName: 'like'
+      })
+    } catch {
+      onlyMessage(t('Report.unsupportedCondition'), 'warning')
+    }
   }
   const input = computed<ReceivedInput>(() => ({
     projectIds: [archive.projectId.value],
@@ -53,5 +61,5 @@ export function useReceivedLedger(archive: ReturnType<typeof useFinanceSpaceScop
     fallback: () => t('Finance.failed'),
     request: (payload) => exportReceivedLedger(archive.projectId.value, payload)
   })
-  return { input, draft, applyFilters, resetFilters, exporting, request, exportRows, notify }
+  return { input, filter, exporting, request, exportRows, notify }
 }

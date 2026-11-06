@@ -67,7 +67,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
     <div class="payment-ledger-layout">
       <FinanceLedgerSpace :state="archive" />
       <section class="payment-workspace">
-        <div class="payment-heading">
+        <div v-if="temporary" class="payment-heading">
           <div>
             <h2>{{ t(temporary ? 'Temporary.title' : 'Cashier.records') }}</h2>
             <span>{{ t(temporary ? 'Temporary.recordsHint' : 'Cashier.recordsHint') }}</span>
