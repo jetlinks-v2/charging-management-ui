@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import type { ChargeSetting } from '../../../api/financeSetting'
 import { useSettingReview } from '../../../hooks/finance-setting/useSettingReview'
 import { settingPermission } from '../../../hooks/finance-setting/useSettingWorkspace'
@@ -129,7 +129,7 @@ const selection = computed(() => ({
       <template #validity="row">
         {{ row.effectiveStartDate }} ～ {{ row.effectiveEndDate || t('Setting.unlimited') }}
       </template>
-      <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+      <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
       <template #actions="row">
         <a-space :size="0">
           <a-button

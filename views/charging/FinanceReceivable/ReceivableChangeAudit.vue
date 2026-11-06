@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import { useReceivableChangeAudit } from '../../../hooks/finance-receivable/useReceivableChangeAudit'
 import ReceivableChangeAuditDetail from './ReceivableChangeAuditDetail.vue'
 const props = defineProps<{ projectId: string }>()
@@ -85,7 +85,7 @@ const columns = computed(() => [
       @request-error="notify"
     >
       <template #operation="row">{{ t('ChangeAudit.operation.' + row.operation) }}</template>
-      <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+      <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
       <template #status="row">
         <a-tag :color="row.status === 'APPROVED' ? 'green' : row.status === 'REJECTED' ? 'red' : 'processing'">
           {{ t('ChangeAudit.status.' + row.status) }}

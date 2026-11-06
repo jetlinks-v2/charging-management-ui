@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { FileUpload } from '@jetlinks-web-core/components'
@@ -9,7 +10,7 @@ const { t } = useI18n()
 const items = computed(() => [
   { label: t('Cashier.company'), value: props.detail.refund.companyName },
   { label: t('Refund.receiver'), value: props.detail.refund.receiverName },
-  { label: t('Refund.refundedAt'), value: props.detail.refund.refundedAt.replace('T', ' ') },
+  { label: t('Refund.refundedAt'), value: formatFinanceTime(props.detail.refund.refundedAt) },
   { label: t('Refund.method'), value: props.detail.refund.methodText },
   { label: t('Cashier.bank'), value: props.detail.refund.bankName || '—' },
   { label: t('Cashier.operator'), value: props.detail.refund.modifierName || '—' },

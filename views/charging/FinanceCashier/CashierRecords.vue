@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { useCashierWorkspace } from '../../../hooks/finance-cashier/useCashierWorkspace'
@@ -16,7 +17,7 @@ const columns = computed(() => [
   { title: t('Receivable.subjectName'), dataIndex: 'subject', scopedSlots: true, width: 140 },
   { title: t('Cashier.amount'), dataIndex: 'amount', scopedSlots: true, width: 110, align: 'right' },
   { title: t('Cashier.method'), dataIndex: 'method', scopedSlots: true, width: 130 },
-  { title: t('Cashier.paidAt'), dataIndex: 'paidAt', width: 180 },
+  { title: t('Cashier.paidAt'), dataIndex: 'paidAt', scopedSlots: true, width: 180 },
   { title: t('Cashier.operator'), dataIndex: 'operatorName', width: 110 }
 ])
 </script>
@@ -36,6 +37,7 @@ const columns = computed(() => [
     :scroll="{ x: 1210 }"
     @request-error="state.notify"
   >
+    <template #paidAt="row">{{ formatFinanceTime(row.paidAt) }}</template>
     <template #paymentId="row">
       <a-button
         type="link"

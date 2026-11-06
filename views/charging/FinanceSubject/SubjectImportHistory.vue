@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSubjectImportHistory } from '../../../hooks/finance-subject/useSubjectImportHistory'
@@ -16,7 +17,7 @@ const columns = computed(() => [
   { title: t('Subject.finishTime'), dataIndex: 'finishTime', width: 170, scopedSlots: true },
   { title: t('Finance.actions'), dataIndex: 'actions', width: 100, fixed: 'right', scopedSlots: true }
 ])
-const format = (value?: number) => (value ? new Date(value).toLocaleString() : '—')
+const format = (value?: number) => (value ? formatFinanceTime(value) : '—')
 </script>
 <template>
   <JlDrawerShell

@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
-import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { requestErrorMessage } from '../../../utils/requestError'
@@ -46,7 +46,7 @@ const feedback = (row: AutomaticClosingRun) =>
         {{ t('MonthClosing.auto.status.' + record.status) }}
       </a-tag>
     </template>
-    <template #time="record">{{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+    <template #time="record">{{ formatFinanceTime(record.createTime) }}</template>
     <template #feedback="record">{{ feedback(record) }}</template>
     <template #emptyText><CloudEmpty :description="t('MonthClosing.auto.noRuns')" /></template>
   </j-pro-table>

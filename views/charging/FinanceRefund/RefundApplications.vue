@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import type { RefundApplicationView } from '../../../api/financeRefundApplication'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -50,7 +51,7 @@ const columns = computed(() => [
   { title: t('Refund.sourceType'), dataIndex: 'sourceType', scopedSlots: true, width: 120 },
   { title: t('Refund.application'), dataIndex: 'status', scopedSlots: true, width: 120 },
   { title: t('Refund.method'), dataIndex: 'methodText', width: 110 },
-  { title: t('Refund.refundedAt'), dataIndex: 'refundedAt', width: 180 },
+  { title: t('Refund.refundedAt'), dataIndex: 'refundedAt', scopedSlots: true, width: 180 },
   { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 320, fixed: 'right' as const }
 ])
 const detailColumns = computed<import('ant-design-vue').TableColumnsType>(() => [
@@ -129,6 +130,7 @@ function filter(payload: ConditionFilterChangePayload) {
       :scroll="{ x: 1480 }"
       @request-error="notify"
     >
+      <template #refundedAt="row">{{ formatFinanceTime(row.refundedAt) }}</template>
       <template #status="row">
         <a-tag :color="row.status === 'PENDING' ? 'orange' : row.status === 'SUCCEEDED' ? 'green' : 'default'">
           {{ t('Refund.applicationStatus.' + row.status) }}
@@ -200,7 +202,7 @@ function filter(payload: ConditionFilterChangePayload) {
                 :key="entry.id"
               >
                 <strong>{{ t('Refund.logAction.' + entry.action) }}</strong>
-                <div>{{ entry.modifierName }} · {{ new Date(entry.createTime).toLocaleString() }}</div>
+                <div>{{ entry.modifierName }} · {{ formatFinanceTime(entry.createTime) }}</div>
                 <div>{{ entry.reason }}</div>
               </a-timeline-item>
             </a-timeline>

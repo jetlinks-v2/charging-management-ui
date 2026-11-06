@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import type { CarryRun, CarryWork } from '../../../api/financeCarry'
 import { useCarryHistory } from '../../../hooks/finance-carry/useCarryHistory'
 const props = defineProps<{ projectId: string; planId: string }>()
@@ -31,14 +31,14 @@ const errorText = (code?: string) =>
     : te('Carry.errors.' + code.replace(/^error\.property_finance_/, ''))
       ? t('Carry.errors.' + code.replace(/^error\.property_finance_/, ''))
       : t('Carry.failedHint')
-const time = (value?: number) => (value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '—')
+const time = (value?: number) => (value ? formatFinanceTime(value) : '—')
 const color = (value: string) =>
   ({ SUCCEEDED: 'green', FAILED: 'red', PARTIAL: 'orange', RUNNING: 'blue', PENDING: 'blue' })[value]
 const columns = computed(() =>
   level.value === 'runs'
     ? [
         { title: t('Carry.result'), dataIndex: 'status', scopedSlots: true, width: 120 },
-        { title: t('Carry.slot'), dataIndex: 'slot', width: 200 },
+        { title: t('Carry.slot'), dataIndex: 'slot', scopedSlots: true, width: 200 },
         ...['succeeded', 'failed', 'skipped'].map((key) => ({ title: t('Carry.' + key), dataIndex: key, width: 100 })),
         { title: t('Carry.attempts'), dataIndex: 'attempts', width: 100 },
         { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, fixed: 'right', width: 200 }
@@ -135,7 +135,7 @@ function inspect(row: CarryRun | CarryWork) {
         <KvGrid
           :cols="2"
           :items="[
-            { label: t('Carry.slot'), value: run.slot.replace('T', ' ') },
+            { label: t('Carry.slot'), value: formatFinanceTime(run.slot) },
             { label: t('Carry.result'), value: t('Carry.' + run.status) },
             { label: t('Carry.businessDate'), value: run.businessDate },
             { label: t('Carry.planVersion'), value: String(run.planVersion) },
@@ -175,6 +175,7 @@ function inspect(row: CarryRun | CarryWork) {
         :scroll="{ x: level === 'items' ? 1090 : level === 'works' ? 1020 : 930 }"
         @request-error="notify"
       >
+        <template #slot="row">{{ formatFinanceTime(row.slot) }}</template>
         <template #status="row">
           <a-tag :color="color(row.status)">{{ t('Carry.' + row.status) }}</a-tag>
         </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed, ref } from 'vue'
-import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { requestErrorMessage } from '../../../utils/requestError'
@@ -42,7 +42,7 @@ const columns = computed(() => [
       </a-tag>
     </template>
     <template #time="record">
-      {{ dayjs(record.operation.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+      {{ formatFinanceTime(record.operation.createTime) }}
     </template>
     <template #actions="record">
       <a-button

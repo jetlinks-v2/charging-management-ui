@@ -60,7 +60,7 @@ function schedule(row: CarryPlan) {
         : i.frequency === 'MONTHLY'
           ? t('Carry.day', { day: i.executeDay })
           : i.executeDay
-  return [t('Carry.' + i.frequency), day, i.executeAt].filter(Boolean).join(' · ')
+  return [t('Carry.' + i.frequency), day, i.executeAt.slice(0, 5)].filter(Boolean).join(' · ')
 }
 </script>
 <template>

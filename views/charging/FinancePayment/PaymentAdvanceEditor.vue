@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { PaymentRecord } from '../../../api/financeCashier'
@@ -25,7 +26,7 @@ const target = computed(() =>
         { label: t('Funds.targetStandard'), value: preview.value.standardName },
         { label: t('Funds.before'), value: preview.value.beforeBalance },
         { label: t('Funds.after'), value: preview.value.afterBalance },
-        { label: t('Funds.occurredAt'), value: model.occurredAt.replace('T', ' ') },
+        { label: t('Funds.occurredAt'), value: formatFinanceTime(model.occurredAt) },
         { label: t('Funds.reason'), value: model.reason },
         ...(model.startDate
           ? [

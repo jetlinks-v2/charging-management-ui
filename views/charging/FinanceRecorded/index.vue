@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter from '@jetlinks-web-core/components/ConditionFilter'
@@ -64,7 +65,7 @@ const filter = ({ filter }: ConditionFilterChangePayload) => {
         :body-style="{ padding: 0 }"
       >
         <template #modifyTime="row">
-          {{ row.modifyTime ? new Date(row.modifyTime).toLocaleString() : '—' }}
+          {{ row.modifyTime ? formatFinanceTime(row.modifyTime) : '—' }}
         </template>
         <template #companyName="row">
           <a-button

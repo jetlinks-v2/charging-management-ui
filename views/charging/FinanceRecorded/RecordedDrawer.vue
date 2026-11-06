@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { useRecorded } from '../../../hooks/finance-recorded/useRecorded'
@@ -73,7 +74,7 @@ const required = (field: string) => [{ required: true, message: t('Finance.requi
       <p class="finance-audit">
         {{ t('Finance.modified') }}：{{ state.detail.value.record.modifierName || '—' }} ·
         {{
-          state.detail.value.record.modifyTime ? new Date(state.detail.value.record.modifyTime).toLocaleString() : '—'
+          state.detail.value.record.modifyTime ? formatFinanceTime(state.detail.value.record.modifyTime) : '—'
         }}
       </p>
     </template>

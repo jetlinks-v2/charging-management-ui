@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { Query } from '../../../api/archive'
 import { useAllocationWorkspace } from '../../../hooks/finance-allocation/useAllocationWorkspace'
@@ -272,7 +272,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
             :scroll="{ x: 640 }"
             @request-error="notify"
           >
-            <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+            <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
             <template #action="row">{{ t('Allocation.actions.' + row.action) }}</template>
             <template #emptyText><CloudEmpty /></template>
           </j-pro-table>

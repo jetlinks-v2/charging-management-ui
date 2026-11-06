@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { TaxInput, TaxItem } from '../../../api/financeTax'
@@ -179,7 +180,7 @@ const logsOpen = ref(false)
         class="finance-audit"
       >
         {{ t('Finance.modified') }}：{{ detail.modifierName || '—' }} ·
-        {{ detail.modifyTime ? new Date(detail.modifyTime).toLocaleString() : '—' }}
+        {{ detail.modifyTime ? formatFinanceTime(detail.modifyTime) : '—' }}
         <a-button
           type="link"
           @click="logsOpen = true"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
@@ -28,7 +29,7 @@ const summary = computed(() => [
     ? [
         { label: t('Funds.after'), value: preview.value.afterBalance },
         { label: t('Funds.cashAmount'), value: preview.value.cashAmount },
-        { label: t('Funds.occurredAt'), value: model.occurredAt.replace('T', ' ') },
+        { label: t('Funds.occurredAt'), value: formatFinanceTime(model.occurredAt) },
         { label: t('Funds.reason'), value: model.reason }
       ]
     : [])
@@ -126,9 +127,9 @@ function close() {
               >
                 <a-date-picker
                   v-model:value="model.occurredAt"
-                  show-time
+                  :show-time="{ format: 'HH:mm' }"
                   value-format="YYYY-MM-DDTHH:mm:ss"
-                  format="YYYY-MM-DD HH:mm:ss"
+                  format="YYYY-MM-DD HH:mm"
                 />
               </a-form-item>
             </div>

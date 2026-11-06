@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import { FileUpload } from '@jetlinks-web-core/components'
 import type { useReceivableChangeAudit } from '../../../hooks/finance-receivable/useReceivableChangeAudit'
 import type { AdjustmentInput } from '../../../api/financeReceivable'
@@ -38,7 +38,7 @@ const files = computed(() =>
 const formula = computed(() =>
   Object.entries(adjustment.value?.formulaLine?.afterVariableValues || {}).map(([key, value]) => ({ key, value }))
 )
-const date = (value?: number) => (value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '—')
+const date = (value?: number) => (value ? formatFinanceTime(value) : '—')
 </script>
 <template>
   <a-modal

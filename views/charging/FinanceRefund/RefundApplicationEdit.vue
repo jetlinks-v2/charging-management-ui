@@ -45,8 +45,9 @@ const { t } = useI18n()
       >
         <a-date-picker
           v-model:value="model.refundedAt"
-          show-time
+          :show-time="{ format: 'HH:mm' }"
           value-format="YYYY-MM-DDTHH:mm:ss"
+          format="YYYY-MM-DD HH:mm"
           style="width: 100%"
         />
       </a-form-item>

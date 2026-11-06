@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { Grid } from 'ant-design-vue'
 import type { HandoverRecord } from '../../../api/financeHandover'
@@ -19,8 +20,8 @@ const columns = computed(() => [
   { title: t('FinanceHandover.date'), dataIndex: 'closingDate', width: 120 },
   { title: t('FinanceHandover.lineCount'), dataIndex: 'lineCount', width: 100 },
   { title: t('FinanceHandover.sourceCount'), dataIndex: 'sourceCount', width: 100 },
-  { title: t('FinanceHandover.occurredStart'), dataIndex: 'occurredStart', width: 180 },
-  { title: t('FinanceHandover.occurredEnd'), dataIndex: 'occurredEnd', width: 180 },
+  { title: t('FinanceHandover.occurredStart'), dataIndex: 'occurredStart', scopedSlots: true, width: 180 },
+  { title: t('FinanceHandover.occurredEnd'), dataIndex: 'occurredEnd', scopedSlots: true, width: 180 },
   { title: t('FinanceHandover.calcStartDate'), dataIndex: 'calcStartDate', width: 120 },
   { title: t('FinanceHandover.calcEndDate'), dataIndex: 'calcEndDate', width: 120 },
   { title: t('FinanceHandover.amount'), dataIndex: 'amount', width: 130, align: 'right' },
@@ -53,12 +54,14 @@ const columns = computed(() => [
     :scroll="{ x: 1900 }"
     @request-error="notify"
   >
+    <template #occurredStart="row">{{ formatFinanceTime(row.occurredStart) }}</template>
+    <template #occurredEnd="row">{{ formatFinanceTime(row.occurredEnd) }}</template>
     <template #status="row">
       <a-tag :color="row.status === 'APPROVED' ? 'success' : row.status === 'PENDING' ? 'processing' : 'default'">
         {{ t('FinanceHandover.status.' + row.status) }}
       </a-tag>
     </template>
-    <template #submittedAt="row">{{ row.submittedAt.replace('T', ' ') }}</template>
+    <template #submittedAt="row">{{ formatFinanceTime(row.submittedAt) }}</template>
     <template #actions="row">
       <a-space>
         <a-button

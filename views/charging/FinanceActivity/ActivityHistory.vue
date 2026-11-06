@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { queryActivityLogs } from '../../../api/financeActivity'
 import type { Query } from '../../../api/archive'
@@ -40,7 +40,7 @@ const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.fai
     <template #operation="row">
       {{ te('Activity.' + row.operation) ? t('Activity.' + row.operation) : t('Activity.operation') }}
     </template>
-    <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+    <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
     <template #emptyText><CloudEmpty :description="t('Activity.emptyLogs')" /></template>
   </j-pro-table>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import type { Receivable } from '../../../api/financeReceivable'
 import { useReceivableLogs } from '../../../hooks/finance-receivable/useReceivableLogs'
 import ReceivableLogChange from './ReceivableLogChange.vue'
@@ -188,7 +188,7 @@ const variables = computed(
               >
                 <div class="receivable-log-heading">
                   <strong>{{ t('Receivable.operation.' + row.operation) }}</strong>
-                  <time>{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</time>
+                  <time>{{ formatFinanceTime(row.createTime) }}</time>
                 </div>
                 <p class="receivable-log-reason">{{ row.reason }}</p>
                 <ReceivableLogChange :row="row" />

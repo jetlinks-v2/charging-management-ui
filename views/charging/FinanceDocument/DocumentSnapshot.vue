@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getImageUrl } from '@jetlinks-web-core/utils'
@@ -103,7 +104,7 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
               { label: t('Document.issuerName'), value: record.issuerName || '—' }
             ]
           : []),
-        { label: t('Document.issuedAt'), value: record?.issuedAt.replace('T', ' ') || preview?.businessDate },
+        { label: t('Document.issuedAt'), value: formatFinanceTime(record?.issuedAt || preview?.businessDate) },
         ...(record?.documentType === 'INVOICE'
           ? [{ label: t('Document.reopenCount'), value: String(record.reopenCount || 0) }]
           : []),
@@ -128,7 +129,7 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
         },
         ...(record.verified
           ? [
-              { label: t('Verification.at'), value: record.verifiedAt?.replace('T', ' ') || '—' },
+              { label: t('Verification.at'), value: formatFinanceTime(record.verifiedAt) || '—' },
               { label: t('Verification.operator'), value: record.verifiedName || '—' },
               { label: t('Verification.remark'), value: record.verificationRemark || '—' }
             ]

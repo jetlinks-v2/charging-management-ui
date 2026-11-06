@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed, ref } from 'vue'
 import HandoverStatement from './HandoverStatement.vue'
-import dayjs from 'dayjs'
 import { Grid } from 'ant-design-vue'
 import { FileUpload } from '@jetlinks-web-core/components'
 import { getImageUrl } from '@jetlinks-web-core/utils'
@@ -87,13 +87,13 @@ const files = computed(() =>
             <a-descriptions-item :label="t('FinanceHandover.cash')">￥{{ detail.batch.cashAmount }}</a-descriptions-item>
             <a-descriptions-item :label="t('FinanceHandover.submitter')">{{ detail.batch.submittedBy }}</a-descriptions-item>
             <a-descriptions-item :label="t('FinanceHandover.submittedAt')">
-              {{ detail.batch.submittedAt.replace('T', ' ') }}
+              {{ formatFinanceTime(detail.batch.submittedAt) }}
             </a-descriptions-item>
             <a-descriptions-item :label="t('FinanceHandover.reviewer')">
               {{ detail.batch.reviewedBy || '—' }}
             </a-descriptions-item>
             <a-descriptions-item :label="t('FinanceHandover.reviewedAt')">
-              {{ detail.batch.reviewedAt?.replace('T', ' ') || '—' }}
+              {{ formatFinanceTime(detail.batch.reviewedAt) || '—' }}
             </a-descriptions-item>
             <a-descriptions-item
               :label="t('FinanceHandover.remark')"
@@ -144,7 +144,7 @@ const files = computed(() =>
             <template #afterStatus="row">
               <a-tag>{{ t('FinanceHandover.status.' + row.afterStatus) }}</a-tag>
             </template>
-            <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+            <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
             <template #emptyText><CloudEmpty :description="t('FinanceHandover.noLogs')" /></template>
           </j-pro-table>
         </SectionCard>

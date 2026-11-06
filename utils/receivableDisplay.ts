@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import { formatFinanceTime } from './financeTime'
 import type { Receivable } from '../api/financeReceivable'
 import type { ReceivableColumnOption } from './receivableColumns'
 
@@ -27,7 +27,7 @@ export function receivableCellText(
   if (key === 'collectionStatus') return t('ReceivableLedger.collection.' + value)
   if (column.kind === 'status') return t('ReceivableLedger.status.' + value)
   if (column.kind === 'days') return t('ReceivableLedger.days', { count: value })
-  if (key === 'createTime') return dayjs(value as number).format('YYYY-MM-DD HH:mm:ss')
+  if (key === 'createTime') return formatFinanceTime(value as number)
   if (column.kind === 'price') return String(value) + ' ' + t('Split.yuan')
   return String(value)
 }

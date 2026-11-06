@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
-import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { useHistoricalAudit } from '../../../hooks/finance-receivable/useHistoricalAudit'
 import type { HistoricalImportRecord } from '../../../api/financeReceivable'
@@ -145,7 +145,7 @@ const selection = computed(() => ({
           <span>{{ row.errorMessage || '—' }}</span>
         </a-tooltip>
       </template>
-      <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+      <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
       <template #actions="row">
         <a-space :size="0">
           <a-button

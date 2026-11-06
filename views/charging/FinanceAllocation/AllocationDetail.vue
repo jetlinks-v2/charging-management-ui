@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import type { AllocationBook } from '../../../api/financeAllocation'
 const props = defineProps<{ row: AllocationBook }>()
 const { t } = useI18n()
@@ -57,7 +57,7 @@ const basic = computed(() =>
         :items="[
           { label: t('Allocation.batchNumber'), value: row.batchNumber },
           { label: t('Allocation.creatorName'), value: row.creatorName },
-          { label: t('Allocation.createTime'), value: dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') },
+          { label: t('Allocation.createTime'), value: formatFinanceTime(row.createTime) },
           { label: t('Allocation.remark'), value: row.remark || '—' }
         ]"
       />

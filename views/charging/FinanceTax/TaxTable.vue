@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { useTaxCatalog } from '../../../hooks/finance-tax/useTaxCatalog'
@@ -80,7 +81,7 @@ const columns = computed(() => [
         {{ t('FinanceTax.' + (row.favouredPolicyFlag === 1 ? 'yes' : 'no')) }}
       </template>
       <template #modifyTime="row">
-        {{ row.modifyTime ? new Date(row.modifyTime).toLocaleString() : '—' }}
+        {{ row.modifyTime ? formatFinanceTime(row.modifyTime) : '—' }}
       </template>
       <template #actions="row">
         <a-popconfirm

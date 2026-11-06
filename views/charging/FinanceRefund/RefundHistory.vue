@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -24,7 +25,7 @@ const columns = computed(() => [
   { title: t('Refund.receiver'), dataIndex: 'receiverName', width: 130 },
   { title: t('Cashier.method'), dataIndex: 'method', scopedSlots: true, width: 160 },
   { title: t('Refund.amount'), dataIndex: 'amount', scopedSlots: true, width: 130, align: 'right' },
-  { title: t('Refund.refundedAt'), dataIndex: 'refundedAt', width: 190 },
+  { title: t('Refund.refundedAt'), dataIndex: 'refundedAt', scopedSlots: true, width: 190 },
   { title: t('Cashier.company'), dataIndex: 'companyName', width: 200 },
   { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 150, fixed: 'right' }
 ])
@@ -69,6 +70,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
         :scroll="{ x: 1390 }"
         @request-error="notify"
       >
+        <template #refundedAt="row">{{ formatFinanceTime(row.refundedAt) }}</template>
         <template #house="row">
           <a-button
             type="link"

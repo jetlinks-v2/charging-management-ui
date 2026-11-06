@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getImageUrl } from '@jetlinks-web-core/utils'
@@ -13,7 +14,7 @@ const items = computed(() => [
   },
   { label: t('Cashier.company'), value: props.detail.payment.companyName },
   { label: t('Cashier.payer'), value: props.detail.payment.payerName },
-  { label: t('Cashier.paidAt'), value: props.detail.payment.paidAt.replace('T', ' ') },
+  { label: t('Cashier.paidAt'), value: formatFinanceTime(props.detail.payment.paidAt) },
   { label: t('Cashier.operator'), value: props.detail.payment.modifierName || '—' },
   { label: t('Setting.remark'), value: props.detail.payment.remark || '—' },
   { label: t('Cashier.paymentId'), value: props.detail.payment.id }

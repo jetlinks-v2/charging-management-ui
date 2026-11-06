@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { useI18n } from 'vue-i18n'
 import type { CompanyDetail, CompanyInput } from '../../../api/finance'
 import { useCompanyForm } from '../../../hooks/finance/useCompanyForm'
@@ -96,7 +97,7 @@ const { form, model, sections, submit } = useCompanyForm(props, (input) => emit(
         class="finance-audit"
       >
         {{ t('Finance.modified') }}：{{ detail.company.modifierName || '—' }} ·
-        {{ detail.company.modifyTime ? new Date(detail.company.modifyTime).toLocaleString() : '—' }}
+        {{ detail.company.modifyTime ? formatFinanceTime(detail.company.modifyTime) : '—' }}
       </div>
     </a-form>
     <template #foot>

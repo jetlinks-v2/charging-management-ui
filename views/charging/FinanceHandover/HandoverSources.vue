@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
@@ -159,7 +160,7 @@ watch([space.selectedId, () => filter.handed], () => {
         <template #state="row">
           <a-tag>{{ row.status ? t('FinanceHandover.status.' + row.status) : t('FinanceHandover.handed.NO') }}</a-tag>
         </template>
-        <template #occurredAt="row">{{ row.line.occurredAt?.replace('T', ' ') || '—' }}</template>
+        <template #occurredAt="row">{{ formatFinanceTime(row.line.occurredAt) || '—' }}</template>
         <template #actions="row">
           <j-permission-button
             v-if="!row.batchId"

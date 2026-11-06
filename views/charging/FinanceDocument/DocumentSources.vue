@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDocumentCandidates } from '../../../hooks/finance-document/useDocumentCandidates'
@@ -68,7 +69,7 @@ const reason = (code?: string) => (code ? t(code) : t('Document.sourceUnavailabl
       {{ row.subjectName }}
       <small v-if="row.sourceType === 'FUND_TOPUP'">
         {{ t(row.fundType === 'DEPOSIT' ? 'Document.sourceDeposit' : 'Document.sourceAdvance') }}
-        · {{ row.paidAt?.replace('T', ' ') || '—' }}
+        · {{ formatFinanceTime(row.paidAt) || '—' }}
       </small>
       <small v-else>{{ row.startDate || '—' }} ～ {{ row.endDate || '—' }}</small>
     </template>

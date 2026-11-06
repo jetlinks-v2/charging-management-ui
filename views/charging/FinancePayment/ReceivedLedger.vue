@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter from '@jetlinks-web-core/components/ConditionFilter'
@@ -75,7 +76,7 @@ const columns = computed(() => [
     <template #sourceType="row">
       <a-tag>{{ t('Received.' + row.sourceType) }}</a-tag>
     </template>
-    <template #receivedAt="row">{{ row.receivedAt?.replace('T', ' ') }}</template>
+    <template #receivedAt="row">{{ formatFinanceTime(row.receivedAt) }}</template>
     <template #emptyText><CloudEmpty :description="t('Cashier.noPayments')" /></template>
   </j-pro-table>
 </template>

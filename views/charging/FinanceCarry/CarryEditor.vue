@@ -209,6 +209,7 @@ async function submit() {
           <a-time-picker
             v-model:value="model.executeAt"
             value-format="HH:mm:ss"
+            format="HH:mm"
             class="carry-full"
           />
         </a-form-item>

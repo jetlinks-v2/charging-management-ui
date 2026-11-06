@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import FinancePage from '../components/FinancePage.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -50,7 +51,7 @@ const columns = computed(() => [
   { title: t('Cashier.method'), dataIndex: 'method', scopedSlots: true, width: 160 },
   { title: t('Cashier.amount'), dataIndex: 'amount', scopedSlots: true, width: 130, align: 'right' },
   { title: t('Refund.available'), dataIndex: 'available', scopedSlots: true, width: 130, align: 'right' },
-  { title: t('Cashier.paidAt'), dataIndex: 'paidAt', width: 190 },
+  { title: t('Cashier.paidAt'), dataIndex: 'paidAt', scopedSlots: true, width: 190 },
   { title: t('Cashier.company'), dataIndex: 'companyName', width: 200 },
   { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 150, fixed: 'right' }
 ])
@@ -118,6 +119,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
             show-icon
             :message="t('PaymentAdvance.pending')"
           >
+            <template #paidAt="row">{{ formatFinanceTime(row.paidAt) }}</template>
             <template #action>
               <j-permission-button
                 :hasPermission="advancePermission"

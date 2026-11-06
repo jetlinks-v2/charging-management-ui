@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
@@ -11,7 +12,7 @@ const { t } = useI18n(),
   { selected, params, request } = useFundHistory(props)
 const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.failed')), 'error')
 const columns = computed(() => [
-  { title: t('Funds.occurredAt'), dataIndex: 'occurredAt', width: 190 },
+  { title: t('Funds.occurredAt'), dataIndex: 'occurredAt', scopedSlots: true, width: 190 },
   { title: t('Funds.action'), dataIndex: 'action', scopedSlots: true, width: 110 },
   { title: t('Funds.change'), dataIndex: 'amount', width: 130, align: 'right' },
   { title: t('Funds.after'), dataIndex: 'afterBalance', width: 140, align: 'right' },
@@ -58,6 +59,7 @@ const summary = computed(() => [
         :scroll="{ x: 930 }"
         @request-error="notify"
       >
+        <template #occurredAt="row">{{ formatFinanceTime(row.occurredAt) }}</template>
         <template #action="row">{{ t('Funds.' + row.action) }}</template>
         <template #actions="row">
           <a-button
@@ -105,7 +107,7 @@ const summary = computed(() => [
           { label: t('Funds.cashAmount'), value: selected.cashAmount },
           { label: t('Funds.before'), value: selected.beforeBalance },
           { label: t('Funds.after'), value: selected.afterBalance },
-          { label: t('Funds.occurredAt'), value: selected.occurredAt },
+          { label: t('Funds.occurredAt'), value: formatFinanceTime(selected.occurredAt) },
           { label: t('Funds.payer'), value: selected.payerName },
           { label: t('Cashier.method'), value: selected.methodText },
           { label: t('Cashier.bank'), value: selected.bankName || '—' },

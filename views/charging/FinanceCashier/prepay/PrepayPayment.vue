@@ -26,9 +26,9 @@ const { t } = useI18n()
       >
         <a-date-picker
           v-model:value="model.paidAt"
-          show-time
+          :show-time="{ format: 'HH:mm' }"
           value-format="YYYY-MM-DDTHH:mm:ss"
-          format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm"
         />
       </a-form-item>
     </SectionCard>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import { onlyMessage } from '@jetlinks-web/utils'
 import type { DocumentRecord } from '../../../api/financeDocument'
 import { useDocumentLogs } from '../../../hooks/finance-document/useDocumentLogs'
@@ -55,7 +55,7 @@ const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.fai
       <template #state="row">
         <a-tag>{{ t('Document.status.' + row.afterState) }}</a-tag>
       </template>
-      <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
+      <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
       <template #emptyText><CloudEmpty :description="t('Document.noLogs')" /></template>
     </j-pro-table>
   </SectionCard>

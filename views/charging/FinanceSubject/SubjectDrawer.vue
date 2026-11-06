@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { useI18n } from 'vue-i18n'
 import type { ArrearsConfig, Category, DictionaryOption, Subject, SubjectInput } from '../../../api/financeSubject'
 import { useSubjectForm } from '../../../hooks/finance-subject/useSubjectForm'
@@ -60,7 +61,7 @@ const required = [{ required: true, message: t('Subject.required') }]
       </a-descriptions-item>
       <a-descriptions-item :label="t('Subject.remark')">{{ detail.remark || '—' }}</a-descriptions-item>
       <a-descriptions-item :label="t('Finance.modified')">
-        {{ detail.modifierName || '—' }} · {{ detail.modifyTime ? new Date(detail.modifyTime).toLocaleString() : '—' }}
+        {{ detail.modifierName || '—' }} · {{ detail.modifyTime ? formatFinanceTime(detail.modifyTime) : '—' }}
       </a-descriptions-item>
     </a-descriptions>
     <a-form

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { FinanceStandard, StandardOptions } from '../../../api/financeStandard'
@@ -97,7 +98,7 @@ const delay = computed(() =>
     </SectionCard>
     <div class="finance-audit">
       {{ t('Finance.modified') }}：{{ detail.modifierName || '—' }} ·
-      {{ detail.modifyTime ? new Date(detail.modifyTime).toLocaleString() : '—' }}
+      {{ detail.modifyTime ? formatFinanceTime(detail.modifyTime) : '—' }}
     </div>
   </div>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
-import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import type { useHistoricalAudit } from '../../../hooks/finance-receivable/useHistoricalAudit'
 import type { HistoricalImportLine } from '../../../api/financeReceivable'
@@ -166,7 +166,7 @@ const selection = computed(() => ({
         </a-tag>
       </template>
       <template #reviewedAt="row">
-        {{ row.reviewedAt ? dayjs(row.reviewedAt).format('YYYY-MM-DD HH:mm:ss') : '—' }}
+        {{ row.reviewedAt ? formatFinanceTime(row.reviewedAt) : '—' }}
       </template>
       <template #emptyText><CloudEmpty :description="t('HistoricalAudit.linesEmpty')" /></template>
     </j-pro-table>

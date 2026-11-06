@@ -79,9 +79,9 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
       >
         <a-date-picker
           v-model:value="model.occurredAt"
-          show-time
+          :show-time="{ format: 'HH:mm' }"
           value-format="YYYY-MM-DDTHH:mm:ss"
-          format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm"
         />
       </a-form-item>
       <a-form-item :label="t('Receivable.calcStartDate')">

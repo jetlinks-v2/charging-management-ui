@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTaxHistory } from '../../../hooks/finance-tax/useTaxHistory'
@@ -78,12 +79,12 @@ const columns = computed(() => [
       :body-style="{ padding: 0 }"
       @request-error="notify"
     >
-      <template #createTime="row">{{ new Date(row.createTime).toLocaleString() }}</template>
+      <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
       <template #companyId="row">
         {{ companies?.find((company) => company.value === row.companyId)?.label || '—' }}
       </template>
       <template #finishTime="row">
-        {{ row.finishTime ? new Date(row.finishTime).toLocaleString() : '—' }}
+        {{ row.finishTime ? formatFinanceTime(row.finishTime) : '—' }}
       </template>
       <template #operation="row">{{ t('FinanceTax.operation.' + row.operation) }}</template>
       <template #changes="row">

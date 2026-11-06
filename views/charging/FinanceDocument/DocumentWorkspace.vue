@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import FinancePage from '../components/FinancePage.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -209,7 +210,7 @@ const selection = computed(() =>
             {{ t(row.verified ? 'Verification.verified' : 'Verification.unverified') }}
           </a-tag>
         </template>
-        <template #issuedAt="row">{{ row.issuedAt.replace('T', ' ') }}</template>
+        <template #issuedAt="row">{{ formatFinanceTime(row.issuedAt) }}</template>
         <template #actions="row">
           <DocumentRowActions
             :row="row"

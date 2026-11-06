@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed, ref, watch } from 'vue'
 import { useProjectContext } from '../../../hooks/project/useProjectContext'
 import ReportRowDetail from '../FinanceReceivableReport/ReportRowDetail.vue'
@@ -92,7 +93,7 @@ const columns = computed(() => {
       </a-tag>
       <span v-else>{{ row[key] }}</span>
     </template>
-    <template #receivedAt="row">{{ row.receivedAt?.replace('T', ' ') }}</template>
+    <template #receivedAt="row">{{ formatFinanceTime(row.receivedAt) }}</template>
     <template #actions="row">
       <a-button
         type="link"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../../utils/financeTime'
 import { useI18n } from 'vue-i18n'
 import type { useCashier } from '../../../../hooks/finance-cashier/useCashier'
 import CashierBills from '../CashierBills.vue'
@@ -20,7 +21,7 @@ const { t } = useI18n()
         :items="[
           { label: t('Cashier.company'), value: preview.companyName },
           { label: t('Cashier.payer'), value: preview.payerName },
-          { label: t('Cashier.paidAt'), value: model.paidAt.replace('T', ' ') },
+          { label: t('Cashier.paidAt'), value: formatFinanceTime(model.paidAt) },
           ...(model.remark ? [{ label: t('Setting.remark'), value: model.remark }] : [])
         ]"
       />

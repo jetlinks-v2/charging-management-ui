@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed, ref, watch } from 'vue'
 import { useProjectContext } from '../../../hooks/project/useProjectContext'
 import InvoiceSourceDetail from './InvoiceSourceDetail.vue'
@@ -104,7 +105,7 @@ const color = (status?: string) =>
     </template>
     <template #sourceType="row">{{ row.sourceType ? t('InvoiceReport.' + row.sourceType) : '—' }}</template>
     <template #invoiceType="row">{{ row.invoiceType ? t('InvoiceReport.' + row.invoiceType) : '—' }}</template>
-    <template #invoiceDate="row">{{ row.invoiceDate?.replace('T', ' ') || '—' }}</template>
+    <template #invoiceDate="row">{{ formatFinanceTime(row.invoiceDate) || '—' }}</template>
     <template #actions="row">
       <a-button
         type="link"

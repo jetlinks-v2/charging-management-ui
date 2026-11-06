@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { ref } from 'vue'
 import { queryTemporaryHouses } from '../../../api/financeTemporary'
 import { useTemporaryEditor } from '../../../hooks/finance-temporary/useTemporaryEditor'
@@ -82,7 +83,7 @@ function close() {
               :items="[
                 { label: t('Cashier.company'), value: preview.companyName },
                 { label: t('Cashier.payer'), value: model.payerName },
-                { label: t('Cashier.paidAt'), value: model.paidAt.replace('T', ' ') },
+                { label: t('Cashier.paidAt'), value: formatFinanceTime(model.paidAt) },
                 { label: t('Setting.remark'), value: model.remark || '—' }
               ]"
             />

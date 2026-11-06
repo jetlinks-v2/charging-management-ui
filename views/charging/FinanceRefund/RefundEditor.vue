@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { useI18n } from 'vue-i18n'
 import type { PaymentRecord } from '../../../api/financeCashier'
 import { useRefund } from '../../../hooks/finance-cashier/useRefund'
@@ -72,7 +73,7 @@ function close() {
               :items="[
                 { label: t('Cashier.company'), value: preview.companyName },
                 { label: t('Refund.receiver'), value: model.receiverName },
-                { label: t('Refund.refundedAt'), value: model.refundedAt.replace('T', ' ') },
+                { label: t('Refund.refundedAt'), value: formatFinanceTime(model.refundedAt) },
                 {
                   label: t('Refund.method'),
                   value: [preview.methodText, preview.bankName].filter(Boolean).join(' · ')

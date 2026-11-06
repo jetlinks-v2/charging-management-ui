@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatFinanceTime } from '../../../utils/financeTime'
 import { onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
@@ -102,7 +103,9 @@ async function select(id: string) {
           key="issuedAt"
           data-index="issuedAt"
           :title="t('InvoiceReport.invoiceDate')"
-        />
+        >
+          <template #default="{ record }">{{ formatFinanceTime(record.issuedAt) }}</template>
+        </a-table-column>
         <a-table-column
           key="amount"
           data-index="amount"

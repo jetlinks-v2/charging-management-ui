@@ -50,7 +50,7 @@ const selection = computed(() =>
                     ? t('Carry.day', { day: input.executeDay })
                     : input.executeDay
           },
-          { label: t('Carry.executeAt'), value: input.executeAt },
+          { label: t('Carry.executeAt'), value: input.executeAt.slice(0, 5) },
           { label: t('Carry.zone'), value: input.zone }
         ]"
       />
