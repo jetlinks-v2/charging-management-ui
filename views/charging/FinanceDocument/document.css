@@ -20,6 +20,9 @@
 .document-source-filters {
   margin-bottom: 16px;
 }
+.document-search {
+  margin-bottom: 16px;
+}
 .document-source-filters .ant-input-search {
   max-width: 340px;
 }

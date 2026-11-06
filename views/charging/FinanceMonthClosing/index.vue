@@ -3,10 +3,10 @@ import FinancePage from '../components/FinancePage.vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { requestErrorMessage } from '../../../utils/requestError'
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import ClosingBatch from './ClosingBatch.vue'
 import { useFinanceBatchRecovery } from '../../../hooks/finance-handover/useFinanceBatchRecovery'
-import type { ClosingBatchInput, AccountingPeriod, ClosingAction } from '../../../api/financeAccounting'
+import type { ClosingBatchInput, ClosingAction } from '../../../api/financeAccounting'
 import { useMonthClosingWorkspace } from '../../../hooks/finance-month-closing/useMonthClosingWorkspace'
 import ProjectScopeBar from '../components/ProjectScopeBar.vue'
 import PeriodLedger from './PeriodLedger.vue'
@@ -16,9 +16,7 @@ import ClosingConfirmation from './ClosingConfirmation.vue'
 import ClosingPeriodDetail from './ClosingPeriodDetail.vue'
 const { t } = useI18n()
 const state = useMonthClosingWorkspace()
-const batchSelected = ref<AccountingPeriod[]>([]),
-  batchAction = ref<ClosingAction>(),
-  detailOpen = ref(false)
+const { batchSelected, batchAction, detailOpen } = state
 const batchRecovery = useFinanceBatchRecovery<ClosingBatchInput>(state.projectId, 'closing')
 watch(
   state.projectId,
@@ -69,7 +67,10 @@ function editorSaved() {
 }
 </script>
 <template>
-  <FinancePage fixed collection>
+  <FinancePage
+    fixed
+    collection
+  >
     <ProjectScopeBar />
     <div class="month-workspace">
       <div class="month-toolbar">
@@ -120,14 +121,6 @@ function editorSaved() {
           >
             {{ t('MonthClosing.createYear') }}
           </j-permission-button>
-          <a-button
-            :disabled="!projectId || blocked"
-            :loading="loading"
-            @click="reload"
-          >
-            <AIcon type="ReloadOutlined" />
-            {{ t('Finance.refresh') }}
-          </a-button>
         </a-space>
       </div>
       <div
@@ -157,40 +150,41 @@ function editorSaved() {
         @close="ruleOpen = false"
         @saved="saved"
       />
-      <a-spin
-        :spinning="loading"
-        class="month-loading"
-      >
-        <CloudEmpty
-          v-if="!projectId"
-          :description="t('ProjectContext.choose')"
-        />
-        <CloudEmpty
-          v-else-if="failed"
-          :description="t('MonthClosing.loadFailed')"
-        />
-        <CloudEmpty
-          v-else-if="!periods.length && !loading"
-          :description="t('MonthClosing.noYear', { year })"
-        />
-        <template v-else-if="periods.length">
-          <PeriodLedger
-            :periods="periods"
-            :selected="selectedMonth"
-            :disabled="blocked"
-            @select="selectPeriod"
-            @selection="batchSelected = $event"
+      <div class="month-loading">
+        <a-spin :spinning="loading">
+          <CloudEmpty
+            v-if="!projectId"
+            :description="t('ProjectContext.choose')"
           />
-          <ClosingPeriodDetail
-            v-if="detailOpen && selected"
-            :period="selected"
-            :project-id="projectId"
-            :blocked="blocked"
-            @close="detailOpen = false"
-            @action="start(selected, $event)"
+          <CloudEmpty
+            v-else-if="failed"
+            :description="t('MonthClosing.loadFailed')"
+          >
+            <a-button @click="reload">{{ t('Finance.refresh') }}</a-button>
+          </CloudEmpty>
+          <CloudEmpty
+            v-else-if="!periods.length && !loading"
+            :description="t('MonthClosing.noYear', { year })"
           />
-        </template>
-      </a-spin>
+          <template v-else-if="periods.length">
+            <PeriodLedger
+              :periods="periods"
+              :selected-keys="batchSelected.map((row) => row.id)"
+              :disabled="blocked || loading"
+              @select="selectPeriod"
+              @selection="batchSelected = $event"
+            />
+            <ClosingPeriodDetail
+              v-if="detailOpen && selected"
+              :period="selected"
+              :project-id="projectId"
+              :blocked="blocked"
+              @close="detailOpen = false"
+              @action="start(selected, $event)"
+            />
+          </template>
+        </a-spin>
+      </div>
     </div>
     <ClosingBatch
       v-if="batchAction"
@@ -223,7 +217,7 @@ function editorSaved() {
 .month-workspace {
   background: var(--ant-component-background, #fff);
   padding: 24px;
-  min-height: 500px;
+  min-height: 0;
 }
 .month-toolbar {
   display: flex;
@@ -242,20 +236,18 @@ function editorSaved() {
   width: 110px;
 }
 .month-loading {
-  display: block;
-  min-height: 220px;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
-.month-detail {
-  margin-top: 28px;
-}
-.month-detail h3 {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
-}
-.month-guidance {
-  color: var(--ant-color-text-secondary, #595959);
-  margin: 0;
+.month-loading :deep(> .ant-spin-nested-loading),
+.month-loading :deep(> .ant-spin-nested-loading > .ant-spin-container) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 .month-recovery {
   display: flex;

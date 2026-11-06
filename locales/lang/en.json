@@ -1109,7 +1109,7 @@
     "source": "Source type",
     "sourceReceivable": "Receivables",
     "sourceTemporary": "Temporary payments",
-    "sourceFund": "Advance / deposit top-ups",
+    "sourceFund": "Advance payments",
     "sourceAdvance": "Advance top-up",
     "sourceDeposit": "Deposit top-up",
     "select": "Select",
@@ -1137,7 +1137,7 @@
     "reverse": "Reverse invoice",
     "void": "Void receipt",
     "reverseHint": "Reversal creates a linked red document and releases the original quota. The original document is retained.",
-    "voidHint": "The original receipt and audit remain. Receipts linked to collected payments cannot be voided directly.",
+    "voidHint": "Voiding retains the original receipt and audit, releases the issuance quota and does not change the payment.",
     "reason": "Reason",
     "reasonHint": "Enter a reason for this operation",
     "operation": "Operation",
@@ -1238,7 +1238,7 @@
     "reopenReason": "Correction reason",
     "reopenHint": "Confirmation reverses the original invoice and issues a replacement for the same sources and amounts. Original and red invoices are retained.",
     "reopenReversedHint": "The original was reversed. Reissue uses its sources and amounts without creating another red invoice.",
-    "print": "Print receipt",
+    "print": "Print",
     "printTitle": "Receipt print preview",
     "printLoading": "Preparing receipt",
     "downloadPdf": "Download PDF",
@@ -1250,7 +1250,7 @@
     "allocation": "Receipt pool and allocation",
     "invoiceLedger": "invoice ledger",
     "receiptLedger": "Receipt ledger",
-    "simulatedPreview": "invoice preview",
+    "simulatedPreview": "View / download invoice",
     "sourceUnavailable": "Source unavailable",
     "fullName": "Space",
     "subjectName": "Charge subject",
@@ -1278,12 +1278,26 @@
     "sourceTypes": {
       "RECEIVABLE": "Receivable",
       "TEMP_PAYMENT": "Temporary payment",
-      "FUND_TOPUP": "Original advance / deposit top-up"
+      "FUND_TOPUP": "Advance payments"
     },
     "redInvoice": "Related red invoice",
     "ruleSnapshot": "Rules at issue",
     "filterEquals": "Equals",
-    "receiptPreview": "Receipt preview"
+    "receiptPreview": "View / download receipt",
+    "businessDate": "Business date",
+    "receiptAmount": "Receipt amount",
+    "outputTax": "Output VAT (CNY)",
+    "sourceAmount": "Receivable / source amount (CNY)",
+    "fillVoucher": "Add voucher",
+    "editVoucher": "Edit voucher",
+    "autoRemark": {
+      "startDate": "Billing start",
+      "endDate": "Billing end",
+      "subject": "Fee subject",
+      "amount": "Amount",
+      "customer": "Customer",
+      "difference": "Deduction"
+    }
   },
   "Allocation": {
     "create": "New allocation",

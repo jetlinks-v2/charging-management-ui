@@ -14,10 +14,7 @@ const columns = computed(() => [
   { title: t('Document.select'), dataIndex: 'select', width: 68, scopedSlots: true },
   { title: t('Setting.house'), dataIndex: 'house', width: 220, scopedSlots: true },
   { title: t('Setting.subject'), dataIndex: 'subject', width: 180, scopedSlots: true },
-  { title: t('Document.seller'), dataIndex: 'companyName', width: 180 },
-  { title: t('Document.standard'), dataIndex: 'standardName', width: 150 },
-  { title: t('Document.taxRate'), dataIndex: 'taxRate', width: 110 },
-  { title: t('Document.goodsCode'), dataIndex: 'goodsCode', width: 150 },
+  { title: t('Document.seller'), dataIndex: 'companyName', width: 160 },
   { title: t('Document.paidAmount'), dataIndex: 'paidAmount', width: 130, align: 'right' },
   { title: t('Document.available'), dataIndex: 'available', width: 160, align: 'right', scopedSlots: true }
 ])
@@ -50,14 +47,14 @@ const reason = (code?: string) => (code ? t(code) : t('Document.sourceUnavailabl
     :pagination="{ pageSize: 12 }"
     :alert-show="false"
     :body-style="{ padding: 0 }"
-    :scroll="{ x: 1350 }"
+    :scroll="{ x: 920 }"
     @request-error="notify"
   >
     <template #select="row">
       <a-checkbox
         :aria-label="t('Document.selectSource', { name: row.fullName, subject: row.subjectName })"
         :checked="selected.some((v) => documentSourceKey(v) === documentSourceKey(row))"
-        :disabled="!canSelectDocument(row, selected)"
+        :disabled="state.locked.value || state.busy.value || !canSelectDocument(row, selected)"
         @change="toggle(row)"
       />
     </template>

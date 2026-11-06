@@ -70,12 +70,6 @@ const { loading, saving, schedule, enabled, mode, day, reason, valid, load, save
         />
       </a-form-item>
       <div class="automatic-actions">
-        <a-button
-          :disabled="saving"
-          @click="load"
-        >
-          {{ t('Finance.refresh') }}
-        </a-button>
         <j-permission-button
           type="primary"
           hasPermission="charging/FinanceMonthClosing:save"

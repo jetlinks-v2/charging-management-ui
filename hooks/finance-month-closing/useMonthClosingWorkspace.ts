@@ -18,12 +18,16 @@ export function useMonthClosingWorkspace() {
     editor = ref<'create' | 'edit'>(),
     ruleOpen = ref(false)
   const action = ref<ClosingAction>('CLOSE'),
+    batchAction = ref<ClosingAction>(),
+    batchSelected = ref<AccountingPeriod[]>([]),
+    detailOpen = ref(false),
     target = ref<AccountingPeriod>(),
     pending = ref(false),
     recoveryFailed = ref(false)
   const recovery = useClosingRecovery(projectId)
   const blocked = computed(
-    () => !!target.value || !!editor.value || ruleOpen.value || pending.value || recoveryFailed.value
+    () =>
+      !!target.value || !!batchAction.value || !!editor.value || ruleOpen.value || pending.value || recoveryFailed.value
   )
   const selected = computed(() => periods.value.find((row) => row.accountMonth === selectedMonth.value))
   let generation = 0,
@@ -66,6 +70,7 @@ export function useMonthClosingWorkspace() {
   }
   function start(row: AccountingPeriod, value: ClosingAction) {
     if (blocked.value) return
+    detailOpen.value = false
     target.value = row
     action.value = value
   }
@@ -105,6 +110,8 @@ export function useMonthClosingWorkspace() {
   watch(
     [projectId, year],
     () => {
+      detailOpen.value = false
+      batchSelected.value = []
       check()
       void reload()
     },
@@ -120,6 +127,9 @@ export function useMonthClosingWorkspace() {
     periods,
     selectedMonth,
     selected,
+    detailOpen,
+    batchAction,
+    batchSelected,
     loading,
     failed,
     editor,

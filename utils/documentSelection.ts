@@ -8,7 +8,11 @@ export const documentSourceKey = (row: Pick<DocumentCandidate, 'sourceType' | 's
 /** 同批票据使用同一销方、客户的冻结来源，跨页选择不重复领临时款额度。 */
 export function canSelectDocument(row: DocumentCandidate, selected: DocumentCandidate[]) {
   const first = selected[0]
-  return row.selectable && (!first || (row.customerId === first.customerId && row.companyId === first.companyId))
+  return (
+    row.fundType !== 'DEPOSIT' &&
+    row.selectable &&
+    (!first || (row.customerId === first.customerId && row.companyId === first.companyId))
+  )
 }
 export function documentItem(row: DocumentCandidate): DocumentItem {
   return {

@@ -50,12 +50,18 @@ async function save() {
 onMounted(load)
 </script>
 <template>
-  <SectionCard
-    icon="SettingOutlined"
+  <a-modal
+    :open="true"
+    :width="760"
+    :mask-closable="false"
+    :closable="!saving && !automaticBusy"
+    :keyboard="!saving && !automaticBusy"
+    :footer="null"
     :title="t('MonthClosing.ruleTitle')"
-    :sub="t('MonthClosing.ruleHint')"
     class="closing-rule"
+    @cancel="emit('close')"
   >
+    <p>{{ t('MonthClosing.ruleHint') }}</p>
     <a-tabs
       v-model:active-key="tab"
       :destroy-inactive-tab-pane="true"
@@ -127,16 +133,7 @@ onMounted(load)
         <AutomaticClosingRuns :project-id="projectId" />
       </a-tab-pane>
     </a-tabs>
-    <template #actions>
-      <a-button
-        type="text"
-        :disabled="saving || automaticBusy"
-        @click="emit('close')"
-      >
-        {{ t('Finance.close') }}
-      </a-button>
-    </template>
-  </SectionCard>
+  </a-modal>
 </template>
 <style scoped>
 .closing-rule-form {

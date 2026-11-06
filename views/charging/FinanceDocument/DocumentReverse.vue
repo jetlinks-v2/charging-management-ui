@@ -16,12 +16,15 @@ const close = () => {
 }
 </script>
 <template>
-  <JlDrawerShell
+  <a-modal
     :open="true"
-    :width="result ? 1040 : 600"
-    icon="RollbackOutlined"
+    :width="result ? 1120 : 600"
+    :mask-closable="canClose"
+    :closable="canClose"
+    :keyboard="canClose"
+    :body-style="{ maxHeight: '65vh', overflow: 'auto' }"
     :title="t(invoice ? 'Document.reverse' : 'Document.void')"
-    @update:open="close"
+    @cancel="close"
   >
     <div class="document-editor">
       <DocumentSnapshot
@@ -37,10 +40,10 @@ const close = () => {
               failed
                 ? 'Document.recoveryUnavailable'
                 : uncertain
-                  ? 'Document.unknown'
-                  : invoice
-                    ? 'Document.reverseHint'
-                    : 'Document.voidHint'
+                ? 'Document.unknown'
+                : invoice
+                ? 'Document.reverseHint'
+                : 'Document.voidHint'
             )
           "
         />
@@ -53,7 +56,7 @@ const close = () => {
             :items="[
               { label: t('Document.buyer.name'), value: document.buyerName },
               { label: t('Document.seller'), value: document.companyName },
-              { label: t('Document.total'), value: document.amount }
+              { label: t(invoice ? 'Document.total' : 'Document.receiptAmount'), value: document.amount }
             ]"
           />
         </SectionCard>
@@ -78,7 +81,7 @@ const close = () => {
         </a-form>
       </template>
     </div>
-    <template #foot>
+    <template #footer>
       <a-button
         :disabled="!canClose"
         @click="close"
@@ -97,5 +100,5 @@ const close = () => {
         {{ t(uncertain ? 'Cashier.retry' : invoice ? 'Document.reverse' : 'Document.void') }}
       </j-permission-button>
     </template>
-  </JlDrawerShell>
+  </a-modal>
 </template>

@@ -10,12 +10,12 @@ const { t } = useI18n()
 const { projectId, detail, loading, failed, closeDetail, select } = props.state
 </script>
 <template>
-  <JlDrawerShell
+  <a-modal
     :open="true"
-    :width="1040"
-    icon="FileTextOutlined"
+    :width="1120"
+    :body-style="{ maxHeight: '65vh', overflow: 'auto' }"
     :title="t('Document.detail')"
-    @update:open="closeDetail"
+    @cancel="closeDetail"
   >
     <a-spin :spinning="loading">
       <div
@@ -65,7 +65,7 @@ const { projectId, detail, loading, failed, closeDetail, select } = props.state
         :description="t(failed ? 'Finance.failed' : 'Document.empty')"
       />
     </a-spin>
-    <template #foot>
+    <template #footer>
       <ReceiptPrintButton
         v-if="detail?.document.documentType === 'RECEIPT'"
         :project-id="projectId"
@@ -79,5 +79,5 @@ const { projectId, detail, loading, failed, closeDetail, select } = props.state
       />
       <a-button @click="closeDetail">{{ t('Finance.close') }}</a-button>
     </template>
-  </JlDrawerShell>
+  </a-modal>
 </template>

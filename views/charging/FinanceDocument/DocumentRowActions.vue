@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocumentRecord, DocumentType } from '../../../api/financeDocument'
 const props = defineProps<{ row: DocumentRecord; type: DocumentType; blocked: boolean }>()
-const emit = defineEmits<{ detail: []; reverse: []; reopen: []; verify: [] }>()
+const emit = defineEmits<{ detail: []; reverse: []; reopen: [] }>()
 const { t } = useI18n()
 const permission = computed(() => (props.type === 'INVOICE' ? 'charging/FinanceInvoice' : 'charging/FinanceReceipt'))
 </script>
@@ -14,15 +14,6 @@ const permission = computed(() => (props.type === 'INVOICE' ? 'charging/FinanceI
   >
     {{ t('Finance.detail') }}
   </a-button>
-  <j-permission-button
-    v-if="type === 'RECEIPT' && row.status === 'ISSUED' && !row.verified"
-    type="link"
-    :hasPermission="permission + ':verify'"
-    :disabled="blocked"
-    @click="emit('verify')"
-  >
-    {{ t('Verification.verify') }}
-  </j-permission-button>
   <j-permission-button
     v-if="['SIMULATED_ISSUED', 'ISSUED'].includes(row.status) && !(type === 'RECEIPT' && row.verified)"
     type="link"

@@ -11,7 +11,7 @@ const { exporting, previewUrl, previewOpen, closePreview, exportRows } = useRepo
   projectId: toRef(props, 'projectId'),
   enabled: () => !!props.projectId,
   input: () => ({ project: props.projectId, id: props.document.id }),
-  title: () => `SIM-${props.document.documentNumber}`,
+  title: () => props.document.documentNumber,
   fallback: () => t('Document.printFailed'),
   request: (input) => getInvoicePdf(input.project, input.id)
 })
@@ -43,7 +43,7 @@ const frame = ref<HTMLIFrameElement>()
       <a-button @click="frame?.contentWindow?.print()">{{ t('Document.print') }}</a-button>
       <a-button
         :href="previewUrl"
-        :download="`SIM-${document.documentNumber}.pdf`"
+        :download="`${document.documentNumber}.pdf`"
       >
         {{ t('Document.downloadPdf') }}
       </a-button>

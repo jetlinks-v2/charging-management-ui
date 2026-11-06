@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { DocumentType } from '../../../api/financeDocument'
 import { useDocumentEditor } from '../../../hooks/finance-document/useDocumentEditor'
-import { documentSourceKey } from '../../../utils/documentSelection'
 import DocumentSources from './DocumentSources.vue'
 import DocumentBuyerForm from './DocumentBuyerForm.vue'
 import DocumentItemForm from './DocumentItemForm.vue'
 import DocumentSnapshot from './DocumentSnapshot.vue'
+import ReceiptPrintButton from './ReceiptPrintButton.vue'
+import InvoicePrintButton from './InvoicePrintButton.vue'
 const props = defineProps<{ projectId: string; type: DocumentType }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const state = useDocumentEditor(props, () => emit('saved'))
@@ -23,6 +24,7 @@ const {
   canClose,
   complete,
   calculate,
+  issueReceipt,
   submit,
   back,
   uncertain,
@@ -34,16 +36,19 @@ const close = () => {
 const permission = props.type === 'INVOICE' ? 'charging/FinanceInvoice:create' : 'charging/FinanceReceipt:create'
 </script>
 <template>
-  <JlDrawerShell
+  <a-modal
     :open="true"
-    :width="1040"
-    icon="FileAddOutlined"
+    width="min(1560px, calc(100vw - 64px))"
+    :mask-closable="canClose"
+    :closable="canClose"
+    :keyboard="canClose"
+    :body-style="{ maxHeight: '65vh', overflow: 'auto' }"
     :title="t(type === 'INVOICE' ? 'Document.newInvoice' : 'Document.newReceipt')"
-    @update:open="close"
+    @cancel="close"
   >
     <div class="document-editor">
       <a-steps
-        v-if="!result"
+        v-if="!result && type === 'INVOICE'"
         :current="step"
         size="small"
         :items="['sources', 'fill', 'review'].map((v) => ({ title: t('Document.step.' + v) }))"
@@ -59,11 +64,11 @@ const permission = props.type === 'INVOICE' ? 'charging/FinanceInvoice:create' :
         :value="result"
       />
       <DocumentSnapshot
-        v-else-if="step === 2 && preview"
+        v-else-if="type === 'INVOICE' && step === 2 && preview"
         :value="preview"
       />
       <DocumentSources
-        v-else-if="step === 0"
+        v-else-if="step === 0 || type === 'RECEIPT'"
         :project-id="projectId"
         :type="type"
         :state="state"
@@ -75,21 +80,29 @@ const permission = props.type === 'INVOICE' ? 'charging/FinanceInvoice:create' :
         :model="{ buyer }"
         :disabled="locked || busy"
       >
+        <DocumentItemForm
+          :items="items"
+          :sources="selected"
+          :disabled="locked || busy"
+        />
         <DocumentBuyerForm
           :state="state"
           :type="type"
         />
-        <DocumentItemForm
-          v-for="(item, index) in items"
-          :key="documentSourceKey(item)"
-          :item="item"
-          :source="selected[index]"
-          :context="{ type, disabled: locked || busy }"
-        />
         <small v-if="!complete">{{ t('Document.invalidAmount') }}</small>
       </a-form>
     </div>
-    <template #foot>
+    <template #footer>
+      <ReceiptPrintButton
+        v-if="result && type === 'RECEIPT'"
+        :project-id="projectId"
+        :document="result.document"
+      />
+      <InvoicePrintButton
+        v-if="result && type === 'INVOICE'"
+        :project-id="projectId"
+        :document="result.document"
+      />
       <a-button
         :disabled="!canClose"
         @click="close"
@@ -98,20 +111,30 @@ const permission = props.type === 'INVOICE' ? 'charging/FinanceInvoice:create' :
       </a-button>
       <template v-if="!result && !failed">
         <a-button
-          v-if="step > 0 && !uncertain"
+          v-if="type === 'INVOICE' && step > 0 && !uncertain"
           :disabled="busy"
           @click="back"
         >
           {{ t('Document.back') }}
         </a-button>
         <a-button
-          v-if="step === 0"
+          v-if="step === 0 && type === 'INVOICE'"
           type="primary"
           :disabled="!selected.length || busy"
           @click="step = 1"
         >
           {{ t('Document.next') }}
         </a-button>
+        <j-permission-button
+          v-else-if="type === 'RECEIPT'"
+          type="primary"
+          :hasPermission="permission"
+          :loading="busy"
+          :disabled="!uncertain && (!selected.length || !complete)"
+          @click="uncertain ? submit() : issueReceipt()"
+        >
+          {{ t(uncertain ? 'Cashier.retry' : 'Document.confirmReceipt') }}
+        </j-permission-button>
         <j-permission-button
           v-else-if="step === 1"
           type="primary"
@@ -135,5 +158,5 @@ const permission = props.type === 'INVOICE' ? 'charging/FinanceInvoice:create' :
         </j-permission-button>
       </template>
     </template>
-  </JlDrawerShell>
+  </a-modal>
 </template>

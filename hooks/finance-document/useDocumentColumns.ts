@@ -1,9 +1,9 @@
-import { computed, type Ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Grid } from 'ant-design-vue'
 import type { DocumentType } from '../../api/financeDocument'
 
-export function useDocumentColumns(type: DocumentType, extra: Ref<boolean>) {
+export function useDocumentColumns(type: DocumentType) {
   const { t } = useI18n()
   const screens = Grid.useBreakpoint()
   const fields = computed(() => [
@@ -53,25 +53,26 @@ export function useDocumentColumns(type: DocumentType, extra: Ref<boolean>) {
   const columns = computed(() => [
     { title: t('Document.number'), dataIndex: 'number', width: 230, scopedSlots: true },
     { title: t('Document.state'), dataIndex: 'status', width: 140, scopedSlots: true },
-    ...(type === 'RECEIPT'
-      ? [{ title: t('Verification.state'), dataIndex: 'verified', width: 110, scopedSlots: true }]
-      : []),
     { title: t('Document.business'), dataIndex: 'business', width: 290, scopedSlots: true },
     { title: t('Document.sourceScene'), dataIndex: 'sourceScene', width: 150, scopedSlots: true },
     { title: t('Document.paymentStatus'), dataIndex: 'collection', width: 150, scopedSlots: true },
     { title: t('Document.buyer.name'), dataIndex: 'buyerName', width: 170 },
-    ...(extra.value
+    { title: t('Document.seller'), dataIndex: 'companyName', width: 190 },
+    { title: t('Document.issuePaidAmount'), dataIndex: 'issuePaidAmount', width: 150, align: 'right' },
+    { title: t('Document.issuerName'), dataIndex: 'issuerName', width: 130 },
+    ...(type === 'INVOICE'
       ? [
-          { title: t('Document.seller'), dataIndex: 'companyName', width: 190 },
-          { title: t('Document.issuePaidAmount'), dataIndex: 'issuePaidAmount', width: 150, align: 'right' },
-          { title: t('Document.issuerName'), dataIndex: 'issuerName', width: 130 },
           { title: t('Document.taxSnapshot'), dataIndex: 'taxSnapshot', width: 240, scopedSlots: true },
-          ...(type === 'INVOICE'
-            ? [{ title: t('Document.ruleSnapshot'), dataIndex: 'ruleSnapshot', width: 200, scopedSlots: true }]
-            : [])
+          { title: t('Document.ruleSnapshot'), dataIndex: 'ruleSnapshot', width: 200, scopedSlots: true }
         ]
       : []),
-    { title: t('Document.total'), dataIndex: 'amount', width: 140, align: 'right', scopedSlots: true },
+    {
+      title: t(type === 'INVOICE' ? 'Document.total' : 'Document.receiptAmount'),
+      dataIndex: 'amount',
+      width: 140,
+      align: 'right',
+      scopedSlots: true
+    },
     { title: t('Document.issuedAt'), dataIndex: 'issuedAt', width: 180, scopedSlots: true },
     {
       title: t('Finance.actions'),

@@ -14,14 +14,6 @@ watch(
     if (value === 'PERSONAL') invoiceType.value = '1'
   }
 )
-const optionalFields: { key: Exclude<keyof DocumentBuyer, 'titleType'>; max: number }[] = [
-  { key: 'phone', max: 50 },
-  { key: 'email', max: 255 },
-  { key: 'address', max: 500 },
-  { key: 'depositBank', max: 100 },
-  { key: 'bankAccount', max: 100 },
-  { key: 'extensionNumber', max: 32 }
-]
 const required = (key: string) => [
   { required: true, whitespace: true, message: t('Finance.required', { field: t(key) }) }
 ]
@@ -69,6 +61,7 @@ const required = (key: string) => [
         />
       </a-form-item>
       <a-form-item
+        v-if="type === 'INVOICE' && buyer.titleType === 'ENTERPRISE'"
         :label="t('Document.buyer.taxNum')"
         :name="['buyer', 'taxNum']"
         :rules="type === 'INVOICE' && buyer.titleType === 'ENTERPRISE' ? required('Document.buyer.taxNum') : []"
@@ -80,27 +73,6 @@ const required = (key: string) => [
       </a-form-item>
     </div>
   </SectionCard>
-  <a-collapse :bordered="false">
-    <a-collapse-panel
-      key="contacts"
-      :header="t('Document.buyerContact')"
-    >
-      <div class="document-grid">
-        <a-form-item
-          v-for="field in optionalFields"
-          :key="field.key"
-          :label="t('Document.buyer.' + field.key)"
-          :name="['buyer', field.key]"
-          :rules="field.key === 'email' ? [{ type: 'email', message: t('Document.emailInvalid') }] : []"
-        >
-          <a-input
-            v-model:value="buyer[field.key]"
-            :maxlength="field.max"
-          />
-        </a-form-item>
-      </div>
-    </a-collapse-panel>
-  </a-collapse>
   <a-form-item :label="t('Setting.remark')">
     <a-textarea
       v-model:value="remark"

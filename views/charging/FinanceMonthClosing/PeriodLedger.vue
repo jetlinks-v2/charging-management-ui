@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { AccountingPeriod } from '../../../api/financeAccounting'
-const props = defineProps<{ periods: AccountingPeriod[]; selected: string; disabled: boolean }>()
+const props = defineProps<{ periods: AccountingPeriod[]; selectedKeys: string[]; disabled: boolean }>()
 const emit = defineEmits<{ select: [month: string]; selection: [rows: AccountingPeriod[]] }>(),
   { t } = useI18n()
 const status = ref('ALL'),
@@ -47,12 +47,15 @@ const columns = computed(() => [
   { title: t('Finance.actions'), dataIndex: 'actions', width: 130, scopedSlots: true }
 ])
 const selection = computed(() => ({
+  selectedRowKeys: props.selectedKeys,
   onChange: (_keys: unknown, records: AccountingPeriod[]) => emit('selection', records),
   getCheckboxProps: () => ({ disabled: props.disabled })
 }))
+// 年度、筛选或服务端版本变化后清空选择，不能把旧账期带入批量提交。
+watch(rows, () => emit('selection', []))
 </script>
 <template>
-  <div>
+  <div class="period-ledger">
     <a-select
       v-model:value="status"
       :disabled="disabled"
@@ -60,6 +63,7 @@ const selection = computed(() => ({
       style="width: 160px; margin-bottom: 12px"
     />
     <ConditionFilter
+      class="period-filter"
       :fields="fields"
       @change="filter"
     />
@@ -75,7 +79,7 @@ const selection = computed(() => ({
       :pagination="{ pageSize: 12 }"
       :alert-show="false"
       :body-style="{ padding: 0 }"
-      :scroll="{ x: 950, y: 'max(12rem, calc(100vh - 30rem))' }"
+      :scroll="{ x: 950 }"
     >
       <template #status="row">
         <a-tag :color="row.status === 'CLOSED' ? 'success' : 'default'">
@@ -91,6 +95,20 @@ const selection = computed(() => ({
           {{ t('Finance.detail') }}
         </a-button>
       </template>
+      <template #emptyText><CloudEmpty /></template>
     </j-pro-table>
   </div>
 </template>
+<style scoped>
+.period-ledger {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.period-filter {
+  flex: none;
+  margin-bottom: 16px;
+}
+</style>

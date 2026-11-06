@@ -105,7 +105,11 @@
 .finance-page--collection .month-workspace {
   border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
   border-radius: var(--ant-border-radius-lg, 0.5rem);
-  overflow: auto;
+  overflow: hidden;
+}
+.finance-page--collection .month-workspace > .month-loading {
+  flex: 1;
+  min-height: 0;
 }
 .finance-page--collection .carry-workspace {
   border: 1px solid var(--ant-color-border-secondary, #f0f0f0);

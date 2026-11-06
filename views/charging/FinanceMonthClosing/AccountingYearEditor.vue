@@ -63,7 +63,7 @@ const close = () => {
             :pagination="false"
             row-key="id"
             size="small"
-            :scroll="{ x: 620 }"
+            :scroll="{ x: 620, y: 'min(380px, calc(100vh - 400px))' }"
           >
             <a-table-column
               key="month"

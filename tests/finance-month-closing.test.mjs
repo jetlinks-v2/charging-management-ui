@@ -6,6 +6,7 @@ import assert from 'node:assert/strict'
 import { createRenderer, defineComponent, h, reactive, ref, nextTick } from 'vue'
 const require = createRequire(import.meta.url)
 const apiNames = [
+  'batchClosing',
   'getAccountingYear',
   'getClosingSchedule',
   'saveClosingSchedule',
@@ -37,16 +38,16 @@ async function load(file) {
             contents: a.path.includes('api/')
               ? apiNames.map((n) => `export const ${n}=(...a)=>globalThis.__month.api.${n}(...a)`).join('\n')
               : a.path.includes('store/user')
-                ? 'export const useUserStore=()=>globalThis.__month.identity'
-                : a.path.includes('request-context')
-                  ? 'export const getApplicationAccessContext=()=>globalThis.__month.identity'
-                  : a.path.includes('project-runtime')
-                    ? 'export const getApplicationRuntimeEntry=()=>globalThis.__month.identity'
-                    : a.path.includes('useProjectContext')
-                      ? 'export const useProjectContext=()=>globalThis.__month.context;export const useProjectSwitchGuard=g=>globalThis.__month.guards.push(g)'
-                      : a.path === 'vue-i18n'
-                        ? 'export const useI18n=()=>({t:key=>key})'
-                        : 'export const onlyMessage=(...a)=>globalThis.__month.messages.push(a)'
+              ? 'export const useUserStore=()=>globalThis.__month.identity'
+              : a.path.includes('request-context')
+              ? 'export const getApplicationAccessContext=()=>globalThis.__month.identity'
+              : a.path.includes('project-runtime')
+              ? 'export const getApplicationRuntimeEntry=()=>globalThis.__month.identity'
+              : a.path.includes('useProjectContext')
+              ? 'export const useProjectContext=()=>globalThis.__month.context;export const useProjectSwitchGuard=g=>globalThis.__month.guards.push(g)'
+              : a.path === 'vue-i18n'
+              ? 'export const useI18n=()=>({t:key=>key})'
+              : 'export const onlyMessage=(...a)=>globalThis.__month.messages.push(a)'
           }))
         }
       }
@@ -57,6 +58,7 @@ async function load(file) {
   return m.exports
 }
 const automatic = await load('hooks/finance-month-closing/useAutomaticClosing.ts')
+const batch = await load('hooks/finance-month-closing/useClosingBatch.ts')
 const closing = await load('hooks/finance-month-closing/useClosingConfirmation.ts')
 const workspace = await load('hooks/finance-month-closing/useMonthClosingWorkspace.ts')
 const editor = await load('hooks/finance-month-closing/useAccountingEditor.ts')
@@ -321,6 +323,49 @@ test('年度编辑完整连续校验，快照版本提交且不改调用方数�
   assert.equal(sent[2].items.length, 12)
   assert.equal(sent[2].items[0].version, 3)
   assert.equal(rows[0].endDate, '2024-01-31')
+  m.close()
+})
+
+test('切换年度清空批量选择和详情，批量确认期间禁止切换项目', async () => {
+  setup()
+  const m = mount(() => workspace.useMonthClosingWorkspace())
+  await flush()
+  m.state.batchSelected.value = [period()]
+  m.state.detailOpen.value = true
+  m.state.year.value = 2025
+  await flush()
+  assert.deepEqual(m.state.batchSelected.value, [])
+  assert.equal(m.state.detailOpen.value, false)
+  m.state.batchAction.value = 'CLOSE'
+  assert.equal(m.state.blocked.value, true)
+  assert.equal(__month.guards.at(-1)(), false)
+  m.state.batchAction.value = undefined
+  m.state.detailOpen.value = true
+  m.state.start(period(), 'CLOSE')
+  assert.equal(m.state.detailOpen.value, false)
+  assert.equal(m.state.target.value.accountMonth, '2024-01')
+  m.close()
+})
+
+test('批量月结预检和确认使用同一请求，完成后不能再次提交旧版本', async () => {
+  const calls = []
+  setup({
+    batchClosing: async (...args) => {
+      calls.push(structuredClone(args))
+      return [{ month: '2024-01', status: args[3] ? 'READY' : 'COMPLETED' }]
+    }
+  })
+  const m = mount((saved) =>
+    batch.useClosingBatch({ projectId: 'project', periods: [period()], action: 'CLOSE' }, saved)
+  )
+  m.state.reason.value = '核对'
+  await m.state.run()
+  await m.state.run(true)
+  assert.deepEqual(calls[0][2], calls[1][2])
+  assert.equal(m.state.completed.value, true)
+  await m.state.run(true)
+  assert.equal(calls.length, 2)
+  assert.equal(m.saves(), 1)
   m.close()
 })
 const bill = () => ({

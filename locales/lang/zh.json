@@ -1109,7 +1109,7 @@
     "source": "来源类型",
     "sourceReceivable": "应收款",
     "sourceTemporary": "临时收款",
-    "sourceFund": "预收 / 押金存入",
+    "sourceFund": "预收款",
     "sourceAdvance": "预收存入",
     "sourceDeposit": "押金存入",
     "select": "选择",
@@ -1137,7 +1137,7 @@
     "reverse": "红冲",
     "void": "作废收据",
     "reverseHint": "红冲后生成关联红票并释放原占用额度，原蓝票与资料继续保留。",
-    "voidHint": "作废后保留原收据及操作记录；关联已收款的收据不能直接作废。",
+    "voidHint": "作废后保留原收据和操作记录，释放可开额度，不改变原收款。",
     "reason": "操作原因",
     "reasonHint": "请填写本次操作的原因",
     "operation": "操作",
@@ -1238,7 +1238,7 @@
     "reopenReason": "更正原因",
     "reopenHint": "确认后将红冲原发票，并按原来源和金额开具新发票。原票及红票保留。",
     "reopenReversedHint": "原发票已红冲，本次按原来源和金额继续重开，不再生成红票。",
-    "print": "打印收据",
+    "print": "打印",
     "printTitle": "收据打印预览",
     "printLoading": "正在生成收据",
     "downloadPdf": "下载 PDF",
@@ -1250,7 +1250,7 @@
     "allocation": "票据池与分配",
     "invoiceLedger": "发票台账",
     "receiptLedger": "收据台账",
-    "simulatedPreview": "票据预览",
+    "simulatedPreview": "查看 / 下载发票",
     "sourceUnavailable": "来源不可开具",
     "fullName": "房屋",
     "subjectName": "收费科目",
@@ -1278,12 +1278,26 @@
     "sourceTypes": {
       "RECEIVABLE": "应收款",
       "TEMP_PAYMENT": "临时收款",
-      "FUND_TOPUP": "预收 / 押金原存入"
+      "FUND_TOPUP": "预收款"
     },
     "redInvoice": "关联红票",
     "ruleSnapshot": "开具时规则",
     "filterEquals": "等于",
-    "receiptPreview": "收据预览"
+    "receiptPreview": "查看 / 下载收据",
+    "businessDate": "业务日期",
+    "receiptAmount": "收据金额（元）",
+    "outputTax": "销项税额（元）",
+    "sourceAmount": "实际应收/来源金额（元）",
+    "fillVoucher": "填写凭证",
+    "editVoucher": "编辑凭证",
+    "autoRemark": {
+      "startDate": "收费开始",
+      "endDate": "收费结束",
+      "subject": "收费科目",
+      "amount": "费用金额",
+      "customer": "收费对象",
+      "difference": "扣除差额"
+    }
   },
   "Allocation": {
     "create": "新增分配",

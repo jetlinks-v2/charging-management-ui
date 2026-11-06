@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { FileUpload } from '@jetlinks-web-core/components'
+import FinanceAttachmentUpload from '../components/FinanceAttachmentUpload.vue'
 import type { DifferenceVoucher } from '../../../api/financeDocument'
 import { useDocumentVoucher } from '../../../hooks/finance-document/useDocumentItem'
 const props = defineProps<{ voucher: DifferenceVoucher; disabled: boolean }>()
@@ -78,16 +78,22 @@ const { files, invoiceVoucher, change } = useDocumentVoucher(props)
     </a-form-item>
   </div>
   <small>{{ t('Document.voucher.numberHint') }}</small>
+  <a-form-item :label="t('Setting.remark')">
+    <a-textarea
+      v-model:value="voucher.remark"
+      :maxlength="1000"
+      :rows="2"
+    />
+  </a-form-item>
   <a-form-item
     :label="t('Document.voucher.attachment')"
     required
   >
-    <FileUpload
-      v-model:file-list="files"
+    <FinanceAttachmentUpload
+      :value="files"
       :max-count="1"
       :disabled="disabled"
-      :btn-text="t('Document.voucher.upload')"
-      @change="change"
+      @upload-change="change"
     />
   </a-form-item>
 </template>

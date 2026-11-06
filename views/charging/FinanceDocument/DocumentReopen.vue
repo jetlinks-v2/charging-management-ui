@@ -36,12 +36,15 @@ function close() {
 }
 </script>
 <template>
-  <JlDrawerShell
+  <a-modal
     :open="true"
-    :width="1040"
-    icon="RedoOutlined"
+    :width="1120"
+    :mask-closable="canClose"
+    :closable="canClose"
+    :keyboard="canClose"
+    :body-style="{ maxHeight: '65vh', overflow: 'auto' }"
     :title="t('Document.reopen')"
-    @update:open="close"
+    @cancel="close"
   >
     <div class="document-editor">
       <a-steps
@@ -126,7 +129,7 @@ function close() {
         </div>
       </a-spin>
     </div>
-    <template #foot>
+    <template #footer>
       <a-button
         :disabled="!canClose"
         @click="close"
@@ -162,5 +165,5 @@ function close() {
         </j-permission-button>
       </template>
     </template>
-  </JlDrawerShell>
+  </a-modal>
 </template>

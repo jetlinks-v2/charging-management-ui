@@ -11,7 +11,8 @@ const bundle = await build({
     export * from './hooks/finance-document/useDocumentReverse';
     export * from './hooks/finance-document/useDocumentReopen';
     export * from './hooks/finance-document/useReceiptVerification';
-    export * from './utils/documentSelection';`,
+    export * from './utils/documentSelection';
+    export * from './utils/documentTax';`,
     resolveDir: fileURLToPath(new URL('..', import.meta.url)),
     loader: 'ts'
   },
@@ -42,10 +43,10 @@ const bundle = await build({
                 .map((n) => `export const ${n}=(...a)=>globalThis.__documentApi.${n}(...a)`)
                 .join('\n')
             : a.path.includes('useDocumentRecovery')
-              ? 'export const useDocumentRecovery=()=>{throw Error("Recovery must be injected")}'
-              : a.path === 'vue-i18n'
-                ? 'export const useI18n=()=>({t:key=>key})'
-                : 'export const onlyMessage=(...a)=>globalThis.__documentMessages.push(a)'
+            ? 'export const useDocumentRecovery=()=>{throw Error("Recovery must be injected")}'
+            : a.path === 'vue-i18n'
+            ? 'export const useI18n=()=>({t:key=>key})'
+            : 'export const onlyMessage=(...a)=>globalThis.__documentMessages.push(a)'
         }))
       }
     }
@@ -54,6 +55,25 @@ const bundle = await build({
 const mod = { exports: {} }
 new Function('require', 'module', 'exports', bundle.outputFiles[0].text)(require, mod, mod.exports)
 const api = mod.exports
+test('全额与差额按冻结税率预估六位销项税，金额不扣减差额', () => {
+  const source = { availableAmount: '106.00', taxRate: '0.06' }
+  assert.equal(api.estimateDocumentTax({ collectionMethod: 'FULL' }, source), '6.000000')
+  assert.equal(
+    api.estimateDocumentTax({ collectionMethod: 'DIFFERENTIAL', differenceAmount: '53.00' }, source),
+    '3.000000'
+  )
+  assert.equal(
+    api.estimateDocumentTax({ collectionMethod: 'FULL' }, { ...source, availableAmount: '10.00' }),
+    '0.566038'
+  )
+  assert.equal(api.estimateDocumentTax({ collectionMethod: 'FULL' }, { ...source, taxRate: '0' }), '0.000000')
+  assert.equal(
+    api.estimateDocumentTax({ collectionMethod: 'FULL' }, { availableAmount: '9999999999999999.99', taxRate: '0.06' }),
+    '566037735849056.603208'
+  )
+  assert.equal(api.estimateDocumentTax({ collectionMethod: 'DIFFERENTIAL', differenceAmount: '106.00' }, source), '—')
+  assert.equal(api.estimateDocumentTax({ collectionMethod: 'FULL' }, { ...source, taxRate: '' }), '—')
+})
 const candidate = (id = 'bill', changes = {}) => ({
   sourceType: 'RECEIVABLE',
   sourceId: id,
@@ -180,10 +200,10 @@ function mount(overrides = {}, recovery = memory(), reverse = false) {
           reverse === 'verify'
             ? api.useReceiptVerification(props, () => saved++, recovery)
             : reverse === 'reopen'
-              ? api.useDocumentReopen(props, () => saved++, recovery)
-              : reverse
-                ? api.useDocumentReverse(props, () => saved++, recovery)
-                : api.useDocumentEditor(props, () => saved++, recovery)
+            ? api.useDocumentReopen(props, () => saved++, recovery)
+            : reverse
+            ? api.useDocumentReverse(props, () => saved++, recovery)
+            : api.useDocumentEditor(props, () => saved++, recovery)
         return () => h('div')
       }
     })
@@ -236,7 +256,7 @@ test('核销批量原请求冻结并阻止双击，成功只登记一次', async
   m.unmount()
 })
 
-test('原存入来源保持独立身份，预收押金可合并且未知结果恢复原来源', async () => {
+test('原存入来源保持独立身份，押金不可选且未知结果恢复原来源', async () => {
   const store = memory(),
     calls = []
   let m = mount(
@@ -250,9 +270,8 @@ test('原存入来源保持独立身份，预收押金可合并且未知结果�
   )
   m.state.toggle(candidate('advance', { sourceType: 'FUND_TOPUP', fundType: 'ADVANCE' }))
   m.state.toggle(candidate('deposit', { sourceType: 'FUND_TOPUP', fundType: 'DEPOSIT', availableAmount: '10.00' }))
-  m.state.toggle(candidate('advance', { sourceType: 'FUND_TOPUP' }))
   assert.equal(m.state.items.value.length, 1)
-  assert.equal(m.state.items.value[0].sourceId, 'deposit')
+  assert.equal(m.state.items.value[0].sourceId, 'advance')
   await m.state.calculate()
   await m.state.submit()
   assert.equal(m.state.uncertain.value, true)
@@ -695,5 +714,78 @@ test('重开结果未知恢复原请求，不重查原票或重新预览，项�
   assert.deepEqual(calls[0], calls[1])
   assert.equal(m.saved(), 1)
   assert.equal(recovery.read(), undefined)
+  m.unmount()
+})
+
+test('收据选择后直接预览并确认，全额锁定且不允许押金', async () => {
+  const calls = []
+  const m = mount({
+    previewDocument: async (_p, input) => {
+      calls.push(['preview', structuredClone(input)])
+      return preview(input)
+    },
+    confirmDocument: async (_p, request) => {
+      calls.push(['confirm', structuredClone(request)])
+      return { document, buyer: {}, lines: [] }
+    }
+  })
+  m.props.type = 'RECEIPT'
+  m.state.toggle(candidate('deposit', { fundType: 'DEPOSIT', sourceType: 'FUND_TOPUP' }))
+  assert.equal(m.state.selected.value.length, 0)
+  m.state.toggle(candidate())
+  m.state.items.value[0].amount = '1.00'
+  await m.state.issueReceipt()
+  assert.equal(calls.length, 2)
+  assert.equal(calls[0][1].items[0].amount, '100.01')
+  assert.equal(calls[1][1].input.items[0].amount, '100.01')
+  assert.equal(m.saved(), 1)
+  await m.state.issueReceipt()
+  assert.equal(calls.length, 2)
+  m.unmount()
+})
+
+test('收据预览失败不确认，不留下伪成功结果', async () => {
+  let confirmed = 0
+  const m = mount({
+    previewDocument: async () => {
+      throw Error('preview failed')
+    },
+    confirmDocument: async () => {
+      confirmed++
+    }
+  })
+  m.props.type = 'RECEIPT'
+  m.state.toggle(candidate())
+  await m.state.issueReceipt()
+  assert.equal(confirmed, 0)
+  assert.equal(m.saved(), 0)
+  assert.equal(m.state.result.value, undefined)
+  m.unmount()
+})
+
+test('发票自动业务备注随差额更新，手工备注保留，个人提交不残留企业税号', async () => {
+  const requests = []
+  const m = mount({
+    previewDocument: async (_p, input) => {
+      requests.push(input)
+      return preview(input)
+    }
+  })
+  m.state.toggle(candidate())
+  await flush()
+  assert.match(m.state.remark.value, /物业服务费/)
+  assert.match(m.state.remark.value, /100.01/)
+  m.state.remark.value = '人工填写备注'
+  m.state.items.value[0].collectionMethod = 'DIFFERENTIAL'
+  m.state.items.value[0].differenceAmount = '10.00'
+  await flush()
+  assert.equal(m.state.remark.value, '人工填写备注')
+  m.state.items.value[0].collectionMethod = 'FULL'
+  m.state.items.value[0].differenceAmount = '0.00'
+  m.state.buyer.titleType = 'PERSONAL'
+  m.state.buyer.taxNum = '原企业税号'
+  await m.state.calculate()
+  assert.equal(requests[0].buyer.taxNum, undefined)
+  assert.equal(requests[0].remark, '人工填写备注')
   m.unmount()
 })

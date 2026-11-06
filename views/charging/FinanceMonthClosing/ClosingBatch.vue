@@ -1,81 +1,27 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMenuStore } from '@jetlinks-web-core/store'
-import { onlyMessage } from '@jetlinks-web/utils'
-import {
-  batchClosing,
-  type ClosingAction,
-  type AccountingPeriod,
-  type ClosingBatchInput,
-  type ClosingBatchResult
-} from '../../../api/financeAccounting'
-import { useFinanceBatchRecovery } from '../../../hooks/finance-handover/useFinanceBatchRecovery'
-import { useProjectSwitchGuard } from '../../../hooks/project/useProjectContext'
-import { requestErrorMessage } from '../../../utils/requestError'
+import type { ClosingAction, AccountingPeriod } from '../../../api/financeAccounting'
+import { useClosingBatch } from '../../../hooks/finance-month-closing/useClosingBatch'
 const { jumpPage } = useMenuStore()
 const props = defineProps<{ projectId: string; periods: AccountingPeriod[]; action: ClosingAction }>(),
   emit = defineEmits<{ close: []; saved: [] }>(),
-  { t } = useI18n()
-const reason = ref(''),
-  busy = ref(false),
-  rows = ref<ClosingBatchResult[]>([]),
-  uncertain = ref(false)
-const recovery = useFinanceBatchRecovery<ClosingBatchInput>(() => props.projectId, 'closing')
-useProjectSwitchGuard(() => !busy.value && !uncertain.value)
-let input: ClosingBatchInput | undefined
-onMounted(() => {
-  try {
-    const pending = recovery.read()
-    if (pending) {
-      if (pending.action !== props.action) throw Error(t('MonthClosing.pending'))
-      input = pending.input
-      reason.value = input!.reason
-      uncertain.value = true
-    }
-  } catch (error) {
-    onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
-  }
-})
-function invalidate() {
-  rows.value = []
-  input = undefined
-}
-async function run(confirm = false) {
-  if (busy.value || !reason.value.trim()) return
-  busy.value = true
-  try {
-    if (!confirm && !uncertain.value)
-      input = {
-        reason: reason.value.trim(),
-        items: props.periods.map((row) => ({
-          month: row.accountMonth,
-          version: row.version,
-          requestId: crypto.randomUUID()
-        }))
-      }
-    if (confirm || uncertain.value) recovery.write(props.action, input!)
-    rows.value = await batchClosing(props.projectId, props.action, input!, !(confirm || uncertain.value))
-    if (confirm || uncertain.value) {
-      recovery.clear()
-      uncertain.value = false
-      emit('saved')
-    }
-  } catch (error) {
-    if (confirm) uncertain.value = true
-    onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
-  } finally {
-    busy.value = false
-  }
-}
+  { t, te } = useI18n()
+const { reason, busy, rows, uncertain, completed, invalidate, run } = useClosingBatch(props, () => emit('saved'))
 const columns = [
   { title: t('MonthClosing.accountMonth'), dataIndex: 'month' },
   { title: t('FinanceHandover.batchResult'), dataIndex: 'status' },
-  { title: t('MonthClosing.unhandedCount'), dataIndex: 'unhandedCount' },
-  { title: t('MonthClosing.pendingHandoverCount'), dataIndex: 'pendingHandoverCount' },
-  { title: t('MonthClosing.pendingReceivableCount'), dataIndex: 'pendingReceivableCount' },
+  { title: t('MonthClosing.unhanded'), dataIndex: 'unhandedCount' },
+  { title: t('MonthClosing.pendingHandover'), dataIndex: 'pendingHandoverCount' },
+  { title: t('MonthClosing.pendingReceivable'), dataIndex: 'pendingReceivableCount' },
   { title: t('FinanceHandover.reason'), dataIndex: 'errorCode' }
 ]
+function failureReason(code?: string) {
+  if (!code) return '—'
+  if (!code.startsWith('error.')) return code
+  const key = 'MonthClosing.auto.errors.' + code.replace('error.property_finance_', '')
+  return te(key) ? t(key) : t('FinanceHandover.preflightRejected')
+}
 </script>
 <template>
   <a-modal
@@ -83,6 +29,7 @@ const columns = [
     :title="t('MonthClosing.batch.' + action)"
     :width="1000"
     :closable="!busy && !uncertain"
+    :keyboard="!busy && !uncertain"
     :mask-closable="false"
     @cancel="emit('close')"
   >
@@ -121,7 +68,7 @@ const columns = [
       >
         <a-textarea
           v-model:value="reason"
-          :disabled="busy || uncertain"
+          :disabled="busy || uncertain || completed"
           :maxlength="1000"
           @change="invalidate"
         />
@@ -136,13 +83,7 @@ const columns = [
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'errorCode'">
-          {{
-            record.errorCode
-              ? record.errorCode.startsWith('error.')
-                ? t('FinanceHandover.preflightRejected')
-                : record.errorCode
-              : '—'
-          }}
+          {{ failureReason(record.errorCode) }}
         </template>
         <template v-else-if="column.dataIndex === 'status'">
           {{ t('MonthClosing.batchStatus.' + record.status) }}
@@ -160,13 +101,14 @@ const columns = [
         {{ t('Finance.close') }}
       </a-button>
       <j-permission-button
+        v-if="!completed"
         :hasPermission="'charging/FinanceMonthClosing:' + action.toLowerCase()"
         type="primary"
         :loading="busy"
         :disabled="!reason.trim() || (!uncertain && rows.some((row) => row.status === 'FAILED'))"
         @click="run(!!rows.length)"
       >
-        {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'FinanceHandover.confirm' : 'FinanceHandover.preview') }}
+        {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'MonthClosing.confirm.' + action : 'MonthClosing.check') }}
       </j-permission-button>
     </template>
   </a-modal>

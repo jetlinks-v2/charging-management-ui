@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatFinanceTime } from '../../../utils/financeTime'
+import { formatDocumentRate } from '../../../utils/documentPresentation'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getImageUrl } from '@jetlinks-web-core/utils'
@@ -9,6 +10,7 @@ const { t } = useI18n()
 const preview = computed(() => ('token' in props.value ? props.value : undefined))
 const record = computed(() => ('document' in props.value ? props.value.document : undefined))
 const summary = computed(() => preview.value || record.value!)
+const invoice = computed(() => summary.value.documentType === 'INVOICE')
 const lines = computed(() => ('token' in props.value ? props.value.lines : props.value.lines.map((v) => v.snapshot)))
 const buyerItems = computed(() =>
   (
@@ -36,7 +38,12 @@ const buyerItems = computed(() =>
 const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'fullName', width: 220 },
   { title: t('Setting.subject'), dataIndex: 'subjectName', width: 150 },
-  { title: t('Document.source'), dataIndex: 'sourceId', width: 210 },
+  {
+    title: t('Document.source'),
+    dataIndex: 'sourceType',
+    width: 130,
+    customRender: ({ text }: { text: string }) => t('Document.sourceTypes.' + text)
+  },
   { title: t('Document.standard'), dataIndex: 'standardName', width: 150 },
   {
     title: t('Document.period'),
@@ -46,25 +53,35 @@ const columns = computed(() => [
       `${line.startDate || '—'} ~ ${line.endDate || '—'}`
   },
   { title: t('Document.issuePaidAmount'), dataIndex: 'paidAmount', width: 130 },
-  { title: t('Document.goodsName'), dataIndex: 'goodsName', width: 150 },
-  {
-    title: t('Document.collectionMethod'),
-    dataIndex: 'collectionMethod',
-    width: 130,
-    customRender: ({ text }: { text: string }) => t('Document.method.' + text)
-  },
-  { title: t('Document.issueAmount'), dataIndex: 'amount', width: 130, align: 'right' as const },
-  { title: t('Document.taxRate'), dataIndex: 'taxRate', width: 110 },
-  { title: t('Document.taxAmount'), dataIndex: 'taxAmount', width: 120, align: 'right' as const },
-  { title: t('Document.netAmount'), dataIndex: 'netAmount', width: 130, align: 'right' as const },
-  { title: t('Document.differenceAmount'), dataIndex: 'differenceAmount', width: 130, align: 'right' as const }
+  ...(invoice.value
+    ? [
+        { title: t('Document.goodsName'), dataIndex: 'goodsName', width: 150 },
+        {
+          title: t('Document.collectionMethod'),
+          dataIndex: 'collectionMethod',
+          width: 130,
+          customRender: ({ text }: { text: string }) => t('Document.method.' + text)
+        },
+        {
+          title: t('Document.taxRate'),
+          dataIndex: 'taxRate',
+          width: 110,
+          customRender: ({ text }: { text: string }) => formatDocumentRate(text)
+        },
+        { title: t('Document.taxAmount'), dataIndex: 'taxAmount', width: 120, align: 'right' as const },
+        { title: t('Document.outputTax'), dataIndex: 'outputTax', width: 150, align: 'right' as const },
+        { title: t('Document.netAmount'), dataIndex: 'netAmount', width: 130, align: 'right' as const },
+        { title: t('Document.differenceAmount'), dataIndex: 'differenceAmount', width: 130, align: 'right' as const }
+      ]
+    : []),
+  { title: t('Document.issueAmount'), dataIndex: 'amount', width: 130, align: 'right' as const }
 ])
 const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sourceType}:${row.sourceId}`
 </script>
 <template>
   <div class="document-amount-band">
     <div>
-      <span>{{ t('Document.total') }}</span>
+      <span>{{ t(invoice ? 'Document.total' : 'Document.receiptAmount') }}</span>
       <strong class="document-money">{{ summary.amount }}</strong>
     </div>
     <a-tag :color="summary.documentType === 'INVOICE' ? 'warning' : 'processing'">
@@ -81,15 +98,20 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
         { label: t('Document.number'), value: record?.documentNumber || t('Document.unissued') },
         { label: t('Document.state'), value: record ? t('Document.status.' + record.status) : t('Document.ready') },
         { label: t('Document.seller'), value: summary.companyName },
-        { label: t('Document.sellerTaxNum'), value: summary.sellerTaxNum },
-        {
-          label: t('Document.ruleSnapshot'),
-          value:
-            t('Document.rule.' + value.rule.timeLimitType) + (value.rule.limitDays ? ' / ' + value.rule.limitDays : '')
-        },
+        ...(invoice
+          ? [
+              { label: t('Document.sellerTaxNum'), value: summary.sellerTaxNum },
+              {
+                label: t('Document.ruleSnapshot'),
+                value:
+                  t('Document.rule.' + value.rule.timeLimitType) +
+                  (value.rule.limitDays ? ' / ' + value.rule.limitDays : '')
+              }
+            ]
+          : []),
         { label: t('Setting.customer'), value: summary.customerName },
         { label: t('Document.sceneTitle'), value: t('Document.scene.' + summary.issueScene) },
-        ...(record
+        ...(record?.paymentStatus
           ? [
               {
                 label: t('Document.paymentStatus'),
@@ -101,22 +123,29 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
                 value: t('Document.paymentStates.' + (record.issuePaymentStatus || 'UNKNOWN'))
               },
               { label: t('Document.issuePaidAmount'), value: record.issuePaidAmount ?? '—' },
-              { label: t('Document.issuerName'), value: record.issuerName || '—' }
+              { label: t('Document.issuerName'), value: record.issuerName || record.modifierName || '—' }
             ]
           : []),
-        { label: t('Document.issuedAt'), value: formatFinanceTime(record?.issuedAt || preview?.businessDate) },
+        {
+          label: t(record ? 'Document.issuedAt' : 'Document.businessDate'),
+          value: formatFinanceTime(record?.issuedAt || preview?.businessDate)
+        },
         ...(record?.documentType === 'INVOICE'
           ? [{ label: t('Document.reopenCount'), value: String(record.reopenCount || 0) }]
           : []),
-        {
-          label: t('Document.invoiceType'),
-          value: summary.invoiceType ? t('Document.invoiceType' + summary.invoiceType) : '—'
-        }
+        ...(invoice
+          ? [
+              {
+                label: t('Document.invoiceType'),
+                value: summary.invoiceType ? t('Document.invoiceType' + summary.invoiceType) : '—'
+              }
+            ]
+          : [])
       ]"
     />
   </SectionCard>
   <SectionCard
-    v-if="record?.documentType === 'RECEIPT'"
+    v-if="record?.documentType === 'RECEIPT' && record.verified"
     icon="CheckCircleOutlined"
     :title="t('Verification.state')"
   >
@@ -138,6 +167,7 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
     />
   </SectionCard>
   <SectionCard
+    v-if="invoice"
     icon="UserOutlined"
     :title="t('Document.buyerTitle')"
   >
@@ -155,10 +185,13 @@ const sourceKey = (row: { sourceType: string; sourceId: string }) => `${row.sour
       :columns="columns"
       :data-source="lines"
       size="small"
-      :scroll="{ x: 2400 }"
-      :pagination="{ pageSize: 10 }"
+      :scroll="{ x: invoice ? 2100 : 1050 }"
+      :pagination="lines.length > 10 ? { pageSize: 10 } : false"
     />
-    <div class="document-totals">
+    <div
+      v-if="invoice"
+      class="document-totals"
+    >
       <span>{{ t('Document.netAmount') }} {{ summary.netAmount }}</span>
       <span>{{ t('Document.taxAmount') }} {{ summary.taxAmount }}</span>
     </div>
