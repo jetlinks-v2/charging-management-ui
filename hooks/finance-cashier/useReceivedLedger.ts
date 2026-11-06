@@ -22,7 +22,8 @@ export function useReceivedLedger(archive: ReturnType<typeof useFinanceSpaceScop
       filters.value = reportConditions(filter.terms, {
         fullName: 'like',
         customerName: 'like',
-        collectorName: 'like'
+        collectorName: 'like',
+        handoverState: 'eq'
       })
     } catch {
       onlyMessage(t('Report.unsupportedCondition'), 'warning')

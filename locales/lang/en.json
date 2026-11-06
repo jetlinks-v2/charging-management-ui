@@ -1704,6 +1704,8 @@
     "methodLimit": "More than 200 historical method groups. Group by payment method and drill into the required row."
   },
   "Received": {
+    "handoverState": "Handover status",
+    "handover": { "UNHANDED": "Received, not handed over", "PENDING": "Received, not posted", "APPROVED": "Posted" },
     "title": "Received report",
     "scope": "Cash movements only, refunds use their own business date and negative amounts. Balance offsets, balance refunds and internal transfers do not duplicate cash. Other periods include movements outside or without billing periods. Periods are not calculated without date filters. Display references combine source type and original ID.",
     "printTitle": "Received report print preview",

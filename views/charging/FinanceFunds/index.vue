@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { collectionTypeColors } from '../../../utils/collectionDisplay'
 import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -18,8 +19,7 @@ const { t } = useI18n()
 const props = withDefaults(defineProps<{ fundType?: FundType }>(), { fundType: 'ADVANCE' })
 const permission = props.fundType === 'DEPOSIT' ? 'charging/FinanceDeposit' : 'charging/FinanceFunds'
 const state = useFundsWorkspace(props.fundType)
-const { projectId, table, terms, params, request, open, loading, failed, detail, select, close, saved, notify } =
-  state
+const { projectId, table, terms, params, request, open, loading, failed, detail, select, close, saved, notify } = state
 const { draft, pending, failed: recoveryFailed, recover, start, close: closeEditor } = state.flow
 const {
   draft: returnDraft,
@@ -159,7 +159,7 @@ function revokeTopup(entry: FundEntry) {
             </a-button>
           </template>
           <template #type="row">
-            <a-tag :color="row.type === 'DEPOSIT' ? 'gold' : 'blue'">{{ t('Funds.' + row.type) }}</a-tag>
+            <a-tag :color="collectionTypeColors[row.type]">{{ t('Funds.' + row.type) }}</a-tag>
           </template>
           <template #balance="row">
             <strong class="cashier-money">{{ row.balance }}</strong>

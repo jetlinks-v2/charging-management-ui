@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { formatFinanceTime } from '../../../utils/financeTime'
+import { usePaymentColumns } from '../../../hooks/finance-cashier/usePaymentColumns'
+import { collectionTypeColors, handoverStateColors } from '../../../utils/collectionDisplay'
 import FinancePage from '../components/FinancePage.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -37,24 +39,7 @@ const paymentRequest: typeof request = (query, config) => {
   return request(query, config)
 }
 const rowKey = (row: PaymentRecord) => row.line.id
-const fields = computed(() =>
-  ['fullName', 'customerName', 'subjectName', 'methodText'].map((key) => ({
-    title: t(key === 'methodText' ? 'Cashier.method' : 'Receivable.' + key),
-    dataIndex: key,
-    search: { type: 'string' as const }
-  }))
-)
-const columns = computed(() => [
-  { title: t('Setting.house'), dataIndex: 'house', scopedSlots: true, width: 230 },
-  { title: t('Receivable.subjectName'), dataIndex: 'subject', scopedSlots: true, width: 160 },
-  { title: t('Cashier.payer'), dataIndex: 'payerName', width: 130 },
-  { title: t('Cashier.method'), dataIndex: 'method', scopedSlots: true, width: 160 },
-  { title: t('Cashier.amount'), dataIndex: 'amount', scopedSlots: true, width: 130, align: 'right' },
-  { title: t('Refund.available'), dataIndex: 'available', scopedSlots: true, width: 130, align: 'right' },
-  { title: t('Cashier.paidAt'), dataIndex: 'paidAt', scopedSlots: true, width: 190 },
-  { title: t('Cashier.company'), dataIndex: 'companyName', width: 200 },
-  { title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 150, fixed: 'right' }
-])
+const { fields, columns } = usePaymentColumns(props.temporary)
 function filter({ filter }: ConditionFilterChangePayload) {
   terms.value = (filter.terms || []) as Query['terms']
 }
@@ -68,7 +53,10 @@ function filter({ filter }: ConditionFilterChangePayload) {
     <div class="payment-ledger-layout">
       <FinanceLedgerSpace :state="archive" />
       <section class="payment-workspace">
-        <div v-if="temporary" class="payment-heading">
+        <div
+          v-if="temporary"
+          class="payment-heading"
+        >
           <div>
             <h2>{{ t(temporary ? 'Temporary.title' : 'Cashier.records') }}</h2>
             <span>{{ t(temporary ? 'Temporary.recordsHint' : 'Cashier.recordsHint') }}</span>
@@ -119,7 +107,6 @@ function filter({ filter }: ConditionFilterChangePayload) {
             show-icon
             :message="t('PaymentAdvance.pending')"
           >
-            <template #paidAt="row">{{ formatFinanceTime(row.paidAt) }}</template>
             <template #action>
               <j-permission-button
                 :hasPermission="advancePermission"
@@ -151,6 +138,16 @@ function filter({ filter }: ConditionFilterChangePayload) {
             :scroll="{ x: 1390 }"
             @request-error="notify"
           >
+            <template #paidAt="row">{{ formatFinanceTime(row.paidAt) }}</template>
+            <template #handoverState="row">
+              <a-tag
+                v-if="row.handoverState"
+                :color="handoverStateColors[row.handoverState]"
+              >
+                {{ t('Received.handover.' + row.handoverState) }}
+              </a-tag>
+              <span v-else>—</span>
+            </template>
             <template #house="row">
               <a-button
                 type="link"
@@ -162,7 +159,12 @@ function filter({ filter }: ConditionFilterChangePayload) {
             </template>
             <template #subject="row">
               {{ row.line.subjectName }}
-              <a-tag v-if="!temporary && row.line.sourceType === 'TEMPORARY'">{{ t('Temporary.source') }}</a-tag>
+              <a-tag
+                :color="collectionTypeColors.TEMPORARY"
+                v-if="!temporary && row.line.sourceType === 'TEMPORARY'"
+              >
+                {{ t('Temporary.source') }}
+              </a-tag>
               <small>{{ row.line.customerName }}</small>
             </template>
             <template #method="row">
@@ -236,67 +238,4 @@ function filter({ filter }: ConditionFilterChangePayload) {
     </JlDrawerShell>
   </FinancePage>
 </template>
-<style scoped>
-.payment-workspace {
-  margin-top: 16px;
-  padding: 20px;
-  background: var(--panel-background, #fff);
-  border: 1px solid var(--line, #f0f0f0);
-  border-radius: 8px;
-}
-.payment-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-.payment-heading h2 {
-  margin: 0 0 6px;
-  font-size: 18px;
-  font-weight: 600;
-}
-.payment-heading span,
-small {
-  color: var(--ant-color-text-secondary, #595959);
-  font-size: 12px;
-}
-small {
-  display: block;
-  margin-top: 4px;
-}
-.payment-house {
-  padding: 0;
-  max-width: 100%;
-  height: auto;
-  white-space: normal;
-  text-align: left;
-}
-@media (max-width: 640px) {
-  .payment-workspace {
-    padding: 12px;
-  }
-  .payment-heading {
-    align-items: flex-start;
-  }
-}
-</style>
-
-<style scoped>
-.payment-ledger-layout {
-  display: flex;
-  gap: 16px;
-  margin-top: 16px;
-  min-width: 0;
-}
-.payment-workspace {
-  flex: 1;
-  margin-top: 0;
-  min-width: 0;
-}
-@media (max-width: 900px) {
-  .payment-ledger-layout {
-    flex-direction: column;
-  }
-}
-</style>
+<style scoped src="./index.css"></style>

@@ -1,5 +1,6 @@
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Page } from './archive'
+import type { HandoverState } from '../utils/collectionDisplay'
 import { excelResponse } from '../utils/archiveFiles'
 const request: Pick<Request, 'post'> = hostRequest
 export type ReceivedGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'METHOD' | 'SOURCE'
@@ -23,6 +24,7 @@ export interface ReceivedInput {
   customerName?: string
   fullName?: string
   paymentNo?: string
+  handoverState?: HandoverState
   collectorName?: string
   receivedDateStart?: string
   receivedDateEnd?: string
@@ -55,6 +57,7 @@ export interface ReceivedRow {
   method?: string
   methodText?: string
   sourceType?: ReceivedSource
+  handoverState?: HandoverState
   collectorName?: string
   remark?: string
   rowCount: number

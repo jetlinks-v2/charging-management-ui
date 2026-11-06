@@ -1,6 +1,7 @@
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Query, type Page } from './archive'
 import type { Receivable } from './financeReceivable'
+import type { HandoverState } from '../utils/collectionDisplay'
 import type { CashierReduction } from '../utils/cashierTree'
 const request: Pick<Request, 'get' | 'post'> = hostRequest
 const base = (project: string) => `/property/finance/projects/${encodeURIComponent(project)}/cashier`
@@ -95,6 +96,7 @@ export interface PaymentDetail {
   }
 }
 export interface PaymentRecord {
+  handoverState: HandoverState
   line: PaymentLine
   paidAt: string
   payerName: string
