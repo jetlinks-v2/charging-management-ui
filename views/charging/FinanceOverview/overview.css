@@ -55,6 +55,7 @@
 }
 .overview-panel {
   background: var(--overview-surface);
+  border: 1px solid var(--overview-line);
   border-radius: 6px;
   padding: 20px;
   min-width: 0;
@@ -101,6 +102,7 @@
 .overview-money > div {
   min-width: 0;
   background: var(--overview-surface);
+  border: 1px solid var(--overview-line);
   border-radius: 6px;
   padding: 18px 20px;
 }
