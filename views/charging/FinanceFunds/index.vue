@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { collectionTypeColors } from '../../../utils/collectionDisplay'
+import CollectionImports from '../FinanceImport/CollectionImports.vue'
 import FinancePage from '../components/FinancePage.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -88,6 +89,13 @@ function revokeTopup(entry: FundEntry) {
     <div class="ledger-layout">
       <FinanceLedgerSpace :state="state.archive" />
       <section class="funds-workspace">
+        <CollectionImports
+          :project-id="projectId"
+          :project-name="state.archive.projects.value.find((p) => p.id === projectId)?.name || projectId"
+          :kind="fundType"
+          :permission="permission"
+          @saved="table?.reload()"
+        />
         <a-alert
           v-if="pending"
           type="warning"

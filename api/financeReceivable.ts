@@ -3,7 +3,7 @@ import { checked, type Query, type Page } from './archive'
 import type { ChargeSetting } from './financeSetting'
 import { excelResponse } from '../utils/archiveFiles'
 import type { PaymentRequest } from './paymentConfirmation'
-const request: Pick<Request, 'get' | 'post'> = hostRequest
+const request: Pick<Request, 'get' | 'post' | 'put'> = hostRequest
 const id = encodeURIComponent
 const base = (project: string) => `/property/finance/projects/${id(project)}/receivables`
 export type ReceivableAction = 'FREEZE' | 'UNFREEZE' | 'DELETE'
@@ -276,7 +276,7 @@ export interface HistoricalImportRecord {
   id: string
   projectId: string
   fileName: string
-  status: 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'PENDING' | 'APPROVED' | 'REJECTED'
+  status: 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED'
   version: number
   rejectedCount?: number
   totalCount: number
@@ -309,7 +309,8 @@ export interface HistoricalImportLine {
   reviewReason?: string
   reviewedName?: string
   reviewedAt?: number
-  receivable: Receivable
+  receivable: Partial<Receivable>
+  payload?: Record<string, string>
 }
 export const queryHistoricalImportLines = (project: string, recordId: string, query: Query, signal?: AbortSignal) =>
   request
@@ -343,6 +344,37 @@ export const decideHistoricalImportLines = (
     .post<HistoricalImportRecord>(
       `${base(project)}/imports/${id(record.id)}/_${action}`,
       { version: record.version, items: items.map(({ id, version }) => ({ id, version })), reason },
+      { hiddenError: true }
+    )
+    .then(checked)
+
+export type HistoricalLineInput = Pick<
+  Receivable,
+  | 'fullName'
+  | 'customerName'
+  | 'subjectName'
+  | 'standardName'
+  | 'calcStartDate'
+  | 'calcEndDate'
+  | 'accountPeriod'
+  | 'dueDate'
+  | 'contractReceivableAmount'
+  | 'feeReductionAmount'
+  | 'actualReceivableAmount'
+  | 'contractCode'
+  | 'remark'
+>
+/** 待审明细修改同时校验批次与行版本，服务器重新解析引用并更新快照。 */
+export const editHistoricalImportLine = (
+  project: string,
+  record: BillSelection,
+  line: BillSelection,
+  input: HistoricalLineInput
+) =>
+  request
+    .put<{ record: HistoricalImportRecord; line: HistoricalImportLine }>(
+      `${base(project)}/imports/${id(record.id)}/lines/${id(line.id)}`,
+      { ...input, version: record.version, lineVersion: line.version },
       { hiddenError: true }
     )
     .then(checked)

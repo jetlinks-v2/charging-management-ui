@@ -1705,7 +1705,11 @@
   },
   "Received": {
     "handoverState": "Handover status",
-    "handover": { "UNHANDED": "Received, not handed over", "PENDING": "Received, not posted", "APPROVED": "Posted" },
+    "handover": {
+      "UNHANDED": "Received, not handed over",
+      "PENDING": "Received, not posted",
+      "APPROVED": "Posted"
+    },
     "title": "Received report",
     "scope": "Cash movements only, refunds use their own business date and negative amounts. Balance offsets, balance refunds and internal transfers do not duplicate cash. Other periods include movements outside or without billing periods. Periods are not calculated without date filters. Display references combine source type and original ID.",
     "printTitle": "Received report print preview",
@@ -1921,14 +1925,16 @@
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
       "FAILED": "Failed",
-      "SUCCESS": "Imported (legacy)"
+      "SUCCESS": "Imported (legacy)",
+      "COMPLETED": "Completed (including rejected rows)"
     },
     "legacy": "This legacy batch was posted directly; review its bills in the receivables list.",
     "decision": "{action} — {file}",
     "reviewedName": "Reviewed by",
     "reviewedAt": "Reviewed at",
     "recordId": "Import reference",
-    "errorCount": "Invalid rows"
+    "errorCount": "Invalid rows",
+    "recordsEmpty": "No import records"
   },
   "ChangeAudit": {
     "button": "Review changes",
@@ -2009,5 +2015,46 @@
     "label": "Supporting documents",
     "upload": "Click or drag files to upload",
     "hint": "Up to {count} files, 20 MB each"
+  },
+  "CollectionImport": {
+    "auditTitle": "Collection import approval",
+    "guide": "Download the template for this project and fill in the collection details. The whole file must pass validation before approval; approved rows are posted to the ledger. Approved collections await handover; previous handover states are not imported.",
+    "edit": "Edit",
+    "editLine": "Edit row {row}",
+    "saveValidate": "Save and validate",
+    "edited": "Import row validated and saved",
+    "invalidAmount": "Enter a non-negative amount with up to 18 integer digits and 2 decimal places",
+    "invalidDates": "Enter both start and end dates; the end date must not precede the start date",
+    "approvalHint": "Approval creates collection and fund entries. If any row fails, the entire approval is rolled back.",
+    "kinds": {
+      "RECEIVED": "Import receipts",
+      "ADVANCE": "Import advance payments",
+      "DEPOSIT": "Import deposits",
+      "TEMPORARY": "Import temporary collections"
+    },
+    "fields": {
+      "externalNo": "Original receipt / transaction reference",
+      "receivableId": "Receivable bill",
+      "fullName": "Property",
+      "customerName": "Customer",
+      "subjectName": "Charge subject",
+      "standardName": "Charge standard",
+      "companyName": "Collection company",
+      "methodText": "Payment method",
+      "bankName": "Receiving bank",
+      "payerName": "Payer",
+      "amount": "Amount",
+      "paidAt": "Collection time",
+      "startDate": "Billing start date",
+      "endDate": "Billing end date",
+      "accountPeriod": "Account period",
+      "quantity": "Quantity",
+      "remark": "Remark",
+      "reductionAmount": "Reduction amount",
+      "reductionReason": "Reduction reason"
+    },
+    "searchField": "Search field",
+    "invalidQuantity": "Enter a positive quantity with up to 12 significant digits and 4 decimal places",
+    "positiveAmount": "Collection amount must be greater than zero"
   }
 }

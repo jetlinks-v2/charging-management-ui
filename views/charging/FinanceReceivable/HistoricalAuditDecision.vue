@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { useHistoricalAudit } from '../../../hooks/finance-receivable/useHistoricalAudit'
-const props = defineProps<{ state: ReturnType<typeof useHistoricalAudit> }>()
+const props = defineProps<{ state: ReturnType<typeof useHistoricalAudit>; collection?: boolean }>()
 const { t } = useI18n()
 const { decision, reason, busy, submit } = props.state
 </script>
@@ -23,7 +23,7 @@ const { decision, reason, busy, submit } = props.state
     <a-alert
       type="info"
       show-icon
-      :message="t('HistoricalAudit.hint')"
+      :message="t(collection ? 'CollectionImport.approvalHint' : 'HistoricalAudit.hint')"
     />
     <div class="audit-decision-summary">
       <p

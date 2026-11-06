@@ -10,15 +10,35 @@ import {
   type HistoricalImportLine
 } from '../../api/financeReceivable'
 import type { Query, QueryTerm } from '../../api/archive'
+import { useProjectSwitchGuard } from '../project/useProjectContext'
 import { requestErrorMessage } from '../../utils/requestError'
 
+export interface ImportAuditAdapter {
+  query: typeof queryHistoricalImports
+  lines: typeof queryHistoricalImportLines
+  decide: typeof decideHistoricalImports
+  decideLines: typeof decideHistoricalImportLines
+  maxBatches?: number
+}
+
 export function useHistoricalAudit(
-  props: { open: boolean; projectId: string; initialStatus: string },
-  saved: () => void
+  props: { open: boolean; projectId: string; initialStatus: string; readonly?: boolean },
+  saved: () => void,
+  adapter: ImportAuditAdapter = {
+    query: queryHistoricalImports,
+    lines: queryHistoricalImportLines,
+    decide: decideHistoricalImports,
+    decideLines: decideHistoricalImportLines
+  }
 ) {
   const { t } = useI18n()
+  const readonly = computed(() => !!props.readonly)
+  const maxBatches = adapter.maxBatches || 100
+  const editing = ref<HistoricalImportLine>()
   const status = ref('PENDING'),
     keyword = ref(''),
+    searchField = ref('fileName'),
+    appliedSearchField = ref('fileName'),
     searchKeyword = ref('')
   const table = ref<{ reload: () => void }>(),
     lineTable = ref<{ reload: () => void }>()
@@ -42,7 +62,8 @@ export function useHistoricalAudit(
     project: props.projectId,
     open: props.open,
     status: status.value,
-    keyword: searchKeyword.value
+    keyword: searchKeyword.value,
+    searchField: appliedSearchField.value
   }))
   const lineParams = computed(() => ({
     record: record.value?.id,
@@ -59,22 +80,37 @@ export function useHistoricalAudit(
       terms.push({
         column: 'status',
         termType: status.value === 'APPROVED' ? 'in' : 'eq',
-        value: status.value === 'APPROVED' ? ['APPROVED', 'SUCCESS'] : status.value
+        value:
+          status.value === 'APPROVED'
+            ? ['APPROVED', 'SUCCESS', ...(adapter.maxBatches ? ['COMPLETED'] : [])]
+            : status.value
       })
     if (searchKeyword.value)
-      terms.push({ column: 'fileName', termType: 'like', value: '%' + searchKeyword.value + '%' })
-    return queryHistoricalImports(
+      terms.push({ column: appliedSearchField.value, termType: 'like', value: '%' + searchKeyword.value + '%' })
+    return adapter.query(
       props.projectId,
       { terms, pageIndex: query.pageIndex, pageSize: query.pageSize },
       config?.signal
     )
+  }
+  function searchRecords() {
+    appliedSearchField.value = searchField.value
+    searchKeyword.value = keyword.value.trim()
+    selected.value = []
+  }
+  function resetRecords() {
+    searchField.value = 'fileName'
+    appliedSearchField.value = 'fileName'
+    keyword.value = ''
+    searchKeyword.value = ''
+    selected.value = []
   }
   function requestLines(query: Query, config?: { signal: AbortSignal }) {
     selectedLines.value = []
     if (!record.value) return Promise.resolve({ success: true, result: { data: [], total: 0 } })
     const terms = [...lineTerms.value]
     if (lineStatus.value !== 'ALL') terms.push({ column: 'status', termType: 'eq', value: lineStatus.value })
-    return queryHistoricalImportLines(
+    return adapter.lines(
       props.projectId,
       record.value.id,
       { terms, pageIndex: query.pageIndex, pageSize: query.pageSize },
@@ -98,12 +134,20 @@ export function useHistoricalAudit(
         : [])
     ]
   }
+  function resetLines() {
+    house.value = ''
+    customer.value = ''
+    lineStatus.value = 'ALL'
+    searchLines()
+  }
   function start(action: 'approve' | 'reject', records = selected.value, lines?: HistoricalImportLine[]) {
     if (
+      readonly.value ||
       busy.value ||
+      !!editing.value ||
       !records.length ||
       records.some((row) => row.status !== 'PENDING') ||
-      records.length > 100 ||
+      records.length > maxBatches ||
       (lines && (!lines.length || lines.length > 100 || lines.some((row) => row.status !== 'PENDING')))
     )
       return
@@ -119,20 +163,12 @@ export function useHistoricalAudit(
     const target = decision.value,
       project = props.projectId,
       token = generation
-    if (!target || busy.value || !reason.value.trim()) return
+    if (readonly.value || !target || busy.value || !reason.value.trim()) return
     busy.value = true
     try {
       const results = target.lines
-        ? [
-            await decideHistoricalImportLines(
-              project,
-              target.records[0],
-              target.action,
-              target.lines,
-              reason.value.trim()
-            )
-          ]
-        : await decideHistoricalImports(project, target.action, target.records, reason.value.trim())
+        ? [await adapter.decideLines(project, target.records[0], target.action, target.lines, reason.value.trim())]
+        : await adapter.decide(project, target.action, target.records, reason.value.trim())
       if (disposed || token !== generation) return
       if (record.value) record.value = results.find((row) => row.id === record.value?.id) || record.value
       decision.value = undefined
@@ -153,6 +189,7 @@ export function useHistoricalAudit(
     () => {
       ++generation
       record.value = undefined
+      editing.value = undefined
       decision.value = undefined
       selected.value = []
       selectedLines.value = []
@@ -163,6 +200,7 @@ export function useHistoricalAudit(
     },
     { immediate: true }
   )
+  useProjectSwitchGuard(() => !props.open && !busy.value && !editing.value)
   watch(status, () => {
     selected.value = []
   })
@@ -170,9 +208,35 @@ export function useHistoricalAudit(
     disposed = true
     ++generation
   })
+  function editLine(line: HistoricalImportLine) {
+    if (
+      !readonly.value &&
+      !busy.value &&
+      !decision.value &&
+      record.value?.status === 'PENDING' &&
+      line.status === 'PENDING'
+    )
+      editing.value = line
+  }
+  function edited(value: { record: HistoricalImportRecord; line: HistoricalImportLine }) {
+    record.value = value.record
+    editing.value = undefined
+    selected.value = []
+    selectedLines.value = []
+    table.value?.reload()
+    lineTable.value?.reload()
+  }
   return {
+    readonly,
+    maxBatches,
+    editing,
+    editLine,
+    edited,
     status,
     keyword,
+    searchField,
+    searchRecords,
+    resetRecords,
     searchKeyword,
     table,
     lineTable,
@@ -192,6 +256,7 @@ export function useHistoricalAudit(
     requestLines,
     showLines,
     searchLines,
+    resetLines,
     start,
     submit
   }

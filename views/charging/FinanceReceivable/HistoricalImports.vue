@@ -6,8 +6,9 @@ import HistoricalImportAudit from './HistoricalImportAudit.vue'
 const props = defineProps<{ projectId: string; projectName: string }>()
 const emit = defineEmits<{ saved: [] }>()
 const { t } = useI18n()
-const { open, historyOpen, historyStatus, showHistory, busy, template, upload } = useHistoricalImport(props, () =>
-  emit('saved')
+const { open, historyOpen, historyStatus, historyReadonly, showHistory, busy, template, upload } = useHistoricalImport(
+  props,
+  () => emit('saved')
 )
 </script>
 <template>
@@ -23,10 +24,18 @@ const { open, historyOpen, historyStatus, showHistory, busy, template, upload } 
     <j-permission-button
       :hasPermission="'charging/FinanceReceivable:imports'"
       :disabled="!projectId"
-      @click="showHistory('PENDING')"
+      @click="showHistory('PENDING', false)"
     >
       <AIcon type="AuditOutlined" />
       {{ t('HistoricalAudit.button') }}
+    </j-permission-button>
+    <j-permission-button
+      :hasPermission="'charging/FinanceReceivable:imports'"
+      :disabled="!projectId"
+      @click="showHistory('ALL')"
+    >
+      <AIcon type="HistoryOutlined" />
+      {{ t('HistoricalAudit.history') }}
     </j-permission-button>
   </a-space>
   <HistoricalImportDialog
@@ -42,6 +51,7 @@ const { open, historyOpen, historyStatus, showHistory, busy, template, upload } 
     :open="historyOpen"
     :project-id="projectId"
     :initial-status="historyStatus"
+    :readonly="historyReadonly"
     @close="historyOpen = false"
     @saved="emit('saved')"
   />

@@ -19,7 +19,8 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
   const open = ref(false),
     historyOpen = ref(false),
     busy = ref(false)
-  const historyStatus = ref('ALL')
+  const historyStatus = ref('ALL'),
+    historyReadonly = ref(true)
   const table = ref<{ reload: () => void }>()
   const selected = ref<HistoricalImportRecord>()
   const params = computed(() => ({ projectId: props.projectId, open: historyOpen.value }))
@@ -64,6 +65,7 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
         onlyMessage(t('HistoricalAudit.staged', { count: result.totalCount }), 'success')
         open.value = false
         historyStatus.value = 'PENDING'
+        historyReadonly.value = true
         historyOpen.value = true
       } else if (result.status === 'SUCCESS') {
         onlyMessage(t('Historical.succeeded', { count: result.successCount }), 'success')
@@ -77,7 +79,8 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
       if (!disposed && token === generation) busy.value = false
     }
   }
-  function showHistory(status: string) {
+  function showHistory(status: string, readonly = true) {
+    historyReadonly.value = readonly
     historyStatus.value = status
     historyOpen.value = true
   }
@@ -109,6 +112,7 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
     open,
     historyOpen,
     historyStatus,
+    historyReadonly,
     showHistory,
     busy,
     table,

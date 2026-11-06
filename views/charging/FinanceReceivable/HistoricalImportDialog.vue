@@ -3,7 +3,17 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import { validateImportFile } from '../../../utils/archiveImport'
-const props = defineProps<{ open: boolean; projectName: string; busy: boolean }>()
+const props = withDefaults(
+  defineProps<{
+    open: boolean
+    projectName: string
+    busy: boolean
+    title?: string
+    permission?: string
+    collection?: boolean
+  }>(),
+  { permission: 'charging/FinanceReceivable' }
+)
 const emit = defineEmits<{ close: []; template: []; upload: [File]; history: [] }>()
 const { t } = useI18n()
 const file = ref<File>()
@@ -26,7 +36,7 @@ function choose(selected: File) {
     :open="open"
     :width="640"
     :style="{ maxWidth: 'calc(100vw - 32px)' }"
-    :title="t('Historical.title')"
+    :title="title || t('Historical.title')"
     :closable="!busy"
     :mask-closable="!busy"
     :keyboard="!busy"
@@ -40,7 +50,7 @@ function choose(selected: File) {
         <AIcon type="LockOutlined" />
       </div>
       <div class="historical-import__guide">
-        <p>{{ t('Historical.guide') }}</p>
+        <p>{{ t(collection ? 'CollectionImport.guide' : 'Historical.guide') }}</p>
         <a-button
           :loading="busy"
           @click="emit('template')"
@@ -82,7 +92,7 @@ function choose(selected: File) {
     </div>
     <template #footer>
       <j-permission-button
-        :hasPermission="'charging/FinanceReceivable:imports'"
+        :hasPermission="`${permission}:imports`"
         type="link"
         class="historical-history"
         :disabled="busy"

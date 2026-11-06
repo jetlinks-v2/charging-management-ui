@@ -976,6 +976,81 @@
                     "actions": ["to-advance"]
                   }
                 ]
+              },
+              {
+                "id": "import",
+                "name": "收款导入",
+                "i18nMessages": {
+                  "zh_CN": "收款导入",
+                  "en_US": "Import collections",
+                  "en": "Import collections"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import"]
+                  }
+                ]
+              },
+              {
+                "id": "imports",
+                "name": "导入记录和审核",
+                "i18nMessages": {
+                  "zh_CN": "导入记录和审核",
+                  "en_US": "Import records and approval",
+                  "en": "Import records and approval"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["imports"]
+                  }
+                ]
+              },
+              {
+                "id": "approve",
+                "name": "导入审核通过",
+                "i18nMessages": {
+                  "zh_CN": "导入审核通过",
+                  "en_US": "Approve imports",
+                  "en": "Approve imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["approve"]
+                  }
+                ]
+              },
+              {
+                "id": "reject",
+                "name": "导入驳回",
+                "i18nMessages": {
+                  "zh_CN": "导入驳回",
+                  "en_US": "Reject imports",
+                  "en": "Reject imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["reject"]
+                  }
+                ]
+              },
+              {
+                "id": "import-edit",
+                "name": "编辑导入明细",
+                "i18nMessages": {
+                  "zh_CN": "编辑导入明细",
+                  "en_US": "Edit import rows",
+                  "en": "Edit import rows"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import-edit"]
+                  }
+                ]
               }
             ]
           },
@@ -1167,6 +1242,81 @@
                     "actions": ["revoke-topup"]
                   }
                 ]
+              },
+              {
+                "id": "import",
+                "name": "收款导入",
+                "i18nMessages": {
+                  "zh_CN": "收款导入",
+                  "en_US": "Import collections",
+                  "en": "Import collections"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import"]
+                  }
+                ]
+              },
+              {
+                "id": "imports",
+                "name": "导入记录和审核",
+                "i18nMessages": {
+                  "zh_CN": "导入记录和审核",
+                  "en_US": "Import records and approval",
+                  "en": "Import records and approval"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["imports"]
+                  }
+                ]
+              },
+              {
+                "id": "approve",
+                "name": "导入审核通过",
+                "i18nMessages": {
+                  "zh_CN": "导入审核通过",
+                  "en_US": "Approve imports",
+                  "en": "Approve imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["approve"]
+                  }
+                ]
+              },
+              {
+                "id": "reject",
+                "name": "导入驳回",
+                "i18nMessages": {
+                  "zh_CN": "导入驳回",
+                  "en_US": "Reject imports",
+                  "en": "Reject imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["reject"]
+                  }
+                ]
+              },
+              {
+                "id": "import-edit",
+                "name": "编辑导入明细",
+                "i18nMessages": {
+                  "zh_CN": "编辑导入明细",
+                  "en_US": "Edit import rows",
+                  "en": "Edit import rows"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import-edit"]
+                  }
+                ]
               }
             ]
           },
@@ -1285,6 +1435,81 @@
                     "actions": ["revoke-topup"]
                   }
                 ]
+              },
+              {
+                "id": "import",
+                "name": "收款导入",
+                "i18nMessages": {
+                  "zh_CN": "收款导入",
+                  "en_US": "Import collections",
+                  "en": "Import collections"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import"]
+                  }
+                ]
+              },
+              {
+                "id": "imports",
+                "name": "导入记录和审核",
+                "i18nMessages": {
+                  "zh_CN": "导入记录和审核",
+                  "en_US": "Import records and approval",
+                  "en": "Import records and approval"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["imports"]
+                  }
+                ]
+              },
+              {
+                "id": "approve",
+                "name": "导入审核通过",
+                "i18nMessages": {
+                  "zh_CN": "导入审核通过",
+                  "en_US": "Approve imports",
+                  "en": "Approve imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["approve"]
+                  }
+                ]
+              },
+              {
+                "id": "reject",
+                "name": "导入驳回",
+                "i18nMessages": {
+                  "zh_CN": "导入驳回",
+                  "en_US": "Reject imports",
+                  "en": "Reject imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["reject"]
+                  }
+                ]
+              },
+              {
+                "id": "import-edit",
+                "name": "编辑导入明细",
+                "i18nMessages": {
+                  "zh_CN": "编辑导入明细",
+                  "en_US": "Edit import rows",
+                  "en": "Edit import rows"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import-edit"]
+                  }
+                ]
               }
             ]
           },
@@ -1341,6 +1566,81 @@
                   {
                     "permission": "property-finance-payment",
                     "actions": ["to-advance"]
+                  }
+                ]
+              },
+              {
+                "id": "import",
+                "name": "收款导入",
+                "i18nMessages": {
+                  "zh_CN": "收款导入",
+                  "en_US": "Import collections",
+                  "en": "Import collections"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import"]
+                  }
+                ]
+              },
+              {
+                "id": "imports",
+                "name": "导入记录和审核",
+                "i18nMessages": {
+                  "zh_CN": "导入记录和审核",
+                  "en_US": "Import records and approval",
+                  "en": "Import records and approval"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["imports"]
+                  }
+                ]
+              },
+              {
+                "id": "approve",
+                "name": "导入审核通过",
+                "i18nMessages": {
+                  "zh_CN": "导入审核通过",
+                  "en_US": "Approve imports",
+                  "en": "Approve imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["approve"]
+                  }
+                ]
+              },
+              {
+                "id": "reject",
+                "name": "导入驳回",
+                "i18nMessages": {
+                  "zh_CN": "导入驳回",
+                  "en_US": "Reject imports",
+                  "en": "Reject imports"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["reject"]
+                  }
+                ]
+              },
+              {
+                "id": "import-edit",
+                "name": "编辑导入明细",
+                "i18nMessages": {
+                  "zh_CN": "编辑导入明细",
+                  "en_US": "Edit import rows",
+                  "en": "Edit import rows"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-collection-import",
+                    "actions": ["import-edit"]
                   }
                 ]
               }

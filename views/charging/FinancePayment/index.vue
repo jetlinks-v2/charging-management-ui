@@ -2,6 +2,7 @@
 import { formatFinanceTime } from '../../../utils/financeTime'
 import { usePaymentColumns } from '../../../hooks/finance-cashier/usePaymentColumns'
 import { collectionTypeColors, handoverStateColors } from '../../../utils/collectionDisplay'
+import CollectionImports from '../FinanceImport/CollectionImports.vue'
 import FinancePage from '../components/FinancePage.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,7 +20,8 @@ import { refundableMoney } from '../../../utils/refundMoney'
 import '../FinanceCashier/cashier.css'
 import FinanceLedgerSpace from '../components/FinanceLedgerSpace.vue'
 import ReceivedLedger from './ReceivedLedger.vue'
-const ledgerTab = ref('cash')
+const ledgerTab = ref('cash'),
+  importRevision = ref(0)
 const props = defineProps<{ temporary?: boolean }>()
 const { t } = useI18n()
 const refundPermission = props.temporary ? 'charging/FinanceTemporary:refund' : 'charging/FinancePayment:refund'
@@ -40,6 +42,10 @@ const paymentRequest: typeof request = (query, config) => {
 }
 const rowKey = (row: PaymentRecord) => row.line.id
 const { fields, columns } = usePaymentColumns(props.temporary)
+function importsSaved() {
+  importRevision.value++
+  table.value?.reload()
+}
 function filter({ filter }: ConditionFilterChangePayload) {
   terms.value = (filter.terms || []) as Query['terms']
 }
@@ -53,6 +59,16 @@ function filter({ filter }: ConditionFilterChangePayload) {
     <div class="payment-ledger-layout">
       <FinanceLedgerSpace :state="archive" />
       <section class="payment-workspace">
+        <CollectionImports
+          :project-id="projectId"
+          :project-name="archive.projects.value.find((p) => p.id === projectId)?.name || projectId"
+          :kind="temporary ? 'TEMPORARY' : 'RECEIVED'"
+          :permission="temporary ? 'charging/FinanceTemporary' : 'charging/FinancePayment'"
+          @saved="importsSaved"
+            importRevision++
+            table?.reload()
+          "
+        />
         <div
           v-if="temporary"
           class="payment-heading"
@@ -76,6 +92,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
           />
         </a-tabs>
         <ReceivedLedger
+          :key="importRevision"
           v-if="!temporary && ledgerTab === 'cash' && projectId"
           :archive="archive"
         />

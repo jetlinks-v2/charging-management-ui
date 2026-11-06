@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
+import { collectionImportFields, historicalImportFields } from '../../../utils/financeImportFields'
 import { useI18n } from 'vue-i18n'
 import type { useHistoricalAudit } from '../../../hooks/finance-receivable/useHistoricalAudit'
+import type { CollectionImportKind } from '../../../api/financeCollectionImport'
 import type { HistoricalImportLine } from '../../../api/financeReceivable'
-const props = defineProps<{ state: ReturnType<typeof useHistoricalAudit> }>()
+const props = withDefaults(
+  defineProps<{ state: ReturnType<typeof useHistoricalAudit>; kind?: CollectionImportKind; permission?: string }>(),
+  { permission: 'charging/FinanceReceivable' }
+)
 const { t } = useI18n()
 const {
   record,
@@ -17,30 +22,24 @@ const {
   busy,
   requestLines,
   searchLines,
+  resetLines,
   notify,
   start
 } = props.state
+const displayFields = computed(() => (props.kind ? collectionImportFields(props.kind) : historicalImportFields))
 const columns = computed(() => [
   { title: t('HistoricalAudit.lineNumber'), dataIndex: 'lineNumber', width: 100 },
   { title: t('HistoricalAudit.status'), dataIndex: 'status', width: 110, scopedSlots: true },
-  ...[
-    'contractCode',
-    'fullName',
-    'customerName',
-    'subjectName',
-    'standardName',
-    'calcStartDate',
-    'calcEndDate',
-    'actualReceivableAmount'
-  ].map((key) => ({
-    title: t('ReceivableLedger.' + key),
-    dataIndex: key,
-    width: key === 'fullName' ? 240 : 145,
+  ...displayFields.value.map((field) => ({
+    title: t(field.label),
+    dataIndex: field.key,
+    width: field.key === 'fullName' ? 240 : 160,
     scopedSlots: true
   })),
   { title: t('HistoricalAudit.reason'), dataIndex: 'reviewReason', width: 220, ellipsis: true },
   { title: t('HistoricalAudit.reviewedName'), dataIndex: 'reviewedName', width: 130 },
-  { title: t('HistoricalAudit.reviewedAt'), dataIndex: 'reviewedAt', width: 175, scopedSlots: true }
+  { title: t('HistoricalAudit.reviewedAt'), dataIndex: 'reviewedAt', width: 175, scopedSlots: true },
+  { title: t('Finance.actions'), dataIndex: 'actions', width: 240, fixed: 'right', scopedSlots: true }
 ])
 const selection = computed(() => ({
   selectedRowKeys: selectedLines.value.map((row) => row.id),
@@ -59,8 +58,8 @@ const selection = computed(() => ({
     :style="{ maxWidth: 'calc(100vw - 32px)', top: '40px' }"
     :footer="null"
     :mask-closable="false"
-    :closable="!busy && !state.decision.value"
-    :keyboard="!busy && !state.decision.value"
+    :closable="!busy && !state.decision.value && !state.editing.value"
+    :keyboard="!busy && !state.decision.value && !state.editing.value"
     @cancel="record = undefined"
   >
     <a-alert
@@ -96,6 +95,7 @@ const selection = computed(() => ({
         <AIcon type="SearchOutlined" />
         {{ t('HistoricalAudit.search') }}
       </a-button>
+      <a-button @click="resetLines">{{ t('ReceivableLedger.reset') }}</a-button>
       <a-select
         v-model:value="lineStatus"
         :aria-label="t('HistoricalAudit.status')"
@@ -107,11 +107,11 @@ const selection = computed(() => ({
         "
       />
       <a-space
-        v-if="record?.status === 'PENDING'"
+        v-if="!state.readonly.value && record?.status === 'PENDING'"
         wrap
       >
         <j-permission-button
-          :hasPermission="'charging/FinanceReceivable:approve'"
+          :hasPermission="`${permission}:approve`"
           type="primary"
           :disabled="!selectedLines.length || selectedLines.length > 100 || busy"
           @click="record && start('approve', [record], selectedLines)"
@@ -119,7 +119,7 @@ const selection = computed(() => ({
           {{ t('HistoricalAudit.approve') }}
         </j-permission-button>
         <j-permission-button
-          :hasPermission="'charging/FinanceReceivable:reject'"
+          :hasPermission="`${permission}:reject`"
           danger
           :disabled="!selectedLines.length || selectedLines.length > 100 || busy"
           @click="record && start('reject', [record], selectedLines)"
@@ -139,26 +139,50 @@ const selection = computed(() => ({
       :pagination="{ pageSize: 12 }"
       :no-pagination="false"
       :alert-show="false"
-      :row-selection="selection"
-      :scroll="{ x: 2100, y: 430 }"
+      :row-selection="state.readonly.value ? undefined : selection"
+      :scroll="{ x: displayFields.length * 160 + 1000, y: 430 }"
       :body-style="{ padding: 0 }"
       @request-error="notify"
     >
       <template
-        v-for="key in [
-          'contractCode',
-          'fullName',
-          'customerName',
-          'subjectName',
-          'standardName',
-          'calcStartDate',
-          'calcEndDate',
-          'actualReceivableAmount'
-        ]"
-        :key="key"
-        #[key]="row"
+        v-for="field in displayFields"
+        :key="field.key"
+        #[field.key]="row"
       >
-        {{ row.receivable[key] || '—' }}
+        {{ row.payload?.[field.key] || row.receivable[field.key] || '—' }}
+      </template>
+      <template #actions="row">
+        <a-space
+          v-if="!state.readonly.value && record?.status === 'PENDING' && row.status === 'PENDING'"
+          :size="0"
+        >
+          <j-permission-button
+            type="link"
+            :hasPermission="`${permission}:${kind ? 'import-edit' : 'approve'}`"
+            :disabled="busy"
+            @click="state.editLine(row)"
+          >
+            {{ t('CollectionImport.edit') }}
+          </j-permission-button>
+          <j-permission-button
+            type="link"
+            :hasPermission="`${permission}:approve`"
+            :disabled="busy"
+            @click="record && start('approve', [record], [row])"
+          >
+            {{ t('HistoricalAudit.approve') }}
+          </j-permission-button>
+          <j-permission-button
+            type="link"
+            danger
+            :hasPermission="`${permission}:reject`"
+            :disabled="busy"
+            @click="record && start('reject', [record], [row])"
+          >
+            {{ t('HistoricalAudit.reject') }}
+          </j-permission-button>
+        </a-space>
+        <span v-else>—</span>
       </template>
       <template #status="row">
         <a-tag :color="row.status === 'APPROVED' ? 'success' : row.status === 'REJECTED' ? 'error' : 'processing'">
