@@ -50,6 +50,9 @@
                 "en": "Tax accounts"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-project-company", "property-finance-recorded"],
             "permissions": [
               {
@@ -133,6 +136,9 @@
                 "en": "Tax items"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-tax"],
             "permissions": [
               {
@@ -182,6 +188,9 @@
                 "en": "Charge subjects"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-subject"],
             "permissions": [
               {
@@ -290,6 +299,9 @@
                 "en": "Project charge subjects"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-project-subject"],
             "permissions": [
               {
@@ -341,6 +353,9 @@
                 "en": "Arrears notification levels"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-arrears"],
             "permissions": [
               {
@@ -386,6 +401,9 @@
                 "en": "Charge standards"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-standard"],
             "permissions": [
               {
@@ -505,6 +523,9 @@
                 "en": "Charge settings"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-setting"],
             "permissions": [
               {
@@ -613,6 +634,9 @@
                 "en": "Receivables"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-receivable"],
             "permissions": [
               {
@@ -816,6 +840,9 @@
                 "en": "Cashier"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-cashier"],
             "permissions": [
               {
@@ -894,6 +921,9 @@
                 "en": "Received payments"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-cashier"],
             "permissions": [
               {
@@ -964,6 +994,9 @@
                 "en": "Refunds"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-refund"],
             "permissions": [
               {
@@ -1034,6 +1067,9 @@
                 "en": "Advance management"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-funds"],
             "permissions": [
               {
@@ -1149,6 +1185,9 @@
                 "en": "Deposit management"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-funds"],
             "permissions": [
               {
@@ -1264,6 +1303,9 @@
                 "en": "Temporary collections"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-temporary"],
             "permissions": [
               {
@@ -1319,6 +1361,9 @@
                 "en": "Automatic carry-forward"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-carry"],
             "permissions": [
               {
@@ -1404,6 +1449,9 @@
                 "en": "Handover details"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-handovers"],
             "permissions": [
               {
@@ -1444,6 +1492,9 @@
                 "en": "Month closing"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-accounting-periods"],
             "permissions": [
               {
@@ -1548,6 +1599,9 @@
                 "en": "Handover records"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-handovers"],
             "permissions": [
               {
@@ -1652,6 +1706,9 @@
                 "en": "Activity settings"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-activity"],
             "permissions": [
               {
@@ -1756,6 +1813,9 @@
                 "en": "Receipts"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-receipts"],
             "permissions": [
               {
@@ -1916,6 +1976,9 @@
                 "en": "Invoices"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-invoices"],
             "permissions": [
               {
@@ -2066,6 +2129,9 @@
                 "en": "Invoice coverage"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-report-invoice"],
             "permissions": [
               {
@@ -2106,6 +2172,9 @@
                 "en": "Received report"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-report-received"],
             "permissions": [
               {
@@ -2146,6 +2215,9 @@
                 "en": "Receivable report"
               }
             },
+            "assetType": "organization",
+            "accessSupport": { "text": "支持", "value": "support" },
+            "supportDataAccess": true,
             "showPage": ["property-finance-report-receivable"],
             "permissions": [
               {
