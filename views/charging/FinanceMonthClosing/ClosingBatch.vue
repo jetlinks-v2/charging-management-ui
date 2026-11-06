@@ -70,11 +70,11 @@ async function run(confirm = false) {
 }
 const columns = [
   { title: t('MonthClosing.accountMonth'), dataIndex: 'month' },
-  { title: t('Handover.batchResult'), dataIndex: 'status' },
+  { title: t('FinanceHandover.batchResult'), dataIndex: 'status' },
   { title: t('MonthClosing.unhandedCount'), dataIndex: 'unhandedCount' },
   { title: t('MonthClosing.pendingHandoverCount'), dataIndex: 'pendingHandoverCount' },
   { title: t('MonthClosing.pendingReceivableCount'), dataIndex: 'pendingReceivableCount' },
-  { title: t('Handover.reason'), dataIndex: 'errorCode' }
+  { title: t('FinanceHandover.reason'), dataIndex: 'errorCode' }
 ]
 </script>
 <template>
@@ -99,13 +99,13 @@ const columns = [
         type="link"
         @click="jumpPage('charging/FinanceHandover')"
       >
-        {{ t('Handover.details') }}
+        {{ t('FinanceHandover.details') }}
       </a-button>
       <a-button
         type="link"
         @click="jumpPage('charging/FinanceHandoverRecord')"
       >
-        {{ t('Handover.records') }}
+        {{ t('FinanceHandover.records') }}
       </a-button>
       <a-button
         type="link"
@@ -116,7 +116,7 @@ const columns = [
     </a-space>
     <a-form layout="vertical">
       <a-form-item
-        :label="t('Handover.reason')"
+        :label="t('FinanceHandover.reason')"
         required
       >
         <a-textarea
@@ -139,7 +139,7 @@ const columns = [
           {{
             record.errorCode
               ? record.errorCode.startsWith('error.')
-                ? t('Handover.preflightRejected')
+                ? t('FinanceHandover.preflightRejected')
                 : record.errorCode
               : '—'
           }}
@@ -166,7 +166,7 @@ const columns = [
         :disabled="!reason.trim() || (!uncertain && rows.some((row) => row.status === 'FAILED'))"
         @click="run(!!rows.length)"
       >
-        {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'Handover.confirm' : 'Handover.preview') }}
+        {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'FinanceHandover.confirm' : 'FinanceHandover.preview') }}
       </j-permission-button>
     </template>
   </a-modal>

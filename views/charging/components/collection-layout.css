@@ -1,0 +1,134 @@
+/* 收款页面由卡片分配剩余高度，表格与空间树各自在卡片内滚动。 */
+.finance-page--collection
+  > :is(
+    .payment-ledger-layout,
+    .ledger-layout,
+    .handover-workspace,
+    .refund-workspace,
+    .carry-workspace,
+    .month-workspace
+  ) {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  margin-top: 1rem;
+}
+.finance-page--collection > :is(.payment-ledger-layout, .ledger-layout) {
+  overflow: hidden;
+}
+.finance-page--collection
+  :is(
+    .payment-workspace,
+    .funds-workspace,
+    .handover-workspace,
+    .refund-workspace,
+    .carry-workspace,
+    .month-workspace
+  ) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.finance-page--collection
+  :is(.payment-workspace, .funds-workspace, .handover-workspace, .refund-workspace, .carry-workspace, .month-workspace)
+  > :not(.jtable-body-spin, .handover-details-layout, .ant-tabs, .refund-applications, .payment-workspace) {
+  flex-shrink: 0;
+}
+.finance-page--collection .collection-filter {
+  flex: none;
+  margin-bottom: 1rem;
+}
+.finance-page--collection .jtable-body-spin {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.finance-page--collection :is(.payment-workspace, .funds-workspace) > .ant-tabs {
+  flex: none;
+}
+.finance-page--collection :is(.payment-workspace, .funds-workspace) > .ant-tabs > .ant-tabs-content-holder {
+  display: none;
+}
+.finance-page--collection .handover-details-layout {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.finance-page--collection .handover-details-table {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.finance-page--collection .handover-details-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.finance-page--collection .handover-status-filter {
+  width: 10rem;
+}
+.finance-page--collection .refund-workspace > .ant-tabs {
+  flex: 1;
+  min-height: 0;
+}
+.finance-page--collection .refund-workspace > .ant-tabs > .ant-tabs-content-holder,
+.finance-page--collection .refund-workspace .ant-tabs-content,
+.finance-page--collection .refund-workspace .ant-tabs-tabpane-active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.finance-page--collection :is(.refund-applications, .refund-history) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.finance-page--collection .refund-workspace .payment-workspace {
+  flex: 1;
+  margin-top: 0;
+}
+.finance-page--collection .refund-applications__filters {
+  flex: none;
+  flex-wrap: wrap;
+}
+.finance-page--collection .refund-applications__filters > .collection-filter {
+  flex: 1 0 100%;
+  margin-bottom: 0;
+}
+.finance-page--collection .month-workspace {
+  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+  border-radius: var(--ant-border-radius-lg, 0.5rem);
+  overflow: auto;
+}
+.finance-page--collection .carry-workspace {
+  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+}
+.finance-page--collection .handover-workspace {
+  gap: 1rem;
+  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+}
+.finance-page--collection .handover-workspace > .collection-filter {
+  margin-bottom: 0;
+}
+.finance-page--collection .handover-toolbar h2 {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .finance-page--collection > :is(.payment-ledger-layout, .ledger-layout),
+  .finance-page--collection .handover-details-layout {
+    overflow: auto;
+  }
+  .finance-page--collection :is(.payment-ledger-layout, .ledger-layout) > :is(.payment-workspace, .funds-workspace),
+  .finance-page--collection .handover-details-table {
+    flex: 1 0 24rem;
+  }
+}

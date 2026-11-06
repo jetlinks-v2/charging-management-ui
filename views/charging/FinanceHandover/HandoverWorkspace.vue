@@ -68,7 +68,7 @@ function viewIsRecords() {
 }
 const fields = computed(() =>
   ['closingDate', 'submittedBy'].map((key) => ({
-    title: t('Handover.' + key),
+    title: t('FinanceHandover.' + key),
     dataIndex: key,
     search: { type: 'string' as const }
   }))
@@ -83,11 +83,14 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage
+    fixed
+    collection
+  >
     <ProjectScopeBar />
     <section class="handover-workspace">
       <div class="handover-toolbar">
-        <h2>{{ t(view === 'sources' ? 'Handover.details' : 'Handover.records') }}</h2>
+        <h2>{{ t(view === 'sources' ? 'FinanceHandover.details' : 'FinanceHandover.records') }}</h2>
         <a-space>
           <template v-if="view === 'records'">
             <j-permission-button
@@ -97,7 +100,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
               :disabled="blocked || !batchSelected.length"
               @click="batchAction = action"
             >
-              {{ t('Handover.batch.' + action) }}
+              {{ t('FinanceHandover.batch.' + action) }}
             </j-permission-button>
           </template>
           <a-button
@@ -113,7 +116,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
             :disabled="!projectId || blocked || !selected.length"
             @click="start"
           >
-            {{ t('Handover.selected', { count: selected.length }) }}
+            {{ t('FinanceHandover.selected', { count: selected.length }) }}
           </j-permission-button>
         </a-space>
       </div>
@@ -121,14 +124,14 @@ function filter({ filter }: ConditionFilterChangePayload) {
         v-if="pendingCreate || pendingAction || recoveryFailed"
         type="warning"
         show-icon
-        :message="t(recoveryFailed ? 'Document.recoveryUnavailable' : 'Handover.pendingRecovery')"
+        :message="t(recoveryFailed ? 'Document.recoveryUnavailable' : 'FinanceHandover.pendingRecovery')"
       >
         <template #action>
           <a-button
             v-if="!recoveryFailed"
             @click="recover"
           >
-            {{ t('Handover.recover') }}
+            {{ t('FinanceHandover.recover') }}
           </a-button>
         </template>
       </a-alert>
@@ -140,15 +143,16 @@ function filter({ filter }: ConditionFilterChangePayload) {
           <a-select
             v-model:value="status"
             class="handover-status-filter"
-            :aria-label="t('Handover.state')"
+            :aria-label="t('FinanceHandover.state')"
             :options="
               ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'].map((value) => ({
                 value,
-                label: t('Handover.status.' + value)
+                label: t('FinanceHandover.status.' + value)
               }))
             "
           />
           <ConditionFilter
+            class="collection-filter"
             :fields="fields"
             @change="filter"
           />

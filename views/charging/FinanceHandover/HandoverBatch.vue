@@ -26,7 +26,7 @@ onMounted(() => {
   try {
     const pending = recovery.read()
     if (pending) {
-      if (pending.action !== props.action) throw Error(t('Handover.pendingRecovery'))
+      if (pending.action !== props.action) throw Error(t('FinanceHandover.pendingRecovery'))
       input = pending.input
       reason.value = input.reason
       uncertain.value = true
@@ -64,15 +64,15 @@ async function run(confirm = false) {
   }
 }
 const columns = [
-  { title: t('Handover.handoverNo'), dataIndex: 'id' },
-  { title: t('Handover.batchResult'), dataIndex: 'success' },
-  { title: t('Handover.reason'), dataIndex: 'errorCode' }
+  { title: t('FinanceHandover.handoverNo'), dataIndex: 'id' },
+  { title: t('FinanceHandover.batchResult'), dataIndex: 'success' },
+  { title: t('FinanceHandover.reason'), dataIndex: 'errorCode' }
 ]
 </script>
 <template>
   <a-modal
     :open="true"
-    :title="t('Handover.action.' + action)"
+    :title="t('FinanceHandover.action.' + action)"
     :width="760"
     :closable="!busy && !uncertain"
     :mask-closable="false"
@@ -81,11 +81,11 @@ const columns = [
     <a-alert
       type="info"
       show-icon
-      :message="t('Handover.batchHint', { count: records.length })"
+      :message="t('FinanceHandover.batchHint', { count: records.length })"
     />
     <a-form layout="vertical">
       <a-form-item
-        :label="t('Handover.reason')"
+        :label="t('FinanceHandover.reason')"
         required
       >
         <a-textarea
@@ -109,14 +109,14 @@ const columns = [
           {{
             record.errorCode
               ? record.errorCode.startsWith('error.')
-                ? t('Handover.preflightRejected')
+                ? t('FinanceHandover.preflightRejected')
                 : record.errorCode
               : '—'
           }}
         </template>
         <template v-else-if="column.dataIndex === 'success'">
           <a-tag :color="record.success ? 'success' : 'error'">
-            {{ t(record.success ? (completed ? 'Handover.batchCompleted' : 'Handover.ready') : 'Finance.failed') }}
+            {{ t(record.success ? (completed ? 'FinanceHandover.batchCompleted' : 'FinanceHandover.ready') : 'Finance.failed') }}
           </a-tag>
         </template>
       </template>
@@ -136,7 +136,7 @@ const columns = [
         :disabled="!reason.trim()"
         @click="run(!!rows.length)"
       >
-        {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'Handover.confirm' : 'Handover.preview') }}
+        {{ t(uncertain ? 'Cashier.retry' : rows.length ? 'FinanceHandover.confirm' : 'FinanceHandover.preview') }}
       </j-permission-button>
     </template>
   </a-modal>

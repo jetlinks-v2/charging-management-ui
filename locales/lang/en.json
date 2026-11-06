@@ -30,6 +30,7 @@
     "reportProjects": "Report projects"
   },
   "Finance": {
+    "export": "Export",
     "basic": "Company details",
     "invoice": "Invoice details",
     "banks": "Settlement banks",
@@ -1368,7 +1369,7 @@
     "at": "Verified at",
     "operator": "Verified by"
   },
-  "Handover": {
+  "FinanceHandover": {
     "title": "Handovers",
     "pending": "Pending sources",
     "records": "Handover records",

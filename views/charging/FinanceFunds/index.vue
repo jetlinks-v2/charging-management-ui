@@ -79,7 +79,10 @@ function revokeTopup(entry: FundEntry) {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage
+    fixed
+    collection
+  >
     <ProjectScopeBar />
     <div class="ledger-layout">
       <FinanceLedgerSpace :state="state.archive" />
@@ -142,6 +145,7 @@ function revokeTopup(entry: FundEntry) {
           />
         </a-tabs>
         <ConditionFilter
+          class="collection-filter"
           :fields="fields"
           @change="filter"
         />

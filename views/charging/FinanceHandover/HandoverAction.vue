@@ -15,7 +15,7 @@ const close = () => {
 <template>
   <a-modal
     :open="true"
-    :title="t('Handover.action.' + action)"
+    :title="t('FinanceHandover.action.' + action)"
     :width="560"
     :footer="null"
     :closable="canClose"
@@ -26,7 +26,7 @@ const close = () => {
     <a-result
       v-if="result"
       status="success"
-      :title="t('Handover.actionDone')"
+      :title="t('FinanceHandover.actionDone')"
     />
     <div
       v-else
@@ -36,19 +36,19 @@ const close = () => {
         show-icon
         :type="uncertain || failed ? 'warning' : 'info'"
         :message="
-          t(failed ? 'Document.recoveryUnavailable' : uncertain ? 'Handover.unknown' : 'Handover.actionHint.' + action)
+          t(failed ? 'Document.recoveryUnavailable' : uncertain ? 'FinanceHandover.unknown' : 'FinanceHandover.actionHint.' + action)
         "
       />
       <a-descriptions
         :column="2"
         size="small"
       >
-        <a-descriptions-item :label="t('Handover.date')">{{ batch.closingDate }}</a-descriptions-item>
-        <a-descriptions-item :label="t('Handover.cash')">￥{{ batch.cashAmount }}</a-descriptions-item>
+        <a-descriptions-item :label="t('FinanceHandover.date')">{{ batch.closingDate }}</a-descriptions-item>
+        <a-descriptions-item :label="t('FinanceHandover.cash')">￥{{ batch.cashAmount }}</a-descriptions-item>
       </a-descriptions>
       <a-form layout="vertical">
         <a-form-item
-          :label="t('Handover.reason')"
+          :label="t('FinanceHandover.reason')"
           required
         >
           <a-textarea
@@ -76,7 +76,7 @@ const close = () => {
         :loading="saving"
         @click="submit"
       >
-        {{ t(uncertain ? 'Cashier.retry' : 'Handover.action.' + action) }}
+        {{ t(uncertain ? 'Cashier.retry' : 'FinanceHandover.action.' + action) }}
       </j-permission-button>
     </div>
   </a-modal>

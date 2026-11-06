@@ -30,6 +30,7 @@
     "reportProjects": "报表项目范围"
   },
   "Finance": {
+    "export": "导出",
     "basic": "基本资料",
     "invoice": "开票资料",
     "banks": "入账银行",
@@ -1368,7 +1369,7 @@
     "at": "核销时间",
     "operator": "核销人"
   },
-  "Handover": {
+  "FinanceHandover": {
     "title": "交账管理",
     "pending": "待交账明细",
     "records": "交账记录",

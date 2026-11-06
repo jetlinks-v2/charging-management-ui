@@ -145,7 +145,7 @@ export function useHandoverWorkspace(view?: 'sources' | 'records') {
     detail.value = undefined
   }
   function changed(_keys: (string | number)[], rows: HandoverCandidate[]) {
-    if (rows.length > 100) return onlyMessage(t('Handover.limit'), 'warning')
+    if (rows.length > 100) return onlyMessage(t('FinanceHandover.limit'), 'warning')
     selected.value = rows
   }
   watch(

@@ -32,22 +32,22 @@ const close = () => {
     :open="true"
     :width="1040"
     icon="AuditOutlined"
-    :title="t('Handover.create')"
+    :title="t('FinanceHandover.create')"
     @update:open="close"
   >
     <div class="handover-content">
       <a-result
         v-if="result"
         status="success"
-        :title="t('Handover.created')"
-        :sub-title="t('Handover.waitReview')"
+        :title="t('FinanceHandover.created')"
+        :sub-title="t('FinanceHandover.waitReview')"
       />
       <template v-else>
         <a-alert
           v-if="uncertain || failed"
           show-icon
           type="warning"
-          :message="t(failed ? 'Document.recoveryUnavailable' : 'Handover.unknown')"
+          :message="t(failed ? 'Document.recoveryUnavailable' : 'FinanceHandover.unknown')"
         />
         <a-form
           layout="vertical"
@@ -55,7 +55,7 @@ const close = () => {
           class="handover-form"
         >
           <a-form-item
-            :label="t('Handover.date')"
+            :label="t('FinanceHandover.date')"
             required
           >
             <a-date-picker
@@ -64,7 +64,7 @@ const close = () => {
               style="width: 100%"
             />
           </a-form-item>
-          <a-form-item :label="t('Handover.remark')">
+          <a-form-item :label="t('FinanceHandover.remark')">
             <a-textarea
               v-model:value="form.remark"
               :maxlength="1000"
@@ -87,21 +87,21 @@ const close = () => {
           v-if="!preview"
           type="info"
           show-icon
-          :message="t('Handover.reviewHint', { count: candidates.length })"
+          :message="t('FinanceHandover.reviewHint', { count: candidates.length })"
         />
         <SectionCard
           v-if="preview"
           icon="ProfileOutlined"
-          :title="t('Handover.review')"
+          :title="t('FinanceHandover.review')"
         >
           <a-descriptions
             :column="2"
             size="small"
           >
-            <a-descriptions-item :label="t('Handover.amount')">
+            <a-descriptions-item :label="t('FinanceHandover.amount')">
               <strong class="handover-money">￥{{ preview.amount }}</strong>
             </a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.cash')">
+            <a-descriptions-item :label="t('FinanceHandover.cash')">
               <strong class="handover-money">￥{{ preview.cashAmount }}</strong>
             </a-descriptions-item>
           </a-descriptions>
@@ -124,7 +124,7 @@ const close = () => {
         :loading="calculating || saving"
         @click="preview ? submit() : calculate()"
       >
-        {{ t(uncertain ? 'Cashier.retry' : preview ? 'Handover.confirm' : 'Handover.preview') }}
+        {{ t(uncertain ? 'Cashier.retry' : preview ? 'FinanceHandover.confirm' : 'FinanceHandover.preview') }}
       </j-permission-button>
     </template>
   </JlDrawerShell>

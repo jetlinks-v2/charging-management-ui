@@ -7,7 +7,7 @@ import RefundHistory from './RefundHistory.vue'
 const { t } = useI18n()
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed collection>
     <ProjectScopeBar />
     <section class="refund-workspace">
       <a-tabs

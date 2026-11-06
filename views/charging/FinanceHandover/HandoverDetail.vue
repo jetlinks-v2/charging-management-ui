@@ -14,11 +14,11 @@ const screens = Grid.useBreakpoint()
 const statementOpen = ref(false)
 const { t, projectId, detail, loading, detailFailed, closeDetail, notify } = props.state
 const columns = computed(() => [
-  { title: t('Handover.operation'), dataIndex: 'action', width: 130, scopedSlots: true },
-  { title: t('Handover.state'), dataIndex: 'afterStatus', width: 120, scopedSlots: true },
-  { title: t('Handover.reason'), dataIndex: 'reason', width: 240 },
-  { title: t('Handover.operator'), dataIndex: 'modifierName', width: 140 },
-  { title: t('Handover.operationTime'), dataIndex: 'createTime', width: 180, scopedSlots: true }
+  { title: t('FinanceHandover.operation'), dataIndex: 'action', width: 130, scopedSlots: true },
+  { title: t('FinanceHandover.state'), dataIndex: 'afterStatus', width: 120, scopedSlots: true },
+  { title: t('FinanceHandover.reason'), dataIndex: 'reason', width: 240 },
+  { title: t('FinanceHandover.operator'), dataIndex: 'modifierName', width: 140 },
+  { title: t('FinanceHandover.operationTime'), dataIndex: 'createTime', width: 180, scopedSlots: true }
 ])
 const request = (q: Query) => queryHandoverLogs(projectId.value, detail.value!.batch.id, q)
 const files = computed(() =>
@@ -45,7 +45,7 @@ const files = computed(() =>
   <JlDrawerShell
     :open="true"
     :width="1040"
-    :title="t('Handover.detail')"
+    :title="t('FinanceHandover.detail')"
     icon="AuditOutlined"
     @update:open="closeDetail"
   >
@@ -59,9 +59,9 @@ const files = computed(() =>
       >
         <SectionCard
           icon="ProfileOutlined"
-          :title="t('Handover.summary')"
+          :title="t('FinanceHandover.summary')"
         >
-          <a-button @click="statementOpen = true">{{ t('Handover.statement') }}</a-button>
+          <a-button @click="statementOpen = true">{{ t('FinanceHandover.statement') }}</a-button>
           <a-space class="handover-status">
             <a-tag
               :color="
@@ -72,37 +72,37 @@ const files = computed(() =>
                     : 'default'
               "
             >
-              {{ t('Handover.status.' + detail.batch.status) }}
+              {{ t('FinanceHandover.status.' + detail.batch.status) }}
             </a-tag>
             <span>{{ detail.batch.closingDate }}</span>
-            <a-tag v-if="detail.batch.monthClosed">{{ t('Handover.monthClosed') }}</a-tag>
+            <a-tag v-if="detail.batch.monthClosed">{{ t('FinanceHandover.monthClosed') }}</a-tag>
           </a-space>
           <a-descriptions
             :column="screens.md ? 2 : 1"
             size="small"
           >
-            <a-descriptions-item :label="t('Handover.sourceCount')">{{ detail.batch.sourceCount }}</a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.lineCount')">{{ detail.batch.lineCount }}</a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.amount')">￥{{ detail.batch.amount }}</a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.cash')">￥{{ detail.batch.cashAmount }}</a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.submitter')">{{ detail.batch.submittedBy }}</a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.submittedAt')">
+            <a-descriptions-item :label="t('FinanceHandover.sourceCount')">{{ detail.batch.sourceCount }}</a-descriptions-item>
+            <a-descriptions-item :label="t('FinanceHandover.lineCount')">{{ detail.batch.lineCount }}</a-descriptions-item>
+            <a-descriptions-item :label="t('FinanceHandover.amount')">￥{{ detail.batch.amount }}</a-descriptions-item>
+            <a-descriptions-item :label="t('FinanceHandover.cash')">￥{{ detail.batch.cashAmount }}</a-descriptions-item>
+            <a-descriptions-item :label="t('FinanceHandover.submitter')">{{ detail.batch.submittedBy }}</a-descriptions-item>
+            <a-descriptions-item :label="t('FinanceHandover.submittedAt')">
               {{ detail.batch.submittedAt.replace('T', ' ') }}
             </a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.reviewer')">
+            <a-descriptions-item :label="t('FinanceHandover.reviewer')">
               {{ detail.batch.reviewedBy || '—' }}
             </a-descriptions-item>
-            <a-descriptions-item :label="t('Handover.reviewedAt')">
+            <a-descriptions-item :label="t('FinanceHandover.reviewedAt')">
               {{ detail.batch.reviewedAt?.replace('T', ' ') || '—' }}
             </a-descriptions-item>
             <a-descriptions-item
-              :label="t('Handover.remark')"
+              :label="t('FinanceHandover.remark')"
               :span="screens.md ? 2 : 1"
             >
               {{ detail.batch.remark || '—' }}
             </a-descriptions-item>
             <a-descriptions-item
-              :label="t('Handover.reviewRemark')"
+              :label="t('FinanceHandover.reviewRemark')"
               :span="screens.md ? 2 : 1"
             >
               {{ detail.batch.reviewRemark || '—' }}
@@ -117,13 +117,13 @@ const files = computed(() =>
         </SectionCard>
         <SectionCard
           icon="UnorderedListOutlined"
-          :title="t('Handover.lines')"
+          :title="t('FinanceHandover.lines')"
         >
           <HandoverLines :lines="detail.lines" />
         </SectionCard>
         <SectionCard
           icon="HistoryOutlined"
-          :title="t('Handover.logs')"
+          :title="t('FinanceHandover.logs')"
         >
           <j-pro-table
             :key="detail.batch.id"
@@ -140,18 +140,18 @@ const files = computed(() =>
             :scroll="{ x: 810 }"
             @request-error="notify"
           >
-            <template #action="row">{{ t('Handover.action.' + row.action) }}</template>
+            <template #action="row">{{ t('FinanceHandover.action.' + row.action) }}</template>
             <template #afterStatus="row">
-              <a-tag>{{ t('Handover.status.' + row.afterStatus) }}</a-tag>
+              <a-tag>{{ t('FinanceHandover.status.' + row.afterStatus) }}</a-tag>
             </template>
             <template #createTime="row">{{ dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') }}</template>
-            <template #emptyText><CloudEmpty :description="t('Handover.noLogs')" /></template>
+            <template #emptyText><CloudEmpty :description="t('FinanceHandover.noLogs')" /></template>
           </j-pro-table>
         </SectionCard>
       </div>
       <CloudEmpty
         v-else-if="!loading"
-        :description="t(detailFailed ? 'Finance.failed' : 'Handover.noRecords')"
+        :description="t(detailFailed ? 'Finance.failed' : 'FinanceHandover.noRecords')"
       />
     </a-spin>
     <template #foot>

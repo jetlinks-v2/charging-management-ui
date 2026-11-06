@@ -53,13 +53,13 @@ const close = () => {
           type="link"
           @click="jumpPage('charging/FinanceHandover')"
         >
-          {{ t('Handover.details') }}
+          {{ t('FinanceHandover.details') }}
         </a-button>
         <a-button
           type="link"
           @click="jumpPage('charging/FinanceHandoverRecord')"
         >
-          {{ t('Handover.records') }}
+          {{ t('FinanceHandover.records') }}
         </a-button>
         <a-button
           type="link"

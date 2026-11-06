@@ -41,9 +41,9 @@ const columns = computed(() => [
   { title: t('MonthClosing.accountMonth'), dataIndex: 'accountMonth', width: 110 },
   { title: t('MonthClosing.startDate'), dataIndex: 'startDate', width: 120 },
   { title: t('MonthClosing.endDate'), dataIndex: 'endDate', width: 120 },
-  { title: t('Handover.state'), dataIndex: 'status', width: 120, scopedSlots: true },
+  { title: t('FinanceHandover.state'), dataIndex: 'status', width: 120, scopedSlots: true },
   { title: t('MonthClosing.closedOn'), dataIndex: 'closedOn', width: 180 },
-  { title: t('Handover.operator'), dataIndex: 'closedName', width: 140 },
+  { title: t('FinanceHandover.operator'), dataIndex: 'closedName', width: 140 },
   { title: t('Finance.actions'), dataIndex: 'actions', width: 130, scopedSlots: true }
 ])
 const selection = computed(() => ({

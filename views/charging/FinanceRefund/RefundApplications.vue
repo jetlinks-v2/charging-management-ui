@@ -102,6 +102,7 @@ function filter(payload: ConditionFilterChangePayload) {
         </j-permission-button>
       </a-space>
       <ConditionFilter
+        class="collection-filter"
         :fields="fields"
         @change="filter"
       />

@@ -64,7 +64,10 @@ function schedule(row: CarryPlan) {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage
+    fixed
+    collection
+  >
     <ProjectScopeBar />
     <section class="finance-workspace carry-workspace">
       <div class="carry-heading">
@@ -92,6 +95,7 @@ function schedule(row: CarryPlan) {
         </a-space>
       </div>
       <ConditionFilter
+        class="collection-filter"
         :fields="fields"
         @change="filter"
       />

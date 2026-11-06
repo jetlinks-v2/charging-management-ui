@@ -5,14 +5,14 @@ import type { HandoverLine } from '../../../api/financeHandover'
 defineProps<{ lines: HandoverLine[] }>()
 const { t } = useI18n()
 const columns = computed(() => [
-  { title: t('Handover.space'), dataIndex: 'fullName', width: 260 },
-  { title: t('Handover.customer'), dataIndex: 'customerName', width: 130 },
-  { title: t('Handover.subject'), dataIndex: 'subjectName', width: 140 },
-  { title: t('Handover.calcStartDate'), dataIndex: 'calcStartDate', width: 120 },
-  { title: t('Handover.calcEndDate'), dataIndex: 'calcEndDate', width: 120 },
-  { title: t('Handover.method'), dataIndex: 'methodText', width: 120 },
-  { title: t('Handover.amount'), dataIndex: 'amount', width: 130, align: 'right' as const },
-  { title: t('Handover.cash'), dataIndex: 'cashAmount', width: 130, align: 'right' as const }
+  { title: t('FinanceHandover.space'), dataIndex: 'fullName', width: 260 },
+  { title: t('FinanceHandover.customer'), dataIndex: 'customerName', width: 130 },
+  { title: t('FinanceHandover.subject'), dataIndex: 'subjectName', width: 140 },
+  { title: t('FinanceHandover.calcStartDate'), dataIndex: 'calcStartDate', width: 120 },
+  { title: t('FinanceHandover.calcEndDate'), dataIndex: 'calcEndDate', width: 120 },
+  { title: t('FinanceHandover.method'), dataIndex: 'methodText', width: 120 },
+  { title: t('FinanceHandover.amount'), dataIndex: 'amount', width: 130, align: 'right' as const },
+  { title: t('FinanceHandover.cash'), dataIndex: 'cashAmount', width: 130, align: 'right' as const }
 ])
 </script>
 <template>

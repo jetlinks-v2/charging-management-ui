@@ -33,7 +33,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 </script>
 <template>
-  <div>
+  <div class="refund-history">
     <section class="payment-workspace">
       <div class="payment-heading">
         <div>
@@ -49,6 +49,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
         </a-button>
       </div>
       <ConditionFilter
+        class="collection-filter"
         :fields="fields"
         @change="filter"
       />

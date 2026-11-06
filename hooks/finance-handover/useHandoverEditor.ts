@@ -48,7 +48,7 @@ export function useHandoverEditor(
     recovery || useHandoverRecovery<HandoverInput, HandoverPreview>(() => props.projectId, 'create'),
     saved,
     { preview: previewHandover, confirm: confirmHandover },
-    { unavailable: 'Document.recoveryUnavailable', clearFailed: 'Document.clearFailed', unknown: 'Handover.unknown' }
+    { unavailable: 'Document.recoveryUnavailable', clearFailed: 'Document.clearFailed', unknown: 'FinanceHandover.unknown' }
   )
   const locked = computed(
     () =>

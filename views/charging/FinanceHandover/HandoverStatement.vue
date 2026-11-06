@@ -15,7 +15,7 @@ const { exportRows, exporting, previewUrl, previewOpen, closePreview } = useRepo
   projectId: toRef(props, 'projectId'),
   enabled: () => !!statement.value,
   input: () => props.id,
-  title: () => t('Handover.statement'),
+  title: () => t('FinanceHandover.statement'),
   fallback: () => t('Finance.failed'),
   request: (id, format) => exportHandoverStatement(props.projectId, id, format)
 })
@@ -30,7 +30,7 @@ const columns = [
   'internalAmount',
   'amount'
 ].map((key) => ({
-  title: t('Handover.statementField.' + key),
+  title: t('FinanceHandover.statementField.' + key),
   dataIndex: key,
   align: key === 'subjectName' ? ('left' as const) : ('right' as const)
 }))
@@ -48,7 +48,7 @@ onMounted(async () => {
   <JlDrawerShell
     :open="true"
     :width="1000"
-    :title="t('Handover.statement')"
+    :title="t('FinanceHandover.statement')"
     @update:open="emit('close')"
   >
     <a-spin :spinning="loading">
@@ -57,7 +57,7 @@ onMounted(async () => {
         <p>{{ statement.detail.batch.closingDate }} · {{ statement.detail.batch.submittedBy }}</p>
         <a-alert
           type="info"
-          :message="t('Handover.statementScope')"
+          :message="t('FinanceHandover.statementScope')"
         />
         <a-table
           row-key="subjectName"
@@ -77,7 +77,7 @@ onMounted(async () => {
         :loading="exporting"
         @click="exportRows('pdf', true)"
       >
-        {{ t('Handover.previewPrint') }}
+        {{ t('FinanceHandover.previewPrint') }}
       </a-button>
       <a-button
         :loading="exporting"
@@ -95,7 +95,7 @@ onMounted(async () => {
   </JlDrawerShell>
   <ReportPdfPreview
     v-if="previewOpen"
-    :state="{ open: previewOpen, url: previewUrl, title: t('Handover.statement'), filename: t('Handover.statement') }"
+    :state="{ open: previewOpen, url: previewUrl, title: t('FinanceHandover.statement'), filename: t('FinanceHandover.statement') }"
     @close="closePreview"
   />
 </template>

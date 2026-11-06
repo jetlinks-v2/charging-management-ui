@@ -69,7 +69,7 @@ function editorSaved() {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed collection>
     <ProjectScopeBar />
     <div class="month-workspace">
       <div class="month-toolbar">

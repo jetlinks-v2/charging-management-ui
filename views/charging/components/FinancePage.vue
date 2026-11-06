@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { FullPage } from '@jetlinks-web-core/layout'
+import './collection-layout.css'
 
-defineProps<{ fixed?: boolean }>()
+defineProps<{ fixed?: boolean; collection?: boolean }>()
 </script>
 
 <template>
   <j-page-container>
     <FullPage
       class="finance-page"
-      :class="{ 'finance-page--fixed': fixed }"
+      :class="{ 'finance-page--fixed': fixed, 'finance-page--collection': collection }"
       :fixed="!!fixed"
       :flex="!!fixed"
       margin="0"

@@ -24,7 +24,7 @@ export function useHandoverAction(
       }),
       confirm: actHandover
     },
-    { unavailable: 'Document.recoveryUnavailable', clearFailed: 'Document.clearFailed', unknown: 'Handover.unknown' }
+    { unavailable: 'Document.recoveryUnavailable', clearFailed: 'Document.clearFailed', unknown: 'FinanceHandover.unknown' }
   )
   const locked = computed(
     () =>

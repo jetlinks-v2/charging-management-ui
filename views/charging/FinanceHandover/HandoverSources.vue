@@ -22,13 +22,13 @@ const { exportRows, exporting } = useReportExport({
   projectId,
   enabled: () => !!projectId.value,
   input: () => ({ ...filter, spaceId: space.selectedId.value }),
-  title: () => t('Handover.details'),
+  title: () => t('FinanceHandover.details'),
   fallback: () => t('Finance.failed'),
   request: (input, format) => exportHandoverDetails(projectId.value, input, format)
 })
 const fields = computed(() =>
   ['customerName', 'subjectName', 'occurredStart', 'occurredEnd'].map((key) => ({
-    title: t('Handover.' + key),
+    title: t('FinanceHandover.' + key),
     dataIndex: key,
     search: { type: 'string' as const }
   }))
@@ -47,19 +47,19 @@ const request = (q: Query, config?: { signal: AbortSignal }) =>
     config?.signal
   )
 const columns = computed(() => [
-  { title: t('Handover.sourceType'), dataIndex: 'type', width: 110, scopedSlots: true },
-  { title: t('Handover.fullName'), dataIndex: 'fullName', width: 190 },
-  { title: t('Handover.customer'), dataIndex: 'customerName', width: 120 },
-  { title: t('Handover.subjectName'), dataIndex: 'subjectName', width: 140 },
-  { title: t('Handover.amount'), dataIndex: 'amount', width: 120, align: 'right' },
-  { title: t('Handover.cash'), dataIndex: 'cashAmount', width: 120, align: 'right' },
-  { title: t('Handover.methodText'), dataIndex: 'methodText', width: 120 },
-  { title: t('Handover.bankName'), dataIndex: 'bankName', width: 150 },
-  { title: t('Handover.calcStartDate'), dataIndex: 'calcStartDate', width: 120 },
-  { title: t('Handover.calcEndDate'), dataIndex: 'calcEndDate', width: 120 },
-  { title: t('Handover.receiptNumbers'), dataIndex: 'receiptNumbers', width: 180 },
-  { title: t('Handover.occurredAt'), dataIndex: 'occurredAt', width: 180 },
-  { title: t('Handover.state'), dataIndex: 'state', width: 120, scopedSlots: true },
+  { title: t('FinanceHandover.sourceType'), dataIndex: 'type', width: 110, scopedSlots: true },
+  { title: t('FinanceHandover.fullName'), dataIndex: 'fullName', width: 190 },
+  { title: t('FinanceHandover.customer'), dataIndex: 'customerName', width: 120 },
+  { title: t('FinanceHandover.subjectName'), dataIndex: 'subjectName', width: 140 },
+  { title: t('FinanceHandover.amount'), dataIndex: 'amount', width: 120, align: 'right' },
+  { title: t('FinanceHandover.cash'), dataIndex: 'cashAmount', width: 120, align: 'right' },
+  { title: t('FinanceHandover.methodText'), dataIndex: 'methodText', width: 120 },
+  { title: t('FinanceHandover.bankName'), dataIndex: 'bankName', width: 150 },
+  { title: t('FinanceHandover.calcStartDate'), dataIndex: 'calcStartDate', width: 120 },
+  { title: t('FinanceHandover.calcEndDate'), dataIndex: 'calcEndDate', width: 120 },
+  { title: t('FinanceHandover.receiptNumbers'), dataIndex: 'receiptNumbers', width: 180 },
+  { title: t('FinanceHandover.occurredAt'), dataIndex: 'occurredAt', width: 180 },
+  { title: t('FinanceHandover.state'), dataIndex: 'state', width: 120, scopedSlots: true },
   { title: t('Finance.actions'), dataIndex: 'actions', width: 120, scopedSlots: true }
 ])
 const mappedRequest = async (q: Query, config?: { signal: AbortSignal }) => {
@@ -108,19 +108,23 @@ watch([space.selectedId, () => filter.handed], () => {
   <div class="handover-details-layout">
     <FinanceLedgerSpace :state="space" />
     <div class="handover-details-table">
-      <a-select
-        v-model:value="filter.handed"
-        :options="['ALL', 'NO', 'YES'].map((value) => ({ value, label: t('Handover.handed.' + value) }))"
-        style="width: 160px; margin-bottom: 12px"
-      />
-      <a-button
-        :loading="exporting"
-        style="float: right"
-        @click="exportRows('excel')"
-      >
-        Excel
-      </a-button>
+      <div class="handover-details-toolbar">
+        <a-select
+          v-model:value="filter.handed"
+          :aria-label="t('FinanceHandover.state')"
+          :options="['ALL', 'NO', 'YES'].map((value) => ({ value, label: t('FinanceHandover.handed.' + value) }))"
+          class="handover-status-filter"
+        />
+        <a-button
+          :loading="exporting"
+          @click="exportRows('excel')"
+        >
+          <AIcon type="DownloadOutlined" />
+          {{ t('Finance.export') }}
+        </a-button>
+      </div>
       <ConditionFilter
+        class="collection-filter"
         :fields="fields"
         @change="apply"
       />
@@ -143,7 +147,7 @@ watch([space.selectedId, () => filter.handed], () => {
         :pagination="{ pageSize: 12 }"
         :alert-show="false"
         :body-style="{ padding: 0 }"
-        :scroll="{ x: 2050, y: 420 }"
+        :scroll="{ x: 2050 }"
         @request-error="notify"
       >
         <template #type="row">
@@ -151,12 +155,12 @@ watch([space.selectedId, () => filter.handed], () => {
             ['RECEIVABLE', 'TEMPORARY', 'TOPUP', 'REFUND', 'WITHDRAW', 'TRANSFER_IN', 'TRANSFER_OUT'].includes(
               row.line.businessType
             )
-              ? t('Handover.business.' + row.line.businessType)
-              : t('Handover.source.' + row.type)
+              ? t('FinanceHandover.business.' + row.line.businessType)
+              : t('FinanceHandover.source.' + row.type)
           }}
         </template>
         <template #state="row">
-          <a-tag>{{ row.status ? t('Handover.status.' + row.status) : t('Handover.handed.NO') }}</a-tag>
+          <a-tag>{{ row.status ? t('FinanceHandover.status.' + row.status) : t('FinanceHandover.handed.NO') }}</a-tag>
         </template>
         <template #actions="row">
           <j-permission-button
@@ -166,7 +170,7 @@ watch([space.selectedId, () => filter.handed], () => {
             :disabled="blocked"
             @click="cancel(row)"
           >
-            {{ t('Handover.action.CANCEL') }}
+            {{ t('FinanceHandover.action.CANCEL') }}
           </j-permission-button>
           <a-button
             v-if="row.batchId"
@@ -176,7 +180,7 @@ watch([space.selectedId, () => filter.handed], () => {
             {{ t('Finance.detail') }}
           </a-button>
         </template>
-        <template #emptyText><CloudEmpty :description="t('Handover.noSources')" /></template>
+        <template #emptyText><CloudEmpty :description="t('FinanceHandover.noSources')" /></template>
       </j-pro-table>
     </div>
   </div>

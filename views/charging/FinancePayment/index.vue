@@ -59,7 +59,10 @@ function filter({ filter }: ConditionFilterChangePayload) {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage
+    fixed
+    collection
+  >
     <ProjectScopeBar />
     <div class="payment-ledger-layout">
       <FinanceLedgerSpace :state="archive" />
@@ -125,6 +128,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
             </template>
           </a-alert>
           <ConditionFilter
+            class="collection-filter"
             :fields="fields"
             @change="filter"
           />
