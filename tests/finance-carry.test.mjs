@@ -1,9 +1,10 @@
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createRenderer, defineComponent, h, nextTick, ref } from 'vue'
+import { createRenderer, defineComponent, h, nextTick, reactive, ref } from 'vue'
 const require = createRequire(import.meta.url)
 const names = [
   'getCarrySubjects',
@@ -260,5 +261,77 @@ test('failed standard options keep the editor from saving an unverified scope', 
   await state.save({ name: '不可保存', subjectIds: ['subject'] })
   assert.equal(state.failed.value, true)
   assert.equal(saved, false)
+  unmount()
+})
+
+const { parse, compileScript, compileTemplate } = createRequire(require.resolve('vue'))('@vue/compiler-sfc')
+async function carryComponent(name) {
+  const filename = fileURLToPath(new URL('../views/charging/FinanceCarry/' + name + '.vue', import.meta.url))
+  const { descriptor, errors } = parse(readFileSync(filename, 'utf8'), { filename })
+  assert.deepEqual(errors, [])
+  const script = compileScript(descriptor, { id: name, genDefaultAs: '__component' })
+  const template = compileTemplate({
+    source: descriptor.template.content,
+    filename,
+    id: name,
+    compilerOptions: { bindingMetadata: script.bindings }
+  })
+  assert.deepEqual(template.errors, [])
+  const result = await build({
+    stdin: { contents: script.content + '\nexport default __component', loader: 'ts', resolveDir: process.cwd() },
+    bundle: true,
+    write: false,
+    platform: 'node',
+    format: 'cjs',
+    external: ['vue'],
+    plugins: [{
+      name: 'carry-components',
+      setup(builder) {
+        builder.onResolve({ filter: /vue-i18n|\.vue$/ }, (args) => ({ path: args.path, namespace: 'component-mock' }))
+        builder.onLoad({ filter: /.*/, namespace: 'component-mock' }, (args) => ({
+          contents: args.path === 'vue-i18n' ? 'export const useI18n=()=>({t:key=>key})' : 'export default {}'
+        }))
+      }
+    }]
+  })
+  const module = { exports: {} }
+  new Function('require', 'module', 'exports', result.outputFiles[0].text)(require, module, module.exports)
+  return module.exports.default
+}
+
+test('single subject and standard selections retain singleton payloads and clear stale standards', async () => {
+  const component = await carryComponent('CarryScopeFields')
+  const props = reactive({
+    model: { subjectIds: ['property'], standardIds: ['property-standard'] },
+    subjects: [],
+    standards: [
+      { id: 'property-standard', subjectId: 'property' },
+      { id: 'water-standard', subjectId: 'water' }
+    ]
+  })
+  const { state, unmount } = mount(() => component.setup(props, { expose() {} }))
+  state.subject.value = 'water'
+  await flush()
+  assert.deepEqual(props.model.subjectIds, ['water'])
+  assert.deepEqual(props.model.standardIds, [])
+  assert.deepEqual(state.availableStandards.value.map((row) => row.id), ['water-standard'])
+  state.standard.value = 'water-standard'
+  assert.deepEqual(props.model.standardIds, ['water-standard'])
+  state.subject.value = undefined
+  await flush()
+  assert.deepEqual(props.model.subjectIds, [])
+  assert.deepEqual(props.model.standardIds, [])
+  unmount()
+})
+
+test('editing a legacy multiselect plan requires explicit reselection instead of using its first value', async () => {
+  const component = await carryComponent('CarryEditor')
+  const props = {
+    detail: { input: { subjectIds: ['a', 'b'], standardIds: ['standard-a', 'standard-b'] } },
+    subjects: [], standards: [], saving: false
+  }
+  const { state, unmount } = mount(() => component.setup(props, { expose() {}, emit() {} }))
+  assert.deepEqual(state.model.value.subjectIds, [])
+  assert.deepEqual(state.model.value.standardIds, [])
   unmount()
 })

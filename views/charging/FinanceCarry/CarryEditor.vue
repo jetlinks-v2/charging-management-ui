@@ -39,7 +39,11 @@ watch(
   () => props.detail,
   (row) => {
     model.value = row
-      ? { ...row.input, subjectIds: [...row.input.subjectIds], standardIds: [...(row.input.standardIds || [])] }
+      ? {
+          ...row.input,
+          subjectIds: row.input.subjectIds.length === 1 ? [...row.input.subjectIds] : [],
+          standardIds: row.input.standardIds?.length === 1 ? [...row.input.standardIds] : []
+        }
       : initial()
   },
   { immediate: true }

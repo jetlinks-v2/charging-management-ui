@@ -33,7 +33,7 @@ const selection = computed(() =>
               ? input.standardIds
                   .map((id) => standards.find((row) => row.id === id)?.name || t('Carry.unavailableStandard'))
                   .join('、')
-              : t('Carry.allStandards')
+              : t('Carry.missingStandard')
           },
           { label: t('Carry.period'), value: input.periodStart + ' ~ ' + input.periodEnd }
         ]"

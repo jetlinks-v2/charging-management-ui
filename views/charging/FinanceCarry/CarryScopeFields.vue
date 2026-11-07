@@ -5,6 +5,18 @@ import type { CarryInput, CarrySubject, CarryStandard } from '../../../api/finan
 const props = defineProps<{ model: CarryInput; subjects: CarrySubject[]; standards: CarryStandard[] }>()
 const { t } = useI18n()
 const required = (key: string) => [{ required: true, message: t('Finance.required', { field: t('Carry.' + key) }) }]
+const subject = computed<string | undefined>({
+  get: () => props.model.subjectIds[0],
+  set: (value) => {
+    props.model.subjectIds = value ? [value] : []
+  }
+})
+const standard = computed<string | undefined>({
+  get: () => props.model.standardIds?.[0],
+  set: (value) => {
+    props.model.standardIds = value ? [value] : []
+  }
+})
 const availableStandards = computed(() =>
   props.standards.filter((row) => props.model.subjectIds.includes(row.subjectId))
 )
@@ -14,7 +26,8 @@ watch(
     props.model.standardIds = props.model.standardIds?.filter((id) =>
       availableStandards.value.some((row) => row.id === id)
     )
-  }
+  },
+  { immediate: true }
 )
 </script>
 <template>
@@ -38,11 +51,9 @@ watch(
       :rules="required('subjects')"
     >
       <a-select
-        v-model:value="model.subjectIds"
-        mode="multiple"
+        v-model:value="subject"
         show-search
         option-filter-prop="label"
-        :max-tag-count="3"
         :options="
           subjects.map((row) => ({ value: row.id, label: row.name + ' · ' + row.code, disabled: !row.enabled }))
         "
@@ -52,17 +63,16 @@ watch(
     <a-form-item
       name="standardIds"
       :label="t('Carry.standards')"
+      :rules="required('standards')"
     >
       <a-select
-        v-model:value="model.standardIds"
-        mode="multiple"
+        v-model:value="standard"
         show-search
         allow-clear
         option-filter-prop="label"
-        :max-tag-count="3"
         :disabled="!model.subjectIds.length"
         :options="availableStandards.map((row) => ({ value: row.id, label: row.name + ' · ' + row.code }))"
-        :placeholder="t('Carry.allStandards')"
+        :placeholder="t('Carry.chooseStandard')"
       />
     </a-form-item>
     <div class="finance-form-grid">

@@ -8,7 +8,7 @@ export interface CarryInput {
   version?: number
   name: string
   subjectIds: string[]
-  standardIds?: string[]
+  standardIds: string[]
   periodStart: string
   periodEnd: string
   frequency: CarryFrequency
