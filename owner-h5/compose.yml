@@ -1,0 +1,15 @@
+services:
+  finance-owner-h5:
+    build: .
+    container_name: property-finance-owner-h5
+    restart: unless-stopped
+    ports:
+      - "9301:80"
+    volumes:
+      - ./public/config.json:/usr/share/nginx/html/config.json:ro
+    networks:
+      - jetlinks
+networks:
+  jetlinks:
+    external: true
+    name: all-in-one_default

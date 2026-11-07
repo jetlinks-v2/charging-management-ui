@@ -1,0 +1,25 @@
+html { min-height: 100%; background: #e8f1f8; }
+.app-shell { isolation: isolate; max-width: 480px; min-height: 100dvh; margin-inline: auto; background: var(--canvas); position: relative; }
+.topbar { height: calc(58px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) var(--gutter) 0; display: flex; align-items: center; gap: 6px; background: var(--canvas); position: sticky; top: 0; z-index: 10; }
+.topbar h1 { font-size: 17px; font-weight: 600; line-height: 1.5; }
+.topbar .ant-btn { margin-left: -12px; width: 36px; padding: 0; }
+.root-bar { justify-content: space-between; }
+.root-bar h1 { font-size: 19px; }
+.header-link { font-size: 13px; color: var(--muted); }
+.page { padding: 0 var(--gutter) 100px; }
+.with-dock { padding-bottom: calc(126px + env(safe-area-inset-bottom)); }
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; display: flex; background: #fff; border-top: 1px solid var(--line); padding: 9px var(--gutter) calc(9px + env(safe-area-inset-bottom)); z-index: 15; }
+.bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--muted); font-size: 11px; min-height: 45px; }
+.bottom-nav .anticon { font-size: 21px; }
+.bottom-nav a.active { color: var(--accent); font-weight: 600; }
+.bottom-nav a.active > .anticon { background: var(--tint); border-radius: 12px; padding: 5px 18px; margin: -5px -18px; }
+.dock { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; border-top: 1px solid var(--line); padding: 14px var(--gutter) calc(14px + env(safe-area-inset-bottom)); z-index: 15; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.dock-label { display: block; font-size: 12px; color: var(--muted); }
+.dock strong { display: block; font-size: 24px; margin-top: 3px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.dock .ant-btn { height: 46px; min-width: 126px; border-radius: 12px; padding-inline: 20px; font-size: 15px; flex-shrink: 0; }
+@media (min-width:600px) { .app-shell { box-shadow: 0 8px 48px #244d7012; } }
+@media (max-width:350px) { .dock strong { font-size: 22px; } .dock .ant-btn { min-width: 106px; padding-inline: 15px; } }
+
+.app-shell::before { content: ""; position: absolute; inset: 0 0 auto; height: 310px; background: url('../assets/community-sky.webp') center top / 100% 100% no-repeat; z-index: -1; pointer-events: none; mask-image: linear-gradient(#000 65%,transparent); }
+.topbar { background: #eaf6ff; }
+.login-page { position: relative; }
