@@ -98,15 +98,10 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
     () => model.subjectId,
     () => {
       if (confirmation.uncertain.value || model.action !== 'TOPUP') return
-      if (model.type === 'ADVANCE') {
-        if (standard.value?.subjectId !== model.subjectId) {
-          model.standardId = undefined
-          model.quantity = undefined
-          ++quoteToken
-        }
-      } else {
-        // 新收款统一归属项目默认公司，押金没有收费标准。
-        model.companyId = options.value.defaultCompanyId || ''
+      if (standard.value?.subjectId !== model.subjectId) {
+        model.standardId = undefined
+        model.quantity = undefined
+        ++quoteToken
       }
     },
     { flush: 'sync' }
@@ -121,7 +116,7 @@ export function useFundEditor(props: { projectId: string; draft: FundDraft }, sa
     () => {
       if (confirmation.uncertain.value) return
       optionId.value = funding.value[0]?.id || ''
-      if (model.action === 'TOPUP' && model.type === 'ADVANCE' && standard.value?.companyId !== model.companyId) {
+      if (model.action === 'TOPUP' && standard.value?.companyId !== model.companyId) {
         model.standardId = undefined
         ++quoteToken
         model.quantity = undefined

@@ -894,6 +894,7 @@
     "confirm": "Confirm original top-up reversal"
   },
   "Carry": {
+    "saved": "Saved plan “{name}”",
     "title": "Automatic carry-forward",
     "hint": "Apply customer advance balances to receivables on schedule and review each run.",
     "name": "Plan name",
@@ -905,6 +906,9 @@
     "more": "More",
     "scope": "Carry-forward scope",
     "subjects": "Charge subjects",
+    "standards": "Charging standards",
+    "allStandards": "All standards under selected subjects",
+    "unavailableStandard": "Standard unavailable",
     "chooseSubjects": "Choose subjects issued to this project",
     "periodStart": "Billing start date",
     "periodEnd": "Billing end date",

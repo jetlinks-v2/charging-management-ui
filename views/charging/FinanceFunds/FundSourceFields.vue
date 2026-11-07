@@ -47,13 +47,13 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
           />
         </a-form-item>
         <a-form-item
-          v-if="model.type === 'ADVANCE'"
           :label="t('Setting.standard')"
           name="standardId"
-          :rules="required('Setting.standard')"
+          :rules="model.type === 'ADVANCE' ? required('Setting.standard') : undefined"
         >
           <a-select
             v-model:value="model.standardId"
+            allow-clear
             show-search
             :disabled="!model.subjectId"
             :options="sourceStandards.map((v) => ({ value: v.id, label: v.standardName }))"

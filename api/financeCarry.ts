@@ -8,6 +8,7 @@ export interface CarryInput {
   version?: number
   name: string
   subjectIds: string[]
+  standardIds?: string[]
   periodStart: string
   periodEnd: string
   frequency: CarryFrequency
@@ -28,6 +29,12 @@ export interface CarrySubject {
   name: string
   code: string
   enabled: boolean
+}
+export interface CarryStandard {
+  id: string
+  subjectId: string
+  name: string
+  code: string
 }
 export interface CarryRun {
   id: string
@@ -74,6 +81,8 @@ const page = <T>(response: { success: boolean; result: T; message?: string }) =>
 }
 export const getCarrySubjects = (project: string) =>
   request.get<CarrySubject[]>(`${base(project)}/_options`, {}, { hiddenError: true }).then(checked)
+export const getCarryStandards = (project: string) =>
+  request.get<CarryStandard[]>(`${base(project)}/_standards`, {}, { hiddenError: true }).then(checked)
 export const queryCarryPlans = (project: string, query: Query, signal?: AbortSignal) =>
   request.post<Page<CarryPlan>>(`${base(project)}/_query`, query, { signal, hiddenError: true }).then(page)
 export const getCarryPlan = (project: string, plan: string) =>
@@ -115,9 +124,10 @@ export const queryCarryItems = (
   signal?: AbortSignal
 ) =>
   request
-    .post<
-      Page<CarryItem>
-    >(`${runs(project, plan)}/${id(run)}/works/${id(work)}/items/_query`, query, { signal, hiddenError: true })
+    .post<Page<CarryItem>>(`${runs(project, plan)}/${id(run)}/works/${id(work)}/items/_query`, query, {
+      signal,
+      hiddenError: true
+    })
     .then(page)
 export const retryCarryRun = (project: string, plan: string, run: string) =>
   request.post<CarryRun>(`${runs(project, plan)}/${id(run)}/_retry`, undefined, { hiddenError: true }).then(checked)

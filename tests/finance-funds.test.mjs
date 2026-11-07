@@ -355,6 +355,47 @@ test('预收固定项目默认公司，标准限该公司及所选科目，切�
   unmount()
 })
 
+test('押金固定项目默认公司，标准限该公司及所选科目，切换科目不改变公司', async () => {
+  globalThis.__fundRecovery = storage()
+  const { state, unmount } = mount(
+    () => useFundEditor({ projectId: 'project', draft: { type: 'DEPOSIT', action: 'TOPUP' } }, () => {}),
+    {
+      getFundsOptions: async () => ({
+        defaultCompanyId: 'one',
+        companies: [
+          { id: 'two', funding: [] },
+          { id: 'one', funding: [{ id: 'cash', method: '1' }] }
+        ],
+        projectSubjects: [],
+        standards: [
+          { id: 'a', subjectId: 'subject-a', subjectName: '物业费', companyId: 'one' },
+          { id: 'b', subjectId: 'subject-b', subjectName: '停车费', companyId: 'one' },
+          { id: 'foreign', subjectId: 'subject-b', subjectName: '停车费', companyId: 'two' }
+        ]
+      })
+    }
+  )
+  await flush()
+  state.model.subjectId = 'subject-b'
+  assert.deepEqual(
+    state.sourceStandards.value.map((v) => v.id),
+    ['b']
+  )
+  state.model.standardId = 'b'
+  state.standardChanged()
+  await flush()
+  assert.equal(state.model.companyId, 'one')
+  state.model.subjectId = 'subject-a'
+  assert.equal(state.model.standardId, undefined)
+  assert.equal(state.model.companyId, 'one')
+  assert.deepEqual(
+    state.sourceStandards.value.map((v) => v.id),
+    ['a']
+  )
+  assert.equal(state.model.method, '1')
+  unmount()
+})
+
 test('没有项目默认公司时预收不能自动选择其他公司，也不能发起收款预览', async () => {
   globalThis.__fundRecovery = storage()
   let previews = 0

@@ -18,6 +18,7 @@ export function useCarryWorkspace() {
     saving = ref(false)
   const detail = ref<api.CarryPlan>(),
     subjects = ref<api.CarrySubject[]>([]),
+    standards = ref<api.CarryStandard[]>([]),
     history = ref<api.CarryPlan>()
   let generation = 0,
     disposed = false,
@@ -44,13 +45,16 @@ export function useCarryWorkspace() {
     failed.value = false
     detail.value = undefined
     subjects.value = []
+    standards.value = []
     try {
-      const [options, row] = await Promise.all([
+      const [options, standardOptions, row] = await Promise.all([
         api.getCarrySubjects(project),
+        api.getCarryStandards(project),
         id ? api.getCarryPlan(project, id) : undefined
       ])
       if (!disposed && token === generation) {
         subjects.value = options
+        standards.value = standardOptions
         detail.value = row
       }
     } catch (e) {
@@ -75,7 +79,7 @@ export function useCarryWorkspace() {
     try {
       await api.saveCarryPlan(projectId.value, detail.value?.plan.id, { ...input, version: detail.value?.plan.version })
       open.value = false
-      onlyMessage(t('Finance.saved', { name: input.name }), 'success')
+      onlyMessage(t('Carry.saved', { name: input.name }), 'success')
       reload()
     } catch (e) {
       notify(e)
@@ -120,6 +124,7 @@ export function useCarryWorkspace() {
     saving,
     detail,
     subjects,
+    standards,
     history,
     select,
     retry: () => select(selectedId, readOnly.value),

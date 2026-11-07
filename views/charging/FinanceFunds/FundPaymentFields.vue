@@ -29,7 +29,7 @@ const payment = computed(() => props.phase !== 'business')
         />
       </a-form-item>
       <a-form-item
-        v-if="business && model.action === 'TOPUP'"
+        v-if="business && model.action === 'TOPUP' && model.type === 'ADVANCE'"
         :label="t('Funds.quantity')"
       >
         <a-input-number

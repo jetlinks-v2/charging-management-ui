@@ -24,6 +24,7 @@ const {
   saving,
   detail,
   subjects,
+  standards,
   history,
   select,
   retry,
@@ -56,10 +57,10 @@ function schedule(row: CarryPlan) {
     i.frequency === 'DAILY'
       ? ''
       : i.frequency === 'WEEKLY'
-        ? t('Carry.week' + i.executeDay)
-        : i.frequency === 'MONTHLY'
-          ? t('Carry.day', { day: i.executeDay })
-          : i.executeDay
+      ? t('Carry.week' + i.executeDay)
+      : i.frequency === 'MONTHLY'
+      ? t('Carry.day', { day: i.executeDay })
+      : i.executeDay
   return [t('Carry.' + i.frequency), day, i.executeAt.slice(0, 5)].filter(Boolean).join(' · ')
 }
 </script>
@@ -232,11 +233,13 @@ function schedule(row: CarryPlan) {
         v-else-if="readOnly && detail"
         :detail="detail"
         :subjects="subjects"
+        :standards="standards"
       />
       <CarryEditor
         v-else-if="open && !readOnly"
         :detail="detail"
         :subjects="subjects"
+        :standards="standards"
         :saving="saving"
         @save="save"
         @cancel="close"

@@ -894,6 +894,7 @@
     "confirm": "确认撤销原存入"
   },
   "Carry": {
+    "saved": "已保存计划“{name}”",
     "title": "自动结转",
     "hint": "按计划将客户预收余额结转至应收款，查看每次执行结果。",
     "name": "计划名称",
@@ -905,6 +906,9 @@
     "more": "更多",
     "scope": "结转范围",
     "subjects": "收费科目",
+    "standards": "收费标准",
+    "allStandards": "所选科目下全部收费标准",
+    "unavailableStandard": "收费标准已删除或不可用",
     "chooseSubjects": "选择本项目已下发的收费科目",
     "periodStart": "计费开始日期",
     "periodEnd": "计费结束日期",

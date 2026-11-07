@@ -18,10 +18,10 @@ const title = computed(() =>
         ? 'Refund.application'
         : 'Funds.succeeded'
       : model.action === 'TOPUP'
-        ? model.type === 'DEPOSIT'
-          ? 'Funds.collectDeposit'
-          : 'Funds.collectAdvance'
-        : 'Funds.' + model.action
+      ? model.type === 'DEPOSIT'
+        ? 'Funds.collectDeposit'
+        : 'Funds.collectAdvance'
+      : 'Funds.' + model.action
   )
 )
 const props = defineProps<{ projectId: string; draft: FundDraft }>()
@@ -111,6 +111,7 @@ function close() {
                 { label: t('Setting.house'), value: preview.fullName },
                 { label: t('Setting.customer'), value: preview.customerName },
                 { label: t('Funds.collectionSubject'), value: preview.subjectName },
+                ...(preview.standardName ? [{ label: t('Setting.standard'), value: preview.standardName }] : []),
                 { label: t('Cashier.company'), value: preview.companyName },
                 { label: t('Funds.before'), value: preview.beforeBalance },
                 { label: t('Funds.after'), value: preview.afterBalance },
@@ -219,7 +220,9 @@ function close() {
           :loading="saving"
           @click="submit"
         >
-          {{ t(uncertain ? 'Cashier.retry' : 'Funds.confirm') }}
+          {{
+            t(uncertain ? 'Cashier.retry' : model.action === 'REFUND' ? 'Refund.submitApplication' : 'Funds.confirm')
+          }}
         </a-button>
         <a-button
           v-else-if="model.action !== 'TOPUP' || paymentStep"

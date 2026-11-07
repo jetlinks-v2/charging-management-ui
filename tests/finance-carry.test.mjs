@@ -7,6 +7,7 @@ import { createRenderer, defineComponent, h, nextTick, ref } from 'vue'
 const require = createRequire(import.meta.url)
 const names = [
   'getCarrySubjects',
+  'getCarryStandards',
   'queryCarryPlans',
   'getCarryPlan',
   'saveCarryPlan',
@@ -41,10 +42,10 @@ const compiled = await build({
           contents: args.path.includes('financeCarry')
             ? names.map((name) => `export const ${name}=(...a)=>globalThis.__carryApi.${name}(...a)`).join('\n')
             : args.path.includes('useProjectContext')
-              ? 'export const useProjectContext=()=>globalThis.__carryProject; export const useProjectSwitchGuard=fn=>globalThis.__carryGuards.push(fn)'
-              : args.path === 'vue-i18n'
-                ? 'export const useI18n=()=>({t:key=>key})'
-                : 'export const onlyMessage=(...a)=>globalThis.__carryMessages.push(a)'
+            ? 'export const useProjectContext=()=>globalThis.__carryProject; export const useProjectSwitchGuard=fn=>globalThis.__carryGuards.push(fn)'
+            : args.path === 'vue-i18n'
+            ? 'export const useI18n=()=>({t:key=>key})'
+            : 'export const onlyMessage=(...a)=>globalThis.__carryMessages.push(a)'
         }))
       }
     }
@@ -75,7 +76,12 @@ const plan = (id = 'plan') => ({
 })
 const run = (id = 'run', status = 'PARTIAL') => ({ id, status, succeeded: 1, failed: 1, skipped: 0 })
 function mount(factory, api = {}) {
-  globalThis.__carryApi = { getCarrySubjects: async () => [], getCarryPlan: async (_, id) => plan(id), ...api }
+  globalThis.__carryApi = {
+    getCarrySubjects: async () => [],
+    getCarryStandards: async () => [],
+    getCarryPlan: async (_, id) => plan(id),
+    ...api
+  }
   globalThis.__carryProject = { projectId: ref('project') }
   globalThis.__carryMessages = []
   globalThis.__carryGuards = []
@@ -222,5 +228,37 @@ test('retry locks project, suppresses double submit, and refreshes after a rejec
   assert.equal(globalThis.__carryGuards[0](), true)
   await state.retry(run('done', 'SUCCEEDED'))
   assert.equal(calls, 1)
+  unmount()
+})
+
+test('standard options load with the project and selected scope is submitted without widening it', async () => {
+  let saved
+  const { state, unmount } = mount(useCarryWorkspace, {
+    getCarryStandards: async (project) => [{ id: project + '-standard', subjectId: 'subject', name: '物业费' }],
+    saveCarryPlan: async (_project, _id, value) => {
+      saved = value
+    }
+  })
+  await state.select(undefined, false)
+  assert.equal(state.standards.value[0].id, 'project-standard')
+  await state.save({ name: '限定标准', subjectIds: ['subject'], standardIds: ['project-standard'] })
+  assert.deepEqual(saved.standardIds, ['project-standard'])
+  unmount()
+})
+
+test('failed standard options keep the editor from saving an unverified scope', async () => {
+  let saved = false
+  const { state, unmount } = mount(useCarryWorkspace, {
+    getCarryStandards: async () => {
+      throw Error('offline')
+    },
+    saveCarryPlan: async () => {
+      saved = true
+    }
+  })
+  await state.select(undefined, false)
+  await state.save({ name: '不可保存', subjectIds: ['subject'] })
+  assert.equal(state.failed.value, true)
+  assert.equal(saved, false)
   unmount()
 })

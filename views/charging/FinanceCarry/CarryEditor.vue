@@ -2,14 +2,21 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { FormInstance } from 'ant-design-vue'
-import type { CarryInput, CarryPlan, CarrySubject } from '../../../api/financeCarry'
-const props = defineProps<{ detail?: CarryPlan; subjects: CarrySubject[]; saving: boolean }>()
+import CarryScopeFields from './CarryScopeFields.vue'
+import type { CarryInput, CarryPlan, CarrySubject, CarryStandard } from '../../../api/financeCarry'
+const props = defineProps<{
+  detail?: CarryPlan
+  subjects: CarrySubject[]
+  standards: CarryStandard[]
+  saving: boolean
+}>()
 const emit = defineEmits<{ save: [input: CarryInput]; cancel: [] }>()
 const { t } = useI18n(),
   form = ref<FormInstance>()
 const initial = (): CarryInput => ({
   name: '',
   subjectIds: [],
+  standardIds: [],
   periodStart: '',
   periodEnd: '',
   frequency: 'MONTHLY',
@@ -31,7 +38,9 @@ const remissionAmount = computed<string | number | undefined>({
 watch(
   () => props.detail,
   (row) => {
-    model.value = row ? { ...row.input, subjectIds: [...row.input.subjectIds] } : initial()
+    model.value = row
+      ? { ...row.input, subjectIds: [...row.input.subjectIds], standardIds: [...(row.input.standardIds || [])] }
+      : initial()
   },
   { immediate: true }
 )
@@ -74,6 +83,7 @@ async function submit() {
   emit('save', {
     ...model.value,
     subjectIds: [...model.value.subjectIds],
+    standardIds: [...(model.value.standardIds || [])],
     remissionValue: model.value.remissionMode === 'NONE' ? null : model.value.remissionValue
   })
 }
@@ -86,73 +96,11 @@ async function submit() {
     :disabled="saving"
     class="carry-sections"
   >
-    <SectionCard
-      icon="ProfileOutlined"
-      :title="t('Carry.scope')"
-    >
-      <a-form-item
-        name="name"
-        :label="t('Carry.name')"
-        :rules="required('name')"
-      >
-        <a-input
-          v-model:value="model.name"
-          :maxlength="100"
-        />
-      </a-form-item>
-      <a-form-item
-        name="subjectIds"
-        :label="t('Carry.subjects')"
-        :rules="required('subjects')"
-      >
-        <a-select
-          v-model:value="model.subjectIds"
-          mode="multiple"
-          show-search
-          option-filter-prop="label"
-          :max-tag-count="3"
-          :options="
-            subjects.map((row) => ({ value: row.id, label: row.name + ' · ' + row.code, disabled: !row.enabled }))
-          "
-          :placeholder="t('Carry.chooseSubjects')"
-        />
-      </a-form-item>
-      <div class="finance-form-grid">
-        <a-form-item
-          name="periodStart"
-          :label="t('Carry.periodStart')"
-          :rules="required('periodStart')"
-        >
-          <a-date-picker
-            :placeholder="t('Carry.periodStart')"
-            v-model:value="model.periodStart"
-            value-format="YYYY-MM-DD"
-            class="carry-full"
-          />
-        </a-form-item>
-        <a-form-item
-          name="periodEnd"
-          :label="t('Carry.periodEnd')"
-          :rules="[
-            ...required('periodEnd'),
-            {
-              validator: async () => {
-                if (model.periodEnd && model.periodStart && model.periodEnd < model.periodStart)
-                  throw new Error(t('Carry.periodInvalid'))
-              }
-            }
-          ]"
-        >
-          <a-date-picker
-            :placeholder="t('Carry.periodEnd')"
-            v-model:value="model.periodEnd"
-            value-format="YYYY-MM-DD"
-            class="carry-full"
-          />
-        </a-form-item>
-      </div>
-      <p class="carry-note">{{ t('Carry.scopeHint') }}</p>
-    </SectionCard>
+    <CarryScopeFields
+      :model="model"
+      :subjects="subjects"
+      :standards="standards"
+    />
     <SectionCard
       icon="ClockCircleOutlined"
       :title="t('Carry.schedule')"

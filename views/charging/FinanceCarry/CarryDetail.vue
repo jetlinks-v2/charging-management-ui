@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { CarryPlan, CarrySubject } from '../../../api/financeCarry'
-const props = defineProps<{ detail: CarryPlan; subjects: CarrySubject[] }>()
+import type { CarryPlan, CarrySubject, CarryStandard } from '../../../api/financeCarry'
+const props = defineProps<{ detail: CarryPlan; subjects: CarrySubject[]; standards: CarryStandard[] }>()
 const { t } = useI18n()
 const input = computed(() => props.detail.input)
 const selection = computed(() =>
@@ -27,6 +27,14 @@ const selection = computed(() =>
         :cols="2"
         :items="[
           { label: t('Carry.subjects'), value: selection },
+          {
+            label: t('Carry.standards'),
+            value: input.standardIds?.length
+              ? input.standardIds
+                  .map((id) => standards.find((row) => row.id === id)?.name || t('Carry.unavailableStandard'))
+                  .join('、')
+              : t('Carry.allStandards')
+          },
           { label: t('Carry.period'), value: input.periodStart + ' ~ ' + input.periodEnd }
         ]"
       />
@@ -45,10 +53,10 @@ const selection = computed(() =>
               input.frequency === 'DAILY'
                 ? t('Carry.DAILY')
                 : input.frequency === 'WEEKLY'
-                  ? t('Carry.week' + input.executeDay)
-                  : input.frequency === 'MONTHLY'
-                    ? t('Carry.day', { day: input.executeDay })
-                    : input.executeDay
+                ? t('Carry.week' + input.executeDay)
+                : input.frequency === 'MONTHLY'
+                ? t('Carry.day', { day: input.executeDay })
+                : input.executeDay
           },
           { label: t('Carry.executeAt'), value: input.executeAt.slice(0, 5) },
           { label: t('Carry.zone'), value: input.zone }
