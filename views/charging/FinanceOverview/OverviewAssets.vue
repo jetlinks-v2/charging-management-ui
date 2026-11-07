@@ -32,10 +32,10 @@ const fixed = computed(() => [
     <dl class="overview-states">
       <div
         v-for="item in houses.states"
-        :key="item.value"
+        :key="item.value || item.text"
       >
         <dt>
-          <j-ellipsis>{{ item.value ? item.text : t('Overview.unset') }}</j-ellipsis>
+          <j-ellipsis>{{ item.text || t('Overview.unset') }}</j-ellipsis>
         </dt>
         <dd>
           {{ item.count.toLocaleString() }}

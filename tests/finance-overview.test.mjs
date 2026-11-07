@@ -1,9 +1,12 @@
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
+import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createRenderer, defineComponent, h, reactive, ref, nextTick } from 'vue'
+import { createRenderer, createSSRApp, defineComponent, h, reactive, ref, nextTick } from 'vue'
+import { parse, compileScript } from 'vue/compiler-sfc'
+import { renderToString } from 'vue/server-renderer'
 import * as echarts from 'echarts'
 const require = createRequire(import.meta.url)
 const compiled = await build({
@@ -64,8 +67,7 @@ const flush = async () => {
   await nextTick()
   await new Promise((r) => setImmediate(r))
 }
-function setup(api = async () => ({ asOfDate: '2024-01-01' })) {
-  const store = new Map()
+function setup(api = async () => ({ asOfDate: '2024-01-01' }), store = new Map()) {
   globalThis.window = { location: { pathname: '/app/' } }
   globalThis.sessionStorage = { getItem: (k) => store.get(k), setItem: (k, v) => store.set(k, v) }
   const context = {
@@ -107,24 +109,31 @@ function setup(api = async () => ({ asOfDate: '2024-01-01' })) {
   return { state, context, user: globalThis.__overview.user, close: () => app.unmount() }
 }
 
-test('概览项目多选独立，取消不提交，确认只接受当前授权列表', async () => {
+test('概览首次进入必须选择项目，确认后多选独立，取消保留原范围', async () => {
   const calls = [],
     v = setup(async (input) => {
       calls.push(input)
       return { asOfDate: 'ok' }
     })
   assert.deepEqual(v.state.projects.ids.value, [])
-  await v.state.projects.choose()
   assert.equal(v.state.projects.open.value, true)
-  v.state.projects.open.value = false
+  assert.equal(v.state.projects.required.value, true)
+  v.state.projects.close()
+  v.state.projects.confirm([])
+  v.state.projects.confirm(['forged'])
   await flush()
+  assert.equal(v.state.projects.open.value, true, 'empty or invalid selection cannot dismiss the initial picker')
   assert.equal(calls.length, 0)
   v.state.projects.confirm(['a', 'b'])
   await flush()
+  assert.equal(v.state.projects.open.value, false)
+  assert.equal(v.state.projects.required.value, false)
   assert.deepEqual(calls[0].projectIds, ['a', 'b'])
   await v.state.projects.choose()
-  v.state.projects.open.value = false
+  v.state.projects.close()
   await flush()
+  assert.equal(v.state.projects.open.value, false)
+  assert.deepEqual(v.state.projects.ids.value, ['a', 'b'])
   assert.equal(calls.length, 1, 'cancel must not reload')
   assert.equal(v.context.projectId.value, 'business')
   assert.deepEqual(v.context.reportProjectIds.value, ['report'])
@@ -133,6 +142,19 @@ test('概览项目多选独立，取消不提交，确认只接受当前授权�
   v.user.userInfo.id = 'user-b'
   await flush()
   assert.deepEqual(v.state.projects.ids.value, [])
+  assert.equal(v.state.projects.open.value, true)
+  assert.equal(v.state.projects.required.value, true)
+  assert.equal(v.state.data.value, undefined)
+  v.close()
+})
+
+test('重新进入概览仍须确认，不自动应用上次项目偏好', async () => {
+  const store = new Map([['property:charging:overview:["user-a","test","test","app"]', '["a"]']])
+  const v = setup(undefined, store)
+  await flush()
+  assert.deepEqual(v.state.projects.ids.value, [])
+  assert.equal(v.state.projects.open.value, true)
+  assert.equal(v.state.projects.required.value, true)
   assert.equal(v.state.data.value, undefined)
   v.close()
 })
@@ -163,6 +185,10 @@ test('项目切换丢弃旧响应，撤权和卸载清理旧金额，失败保�
   v.context.projects.value = []
   await flush()
   assert.equal(v.state.data.value, undefined)
+  assert.equal(v.state.projects.open.value, true)
+  assert.equal(v.state.projects.required.value, true)
+  v.state.projects.close()
+  assert.equal(v.state.projects.open.value, true)
   v.close()
 })
 
@@ -189,6 +215,44 @@ test('大额十进制展示和负数舍入保留精度，图表缺日补零且�
     ['0.00', '-20.00', '0.00']
   )
   assert.equal(option.series[2].data[1].value, -0.002)
+})
+
+test('房态编号未返回时仍显示实际名称，只有空名称显示未设置', async () => {
+  const filename = fileURLToPath(new URL('../views/charging/FinanceOverview/OverviewAssets.vue', import.meta.url))
+  const { descriptor } = parse(await readFile(filename, 'utf8'), { filename })
+  const script = compileScript(descriptor, { id: 'overview-assets-test', inlineTemplate: true })
+  const compiledAssets = await build({
+    stdin: {
+      contents: script.content,
+      loader: 'ts',
+      resolveDir: fileURLToPath(new URL('../views/charging/FinanceOverview/', import.meta.url))
+    },
+    bundle: true,
+    write: false,
+    platform: 'node',
+    format: 'cjs',
+    external: ['vue'],
+    plugins: [{
+      name: 'i18n',
+      setup(b) {
+        b.onResolve({ filter: /^vue-i18n$/ }, () => ({ path: 'i18n', namespace: 'mock' }))
+        b.onLoad({ filter: /.*/, namespace: 'mock' }, () => ({
+          contents: 'export const useI18n=()=>({t:k=>k==="Overview.unset"?"未设置":k})'
+        }))
+      }
+    }]
+  })
+  const component = { exports: {} }
+  new Function('require', 'module', 'exports', compiledAssets.outputFiles[0].text)(require, component, component.exports)
+  const app = createSSRApp(component.exports.default, { houses: {
+    houseCount: 3, incompleteCount: 0, buildingArea: '0.00', billingArea: '210.00',
+    states: [{ text: '自住', count: 2 }, { text: '出租', count: 1 }, { text: '', count: 0 }]
+  } })
+  app.component('j-ellipsis', { setup: (_, { slots }) => () => h('span', slots.default?.()) })
+  const html = await renderToString(app)
+  assert.ok(html.includes('自住'))
+  assert.ok(html.includes('出租'))
+  assert.equal(html.split('未设置').length - 1, 1)
 })
 
 test('四类图表以真实ECharts渲染SVG，长科目可滚动且窄宽度不产生无效几何', () => {

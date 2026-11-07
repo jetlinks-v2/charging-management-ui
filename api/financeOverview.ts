@@ -16,7 +16,7 @@ export interface OverviewResult {
     incompleteCount: number
     buildingArea: string
     billingArea: string
-    states: { value: string; text: string; count: number }[]
+    states: { value?: string; text: string; count: number }[]
   }
   receivables: {
     summary: ReportAmounts

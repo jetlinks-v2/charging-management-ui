@@ -33,10 +33,11 @@ const { t } = useI18n()
     :current-id="state.context.projectId.value"
     :selected-ids="state.ids.value"
     multiple
+    :required="state.required.value"
     :loading="state.context.loading.value"
     :failed="state.context.failed.value"
     :switching="false"
-    @close="state.open.value = false"
+    @close="state.close"
     @confirm="state.confirm"
     @refresh="state.refresh"
   />
