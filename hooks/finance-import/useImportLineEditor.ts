@@ -86,13 +86,21 @@ export function useImportLineEditor(
         for (const field of fields.value) if (field.optional && !model[field.key]?.trim()) delete payload[field.key]
         // 名称变化后必须删除旧标识，由服务器重新解析授权引用，避免沿用旧关联。
         const groups = [
-          { names: ['fullName', 'customerName'], ids: ['spaceId', 'relationshipId'] },
-          { names: ['subjectName', 'standardName'], ids: ['subjectId', 'standardId'] },
+          { names: ['fullName', 'customerName'], ids: ['spaceId', 'relationshipId', 'receivableId'] },
+          {
+            names: ['subjectName', 'standardName'],
+            ids: ['subjectId', 'standardId', 'receivableId', 'companyId', 'companyName']
+          },
+          { names: ['startDate', 'endDate'], ids: ['receivableId'] },
           { names: ['companyName'], ids: ['companyId'] },
           { names: ['methodText', 'bankName'], ids: ['method', 'recordedId'] }
         ]
         for (const group of groups)
-          if (group.names.some((key) => (model[key] || '') !== String(original[key as keyof typeof original] ?? '')))
+          if (
+            group.names.some(
+              (key) => key in model && (model[key] || '') !== String(original[key as keyof typeof original] ?? '')
+            )
+          )
             for (const key of group.ids) delete payload[key]
         result = await editCollectionImportLine(props.projectId, props.kind, props.record, props.line, payload)
       } else

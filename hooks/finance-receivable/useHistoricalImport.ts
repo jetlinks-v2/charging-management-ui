@@ -49,9 +49,9 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
   }
   async function upload(file: File) {
     if (!props.projectId || busy.value) return
-    const invalid = validateImportFile(file)
+    const invalid = validateImportFile(file, 20)
     if (invalid) {
-      onlyMessage(t('Archive.' + (invalid === 'format' ? 'importFormat' : 'importSize')), 'error')
+      onlyMessage(t(invalid === 'format' ? 'Archive.importFormat' : 'Historical.largeFileSize'), 'error')
       return
     }
     busy.value = true
@@ -61,7 +61,13 @@ export function useHistoricalImport(props: { projectId: string; projectName?: st
       const result = await importHistorical(project, file)
       if (disposed || token !== generation) return
       table.value?.reload()
-      if (result.status === 'PENDING') {
+      if (result.status === 'PROCESSING') {
+        onlyMessage(t('Historical.queued'), 'success')
+        open.value = false
+        historyStatus.value = 'ALL'
+        historyReadonly.value = true
+        historyOpen.value = true
+      } else if (result.status === 'PENDING') {
         onlyMessage(t('HistoricalAudit.staged', { count: result.totalCount }), 'success')
         open.value = false
         historyStatus.value = 'PENDING'

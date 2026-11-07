@@ -28,21 +28,17 @@ export const historicalImportFields: ImportField[] = [
 /** 引用名称由服务器按当前项目唯一解析；收款来源单号不可在暂存后改变。 */
 export function collectionImportFields(kind: CollectionImportKind): ImportField[] {
   const keys = [
-    'externalNo',
     'fullName',
     'customerName',
     'subjectName',
     'standardName',
-    'companyName',
-    'methodText',
-    'bankName',
-    'payerName',
+    ...(kind !== 'DEPOSIT' ? ['startDate', 'endDate'] : []),
     'amount',
+    ...(kind === 'ADVANCE' ? ['quantity'] : []),
+    'methodText',
     'paidAt',
-    'startDate',
-    'endDate',
-    'accountPeriod',
-    ...(kind !== 'RECEIVED' ? ['quantity'] : []),
+    'payerName',
+    'externalNo',
     'remark',
     ...(kind === 'RECEIVED' ? ['reductionAmount', 'reductionReason'] : [])
   ]
@@ -50,34 +46,15 @@ export function collectionImportFields(kind: CollectionImportKind): ImportField[
     key,
     label: 'CollectionImport.fields.' + key,
     optional:
-      ['bankName', 'remark', 'reductionAmount', 'reductionReason', 'quantity'].includes(key) ||
-      (kind === 'DEPOSIT' && ['standardName', 'startDate', 'endDate', 'accountPeriod'].includes(key)) ||
-      (kind === 'ADVANCE' && key === 'accountPeriod') ||
-      (kind === 'RECEIVED' &&
-        ['fullName', 'customerName', 'subjectName', 'standardName', 'startDate', 'endDate', 'accountPeriod'].includes(
-          key
-        )),
-    readonly:
-      key === 'externalNo' ||
-      (kind === 'RECEIVED' &&
-        [
-          'receivableId',
-          'fullName',
-          'customerName',
-          'subjectName',
-          'standardName',
-          'startDate',
-          'endDate',
-          'accountPeriod'
-        ].includes(key)),
+      ['externalNo', 'payerName', 'remark', 'reductionAmount', 'reductionReason', 'quantity'].includes(key) ||
+      (kind === 'DEPOSIT' && key === 'standardName'),
+    readonly: key === 'externalNo',
     type: ['amount', 'reductionAmount'].includes(key)
       ? 'money'
       : key === 'quantity'
       ? 'number'
       : key === 'paidAt'
       ? 'datetime'
-      : key === 'accountPeriod'
-      ? 'month'
       : ['startDate', 'endDate'].includes(key)
       ? 'date'
       : undefined

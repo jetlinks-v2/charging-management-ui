@@ -34,6 +34,8 @@ export const stageCollectionImport = (project: string, kind: CollectionImportKin
   body.append('file', file)
   return request.post<HistoricalImportRecord>(base(project, kind), body, { hiddenError: true }).then(checked)
 }
+export const retryCollectionImport = (project: string, kind: CollectionImportKind, record: string) =>
+  request.post(`${base(project, kind)}/${id(record)}/_retry`, {}, { hiddenError: true }).then(checked)
 export const queryCollectionImports = (
   project: string,
   kind: CollectionImportKind,
@@ -124,5 +126,6 @@ export const collectionAuditAdapter = (kind: CollectionImportKind): ImportAuditA
   decide: (project, action, records, reason) => decideCollectionImports(project, kind, action, records, reason),
   decideLines: (project, batch, action, lines, reason) =>
     decideCollectionImportLines(project, kind, batch, action, lines, reason),
+  retry: (project, record) => retryCollectionImport(project, kind, record),
   maxBatches: 20
 })

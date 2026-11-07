@@ -641,7 +641,7 @@
     "title": "Import historical receivables",
     "history": "Historical import records",
     "guide": "Use this project’s template to match the full property path, customer, subject and standard. All rows must pass validation, then review approval creates official receivables. Historical amounts are preserved as entered.",
-    "fileHint": "Excel .xlsx / .xls only. Maximum 10 MB and 500 rows.",
+    "fileHint": "Excel only, up to 20MB and 50,000 rows. Use .xlsx for large files.",
     "succeeded": "Imported {count} historical receivables",
     "failed": "Import failed. No bills were created. See import records.",
     "processing": "Processing. Check import records for the result.",
@@ -651,7 +651,9 @@
     "contractCode": "Contract number",
     "dropFile": "Click or drag an Excel file here",
     "removeFile": "Remove file",
-    "importStart": "Start import"
+    "importStart": "Start import",
+    "largeFileSize": "File size must not exceed 20MB.",
+    "queued": "File uploaded. Check import records for validation progress."
   },
   "Notice": {
     "title": "Payment reminder",
@@ -1968,7 +1970,7 @@
     "submit": "Confirm",
     "saved": "Review decision saved",
     "staged": "{count} rows validated. Review the import before posting.",
-    "hint": "Approved lines become receivables. Any failure rolls back this review.",
+    "hint": "Batch review runs in the background. Completed lines are retained if interrupted; remaining lines can be reviewed again.",
     "empty": "No import review records",
     "linesEmpty": "No matching lines",
     "keyword": "File name",
@@ -1978,16 +1980,19 @@
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
       "FAILED": "Failed",
-      "ALL": "All records"
+      "ALL": "All records",
+      "PROCESSING": "Importing",
+      "REVIEWING": "Reviewing"
     },
     "states": {
-      "PROCESSING": "Parsing",
+      "PROCESSING": "Importing",
       "PENDING": "Pending",
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
       "FAILED": "Failed",
       "SUCCESS": "Imported (legacy)",
-      "COMPLETED": "Completed (including rejected rows)"
+      "COMPLETED": "Completed (including rejected rows)",
+      "REVIEWING": "Reviewing"
     },
     "legacy": "This legacy batch was posted directly; review its bills in the receivables list.",
     "decision": "{action} — {file}",
@@ -1995,7 +2000,16 @@
     "reviewedAt": "Reviewed at",
     "recordId": "Import reference",
     "errorCount": "Invalid rows",
-    "recordsEmpty": "No import records"
+    "recordsEmpty": "No import records",
+    "queued": "Review queued. Check import records for results.",
+    "progress": "Progress",
+    "retry": "Retry",
+    "phases": {
+      "QUEUED": "Queued",
+      "VALIDATING": "Validating",
+      "STAGING": "Staging",
+      "REVIEWING": "Reviewing"
+    }
   },
   "ChangeAudit": {
     "button": "Review changes",
@@ -2079,14 +2093,14 @@
   },
   "CollectionImport": {
     "auditTitle": "Collection import approval",
-    "guide": "Download the template for this project and fill in the collection details. The whole file must pass validation before approval; approved rows are posted to the ledger. Approved collections await handover; previous handover states are not imported.",
+    "guide": "Use the project template. The complete file is validated before staging; posting requires approval.",
     "edit": "Edit",
     "editLine": "Edit row {row}",
     "saveValidate": "Save and validate",
     "edited": "Import row validated and saved",
     "invalidAmount": "Enter a non-negative amount with up to 18 integer digits and 2 decimal places",
     "invalidDates": "Enter both start and end dates; the end date must not precede the start date",
-    "approvalHint": "Approval creates collection and fund entries. If any row fails, the entire approval is rolled back.",
+    "approvalHint": "Batch review runs in the background. Completed lines are retained if interrupted; remaining lines can be reviewed again.",
     "kinds": {
       "RECEIVED": "Import receipts",
       "ADVANCE": "Import advance payments",
@@ -2094,7 +2108,7 @@
       "TEMPORARY": "Import temporary collections"
     },
     "fields": {
-      "externalNo": "Original receipt / transaction reference",
+      "externalNo": "Original receipt number",
       "receivableId": "Receivable bill",
       "fullName": "Property",
       "customerName": "Customer",

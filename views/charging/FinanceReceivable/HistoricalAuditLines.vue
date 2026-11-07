@@ -47,7 +47,9 @@ const selection = computed(() => ({
   onChange: (_keys: string[], rows: HistoricalImportLine[]) => {
     selectedLines.value = rows
   },
-  getCheckboxProps: (row: HistoricalImportLine) => ({ disabled: row.status !== 'PENDING' || busy.value })
+  getCheckboxProps: (row: HistoricalImportLine) => ({
+    disabled: record.value?.status !== 'PENDING' || row.status !== 'PENDING' || busy.value
+  })
 }))
 </script>
 <template>
@@ -152,7 +154,7 @@ const selection = computed(() => ({
         {{
           field.type === 'datetime'
             ? formatFinanceTime(row.payload?.[field.key] ?? row.receivable[field.key])
-            : (row.payload?.[field.key] ?? row.receivable[field.key] ?? '—')
+            : row.payload?.[field.key] ?? row.receivable[field.key] ?? '—'
         }}
       </template>
       <template #actions="row">

@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { onlyMessage } from '@jetlinks-web/utils'
 import {
   queryHistoricalImports,
+  retryHistoricalImport,
   queryHistoricalImportLines,
   decideHistoricalImports,
   decideHistoricalImportLines,
@@ -18,6 +19,7 @@ export interface ImportAuditAdapter {
   lines: typeof queryHistoricalImportLines
   decide: typeof decideHistoricalImports
   decideLines: typeof decideHistoricalImportLines
+  retry?: (project: string, record: string) => Promise<unknown>
   maxBatches?: number
 }
 
@@ -26,6 +28,7 @@ export function useHistoricalAudit(
   saved: () => void,
   adapter: ImportAuditAdapter = {
     query: queryHistoricalImports,
+    retry: retryHistoricalImport,
     lines: queryHistoricalImportLines,
     decide: decideHistoricalImports,
     decideLines: decideHistoricalImportLines
@@ -33,7 +36,7 @@ export function useHistoricalAudit(
 ) {
   const { t } = useI18n()
   const readonly = computed(() => !!props.readonly)
-  const maxBatches = adapter.maxBatches || 100
+  const maxBatches = adapter.maxBatches || 20
   const editing = ref<HistoricalImportLine>()
   const status = ref('PENDING'),
     keyword = ref(''),
@@ -72,6 +75,71 @@ export function useHistoricalAudit(
     terms: lineTerms.value
   }))
   const notify = (error: unknown) => onlyMessage(requestErrorMessage(error, t('Finance.failed')), 'error')
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let pollAbort: AbortController | undefined
+  const active = new Set<string>()
+  const working = (row: HistoricalImportRecord) => ['PROCESSING', 'REVIEWING'].includes(row.status)
+  function stopPolling() {
+    if (timer) clearTimeout(timer)
+    timer = undefined
+    pollAbort?.abort()
+    active.clear()
+  }
+  function track(rows: HistoricalImportRecord[]) {
+    for (const row of rows) {
+      if (working(row)) active.add(row.id)
+      else active.delete(row.id)
+    }
+    if (active.size && !timer && props.open && !disposed) timer = setTimeout(poll, 2500)
+  }
+  async function poll() {
+    timer = undefined
+    if (!props.open || disposed || !active.size) return
+    const token = generation
+    pollAbort = new AbortController()
+    try {
+      const value = await adapter.query(
+        props.projectId,
+        { terms: [{ column: 'id', termType: 'in', value: [...active] }], pageIndex: 0, pageSize: 100 },
+        pollAbort.signal
+      )
+      if (disposed || token !== generation) return
+      const completed = value.result.data.some((row) => active.has(row.id) && !working(row))
+      if (record.value) {
+        const updated = value.result.data.find((row) => row.id === record.value?.id)
+        if (updated) record.value = updated
+      }
+      track(value.result.data)
+      // 选择、编辑、确认期间不重载表格，避免刷新丢失用户勾选。
+      if (!editing.value && !decision.value && !busy.value && !selected.value.length && !selectedLines.value.length) {
+        table.value?.reload()
+        if (record.value) lineTable.value?.reload()
+      }
+      if (completed) saved()
+    } catch (error) {
+      if (disposed || token !== generation) return
+      notify(error)
+    } finally {
+      if (!disposed && token === generation && props.open && active.size && !timer) timer = setTimeout(poll, 5000)
+    }
+  }
+  async function retry(row: HistoricalImportRecord) {
+    if (busy.value || row.status !== 'FAILED' || !adapter.retry) return
+    const token = generation
+    busy.value = true
+    try {
+      await adapter.retry(props.projectId, row.id)
+      if (disposed || token !== generation) return
+      onlyMessage(t('Historical.queued'), 'success')
+      active.add(row.id)
+      track([])
+      table.value?.reload()
+    } catch (error) {
+      if (!disposed && token === generation) notify(error)
+    } finally {
+      if (!disposed && token === generation) busy.value = false
+    }
+  }
   function request(query: Query, config?: { signal: AbortSignal }) {
     selected.value = []
     if (!props.open || !props.projectId) return Promise.resolve({ success: true, result: { data: [], total: 0 } })
@@ -87,11 +155,13 @@ export function useHistoricalAudit(
       })
     if (searchKeyword.value)
       terms.push({ column: appliedSearchField.value, termType: 'like', value: '%' + searchKeyword.value + '%' })
-    return adapter.query(
-      props.projectId,
-      { terms, pageIndex: query.pageIndex, pageSize: query.pageSize },
-      config?.signal
-    )
+    const token = generation
+    return adapter
+      .query(props.projectId, { terms, pageIndex: query.pageIndex, pageSize: query.pageSize }, config?.signal)
+      .then((value) => {
+        if (props.open && !disposed && token === generation) track(value.result.data)
+        return value
+      })
   }
   function searchRecords() {
     appliedSearchField.value = searchField.value
@@ -174,10 +244,11 @@ export function useHistoricalAudit(
       decision.value = undefined
       selected.value = []
       selectedLines.value = []
-      onlyMessage(t('HistoricalAudit.saved'), 'success')
+      track(results)
+      onlyMessage(t(results.some(working) ? 'HistoricalAudit.queued' : 'HistoricalAudit.saved'), 'success')
       table.value?.reload()
       lineTable.value?.reload()
-      saved()
+      if (!results.some(working)) saved()
     } catch (error) {
       if (!disposed && token === generation) notify(error)
     } finally {
@@ -188,6 +259,7 @@ export function useHistoricalAudit(
     () => [props.open, props.projectId],
     () => {
       ++generation
+      stopPolling()
       record.value = undefined
       editing.value = undefined
       decision.value = undefined
@@ -206,6 +278,7 @@ export function useHistoricalAudit(
   })
   onScopeDispose(() => {
     disposed = true
+    stopPolling()
     ++generation
   })
   function editLine(line: HistoricalImportLine) {
@@ -228,6 +301,7 @@ export function useHistoricalAudit(
   }
   return {
     readonly,
+    retry,
     maxBatches,
     editing,
     editLine,

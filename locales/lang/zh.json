@@ -641,7 +641,7 @@
     "title": "历史应收导入",
     "history": "历史应收导入记录",
     "guide": "使用本项目模板，按完整房屋路径、客户名称及科目标准匹配。全部校验通过后进入待审核，审核通过才生成正式应收；历史金额按填写值保存。",
-    "fileHint": "支持 .xlsx、.xls，文件不超过10 MB，最多500行。",
+    "fileHint": "仅支持 Excel，单文件不超过 20MB，最多 50,000 条；大文件请使用 .xlsx",
     "succeeded": "已导入 {count} 笔历史应收",
     "failed": "导入失败，本批次未生成账单，请查看导入记录。",
     "processing": "正在处理，请在导入记录中查看结果。",
@@ -651,7 +651,9 @@
     "contractCode": "合同编号",
     "dropFile": "点击或拖拽 Excel 文件至此",
     "removeFile": "移除文件",
-    "importStart": "开始导入"
+    "importStart": "开始导入",
+    "largeFileSize": "文件不能超过20MB",
+    "queued": "文件已上传，正在后台校验，请在导入记录查看进度"
   },
   "Notice": {
     "title": "催缴通知单",
@@ -1968,7 +1970,7 @@
     "submit": "确认",
     "saved": "审核结果已保存",
     "staged": "已校验 {count} 行，请在导入审核中确认入账",
-    "hint": "审核通过后才生成正式应收；任一行失败，本次审核全部回滚。",
+    "hint": "整批审核将在后台分批处理，可关闭窗口后到导入记录查看结果。处理失败会保留已完成明细，剩余明细可继续审核。",
     "empty": "暂无导入审核记录",
     "linesEmpty": "暂无对应明细",
     "keyword": "文件名",
@@ -1978,16 +1980,19 @@
       "APPROVED": "审核通过",
       "REJECTED": "已驳回",
       "FAILED": "失败记录",
-      "ALL": "全部记录"
+      "ALL": "全部记录",
+      "PROCESSING": "导入处理中",
+      "REVIEWING": "审核处理中"
     },
     "states": {
-      "PROCESSING": "解析中",
+      "PROCESSING": "导入处理中",
       "PENDING": "待审核",
       "APPROVED": "审核通过",
       "REJECTED": "已驳回",
       "FAILED": "失败",
       "SUCCESS": "已导入（历史记录）",
-      "COMPLETED": "审核完成（含驳回明细）"
+      "COMPLETED": "审核完成（含驳回明细）",
+      "REVIEWING": "审核处理中"
     },
     "legacy": "此记录已在旧版本直接入账，可在应收列表查看和审核。",
     "decision": "{action} — {file}",
@@ -1995,7 +2000,16 @@
     "reviewedAt": "审核时间",
     "recordId": "申请编号",
     "errorCount": "错误行数",
-    "recordsEmpty": "暂无导入记录"
+    "recordsEmpty": "暂无导入记录",
+    "queued": "已提交后台审核，请在导入记录查看处理结果",
+    "progress": "处理进度",
+    "retry": "重新处理",
+    "phases": {
+      "QUEUED": "等待处理",
+      "VALIDATING": "校验中",
+      "STAGING": "暂存中",
+      "REVIEWING": "审核中"
+    }
   },
   "ChangeAudit": {
     "button": "审批",
@@ -2079,14 +2093,14 @@
   },
   "CollectionImport": {
     "auditTitle": "收款导入审核",
-    "guide": "请下载当前项目模板，按说明填写收款资料。整份文件校验通过后进入待审核，审核通过后入账。审核后收款为已收未交账，原交账状态不导入。",
+    "guide": "使用当前项目模板填写；整份文件校验通过后暂存，审核通过后才入账。",
     "edit": "编辑",
     "editLine": "编辑第 {row} 行",
     "saveValidate": "保存并重新校验",
     "edited": "导入明细已重新校验并保存",
     "invalidAmount": "请输入不超过18位整数、最多2位小数的非负金额",
     "invalidDates": "请同时填写开始和结束日期，且结束日期不能早于开始日期",
-    "approvalHint": "审核通过后才生成正式收款与资金流水；任一行失败，本次审核全部回滚。",
+    "approvalHint": "整批审核将在后台分批处理，可关闭窗口后到导入记录查看结果。处理失败会保留已完成明细，剩余明细可继续审核。",
     "kinds": {
       "RECEIVED": "实收导入",
       "ADVANCE": "预收款导入",
@@ -2094,7 +2108,7 @@
       "TEMPORARY": "临时收款导入"
     },
     "fields": {
-      "externalNo": "原收款单号 / 原流水号",
+      "externalNo": "原收款单号",
       "receivableId": "应收账单",
       "fullName": "房产简称",
       "customerName": "收费对象",

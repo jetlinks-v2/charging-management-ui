@@ -24,9 +24,9 @@ watch(
   }
 )
 function choose(selected: File) {
-  const invalid = validateImportFile(selected)
+  const invalid = validateImportFile(selected, 20)
   file.value = undefined
-  if (invalid) onlyMessage(t('Archive.' + (invalid === 'format' ? 'importFormat' : 'importSize')), 'error')
+  if (invalid) onlyMessage(t(invalid === 'format' ? 'Archive.importFormat' : 'Historical.largeFileSize'), 'error')
   else file.value = selected
   return false
 }

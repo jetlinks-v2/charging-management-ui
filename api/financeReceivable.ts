@@ -276,7 +276,9 @@ export interface HistoricalImportRecord {
   id: string
   projectId: string
   fileName: string
-  status: 'PROCESSING' | 'SUCCESS' | 'FAILED' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED'
+  status: 'PROCESSING' | 'REVIEWING' | 'SUCCESS' | 'FAILED' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED'
+  phase?: string
+  processedCount?: number
   version: number
   rejectedCount?: number
   totalCount: number
@@ -296,6 +298,8 @@ export const importHistorical = (project: string, file: File) => {
   body.append('file', file)
   return request.post<HistoricalImportRecord>(`${base(project)}/imports`, body, { hiddenError: true }).then(checked)
 }
+export const retryHistoricalImport = (project: string, record: string) =>
+  request.post(`${base(project)}/imports/${encodeURIComponent(record)}/_retry`, {}, { hiddenError: true }).then(checked)
 export const queryHistoricalImports = (project: string, query: Query, signal?: AbortSignal) =>
   request
     .post<Page<HistoricalImportRecord>>(`${base(project)}/imports/_query`, query, { hiddenError: true, signal })

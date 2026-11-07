@@ -48,9 +48,9 @@ export function useCollectionImport(props: { projectId: string; projectName: str
   }
   async function upload(file: File) {
     if (!props.projectId || busy.value) return
-    const invalid = validateImportFile(file)
+    const invalid = validateImportFile(file, 20)
     if (invalid) {
-      onlyMessage(t('Archive.' + (invalid === 'format' ? 'importFormat' : 'importSize')), 'error')
+      onlyMessage(t(invalid === 'format' ? 'Archive.importFormat' : 'Historical.largeFileSize'), 'error')
       return
     }
     const token = generation
@@ -58,7 +58,11 @@ export function useCollectionImport(props: { projectId: string; projectName: str
     try {
       const result = await stageCollectionImport(props.projectId, props.kind, file)
       if (disposed || token !== generation) return
-      if (result.status === 'PENDING') {
+      if (result.status === 'PROCESSING') {
+        onlyMessage(t('Historical.queued'), 'success')
+        open.value = false
+        history(false)
+      } else if (result.status === 'PENDING') {
         onlyMessage(t('HistoricalAudit.staged', { count: result.totalCount }), 'success')
         open.value = false
         history(false)

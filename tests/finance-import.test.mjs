@@ -32,6 +32,7 @@ async function load(path) {
                   'editCollectionImportLine',
                   'editHistoricalImportLine',
                   'queryHistoricalImports',
+                  'retryHistoricalImport',
                   'queryHistoricalImportLines',
                   'decideHistoricalImports',
                   'decideHistoricalImportLines'
@@ -322,7 +323,7 @@ test('收款API使用项目隔离路径和批次/行双版本，单行/批次均
   assert.equal(result.line.receivable.actualReceivableAmount, '900719925474099.91')
   assert.equal(result.record.version, 3)
 })
-test('押金无收费标准仍可保存，可选空金额和标准省略；日期必须成对，数量按服务规则限制', async () => {
+test('押金无收费标准可保存，不展示计费日期、账期和数量', async () => {
   const calls = []
   const props = {
     projectId: 'p',
@@ -357,22 +358,51 @@ test('押金无收费标准仍可保存，可选空金额和标准省略；日�
     false
   )
   assert.equal(state.rules(state.fields.value.find((field) => field.key === 'standardName'))[0].required, false)
-  assert.equal(state.rules(state.fields.value.find((field) => field.key === 'quantity'))[0].required, false)
-  state.model.startDate = '2024-01-01'
-  await state.submit()
-  assert.equal(calls.length, 0)
-  state.model.startDate = ''
-  state.model.quantity = '0'
-  await state.submit()
-  assert.equal(calls.length, 0)
-  state.model.quantity = '123456789.1234'
-  await state.submit()
-  assert.equal(calls.length, 0)
-  state.model.quantity = ''
+  for (const key of ['quantity', 'startDate', 'endDate', 'accountPeriod', 'companyName', 'bankName'])
+    assert.equal(
+      state.fields.value.some((field) => field.key === key),
+      false
+    )
   await state.submit()
   assert.equal(calls.length, 1)
   assert.equal('standardName' in calls[0][4], false)
   assert.equal('quantity' in calls[0][4], false)
   assert.equal('startDate' in calls[0][4], false)
+  unmount()
+})
+
+test('大文件上传后立即打开全部导入记录，后台处理中不误报已入账', async () => {
+  const props = reactive({ projectId: 'p', projectName: '园区', kind: 'ADVANCE' })
+  const { state, unmount } = mount(() => useCollectionImport(props), {
+    stageCollectionImport: async () => ({ id: 'job', status: 'PROCESSING', totalCount: 0 })
+  })
+  state.open.value = true
+  await state.upload(new File(['data'], 'large.xlsx'))
+  assert.equal(state.open.value, false)
+  assert.equal(state.historyOpen.value, true)
+  assert.equal(state.status.value, 'ALL')
+  assert.equal(globalThis.__imports.messages.at(-1)[0], 'Historical.queued')
+  unmount()
+})
+
+test('整批审核进入后台时使用处理中反馈并禁止再次审核', async () => {
+  let saved = 0
+  const props = reactive({ open: true, projectId: 'p', initialStatus: 'PENDING', readonly: false })
+  const { state, unmount } = mount(() =>
+    useHistoricalAudit(props, () => saved++, {
+      query: async () => ({ success: true, result: { data: [], total: 0 } }),
+      lines: async () => ({ success: true, result: { data: [], total: 0 } }),
+      decide: async () => [{ id: 'job', status: 'REVIEWING', version: 2 }],
+      decideLines: async () => ({}),
+      maxBatches: 20
+    })
+  )
+  state.start('approve', [{ id: 'job', status: 'PENDING', version: 1, fileName: 'large.xlsx' }])
+  state.reason.value = '已核对'
+  await state.submit()
+  assert.equal(globalThis.__imports.messages.at(-1)[0], 'HistoricalAudit.queued')
+  assert.equal(saved, 0)
+  state.start('approve', [{ id: 'job', status: 'REVIEWING', version: 2, fileName: 'large.xlsx' }])
+  assert.equal(state.decision.value, undefined)
   unmount()
 })

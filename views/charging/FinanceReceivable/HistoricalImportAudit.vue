@@ -63,6 +63,7 @@ const columns = computed(() => [
     width: 110,
     scopedSlots: true
   })),
+  { title: t('HistoricalAudit.progress'), dataIndex: 'progress', width: 190, scopedSlots: true },
   { title: t('Subject.failureDetails'), dataIndex: 'errorMessage', width: 230, ellipsis: true, scopedSlots: true },
   { title: t('Subject.importedBy'), dataIndex: 'operatorName', width: 130 },
   { title: t('Subject.importTime'), dataIndex: 'createTime', width: 175, scopedSlots: true },
@@ -116,7 +117,7 @@ const selection = computed(() => ({
       </div>
       <a-radio-group v-model:value="status">
         <a-radio-button
-          v-for="value in ['PENDING', 'APPROVED', 'REJECTED', 'FAILED', 'ALL']"
+          v-for="value in ['PROCESSING', 'REVIEWING', 'PENDING', 'APPROVED', 'REJECTED', 'FAILED', 'ALL']"
           :key="value"
           :value="value"
         >
@@ -162,6 +163,13 @@ const selection = computed(() => ({
       :body-style="{ padding: 0 }"
       @request-error="notify"
     >
+      <template #progress="row">
+        <span v-if="['PROCESSING', 'REVIEWING'].includes(row.status)">
+          {{ t('HistoricalAudit.phases.' + (row.phase || 'QUEUED')) }} · {{ row.processedCount || 0 }}
+          <template v-if="row.totalCount">/ {{ row.totalCount }}</template>
+        </span>
+        <span v-else>—</span>
+      </template>
       <template #errorCount="row">{{ row.errorCount || 0 }}</template>
       <template #totalCount="row">{{ row.totalCount }}</template>
       <template #successCount="row">{{ row.successCount }}</template>
@@ -187,6 +195,16 @@ const selection = computed(() => ({
       <template #createTime="row">{{ formatFinanceTime(row.createTime) }}</template>
       <template #actions="row">
         <a-space :size="0">
+          <j-permission-button
+            v-if="row.status === 'FAILED'"
+            :hasPermission="`${permission}:import`"
+            type="link"
+            size="small"
+            :disabled="busy"
+            @click="state.retry(row)"
+          >
+            {{ t('HistoricalAudit.retry') }}
+          </j-permission-button>
           <a-button
             type="link"
             size="small"
