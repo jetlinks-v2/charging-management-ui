@@ -113,14 +113,14 @@ const logsOpen = ref(false)
           name="price"
           :label="t('FinanceTax.price')"
         >
-          <span v-if="state.readOnly">{{ model.price ?? '—' }}</span>
+          <span v-if="state.readOnly">{{ model.price == null ? '—' : Number(model.price).toFixed(2) }}</span>
           <a-input-number
             v-else
             v-model:value="price"
             string-mode
             :min="'0'"
-            :max="'9999999999999.9999999999'"
-            :precision="10"
+            :max="'9999999999999.99'"
+            :precision="2"
             class="tax-number"
           />
         </a-form-item>

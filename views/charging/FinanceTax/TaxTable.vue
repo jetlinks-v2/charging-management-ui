@@ -73,7 +73,7 @@ const columns = computed(() => [
         </a-tag>
       </template>
       <template #taxRate="row">{{ Number((row.taxRate * 100).toFixed(6)) }}%</template>
-      <template #price="row">{{ row.price ?? '—' }}</template>
+      <template #price="row">{{ row.price == null ? '—' : Number(row.price).toFixed(2) }}</template>
       <template #includingTaxFlag="row">
         {{ t('FinanceTax.' + (row.includingTaxFlag === 1 ? 'yes' : 'no')) }}
       </template>
