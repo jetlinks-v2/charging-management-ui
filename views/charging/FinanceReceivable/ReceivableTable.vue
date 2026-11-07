@@ -46,7 +46,7 @@ const selection = computed(() => ({
   </div>
   <div class="receivable-scope">
     <span>
-      {{ t('ReceivableLedger.currentScope') }}{{ archive.selected.value?.spaceLocation || t('Archive.allSpaces') }}
+      {{ t('ReceivableLedger.currentScope') }}{{ archive.selected.value?.fullName || archive.selected.value?.name || t('Archive.allSpaces') }}
     </span>
     <span v-if="state.pageRows.value.length">
       {{ t('ReceivableLedger.amountAsOf') }}{{ state.calculatedDates.value }}
