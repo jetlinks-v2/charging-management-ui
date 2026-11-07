@@ -5,7 +5,7 @@ import { useActivitySpaces } from '../../../hooks/finance-activity/useActivitySp
 const props = defineProps<{ spaces: ActivitySpace[]; selectedIds: string[]; busy: boolean }>()
 const emit = defineEmits<{ close: []; pick: [string[]] }>()
 const { t } = useI18n()
-const { keyword, selected, visibleTree, expandedKeys, expanded, check } = useActivitySpaces(props)
+const { keyword, selected, checkedKeys, visibleTree, expandedKeys, expanded, check } = useActivitySpaces(props)
 </script>
 <template>
   <a-modal
@@ -38,11 +38,12 @@ const { keyword, selected, visibleTree, expandedKeys, expanded, check } = useAct
       <a-tree
         v-if="visibleTree.length"
         :tree-data="visibleTree"
-        :checked-keys="selected"
+        :checked-keys="checkedKeys"
         :expanded-keys="expanded"
         :auto-expand-parent="!!keyword.trim()"
         :disabled="busy"
         checkable
+        check-strictly
         block-node
         :selectable="false"
         :height="360"
@@ -51,9 +52,8 @@ const { keyword, selected, visibleTree, expandedKeys, expanded, check } = useAct
       >
         <template #title="node">
           <span class="activity-space-row">
-            <AIcon :type="node.leaf ? 'HomeOutlined' : 'FolderOutlined'" />
+            <AIcon :type="node.customerBound ? 'HomeOutlined' : 'FolderOutlined'" />
             <span>{{ node.title }}</span>
-            <a-tag v-if="node.spaceTypeName">{{ node.spaceTypeName }}</a-tag>
           </span>
         </template>
       </a-tree>

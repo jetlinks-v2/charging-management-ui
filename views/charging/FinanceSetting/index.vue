@@ -112,7 +112,7 @@ function selectTree(keys: (string | number)[]) {
       :spaces="archive.tree.value"
       :detail="detail"
       :options="options"
-      :initial-space="selected?.leaf ? selected.id : undefined"
+      :initial-space="selected?.customerBound ? selected.id : undefined"
       :mode="mode"
       :read-only="readOnly"
       :loading="loading"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-defineProps<{ projectId: string; busy: boolean; leaf: boolean }>()
+defineProps<{ projectId: string; busy: boolean }>()
 const emit = defineEmits<{ temporary: []; topup: [type: 'ADVANCE' | 'DEPOSIT']; prepay: [] }>()
 const { t } = useI18n()
 </script>

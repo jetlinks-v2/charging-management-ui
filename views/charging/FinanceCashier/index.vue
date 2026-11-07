@@ -117,10 +117,9 @@ function fundSaved() {
           <CashierTools
             :project-id="projectId"
             :busy="busy"
-            :leaf="!!selected?.leaf"
-            @temporary="temporary.start(selected?.leaf ? selectedId : undefined)"
+            @temporary="temporary.start(selected?.customerBound ? selectedId : undefined)"
             @topup="
-              (type) => funds.start({ action: 'TOPUP', type, initialSpace: selected?.leaf ? selectedId : undefined })
+              (type) => funds.start({ action: 'TOPUP', type, initialSpace: selected?.customerBound ? selectedId : undefined })
             "
             @prepay="prepay.start(selectedId || '', selected?.spaceLocation || selected?.name || '')"
           />

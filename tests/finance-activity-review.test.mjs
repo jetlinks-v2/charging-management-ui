@@ -50,13 +50,13 @@ const { useActivityReview } = load('useActivityReview')
 const spaces = [
   { id: 'root', name: '园区', fullName: '园区', rootId: 'root', leaf: false },
   { id: 'building', parentId: 'root', name: '1栋', fullName: '园区/1栋', rootId: 'root', leaf: false },
-  { id: 'room', parentId: 'building', name: '101', fullName: '园区/1栋/101', rootId: 'root', leaf: true },
-  { id: 'other', parentId: 'root', name: '2栋', fullName: '园区/2栋', rootId: 'root', leaf: true }
+  { id: 'room', parentId: 'building', name: '101', fullName: '园区/1栋/101', rootId: 'root', leaf: true, customerBound: true },
+  { id: 'other', parentId: 'root', name: '2栋', fullName: '园区/2栋', rootId: 'root', leaf: true, customerBound: true }
 ]
 test('checking a building selects its leaf rooms and never submits the parent range', () => {
   const source = [
     ...spaces,
-    { id: 'room2', parentId: 'building', name: '102', fullName: '园区/1栋/102', rootId: 'root', leaf: true }
+    { id: 'room2', parentId: 'building', name: '102', fullName: '园区/1栋/102', rootId: 'root', leaf: true, customerBound: true }
   ]
   const selectedIds = []
   const state = useActivitySpaces({ spaces: source, selectedIds })
@@ -85,6 +85,33 @@ test('filtered check and uncheck preserve previously selected hidden rooms', () 
   state.keyword.value = '不存在'
   assert.equal(state.visibleTree.value.length, 0)
   assert.deepEqual(state.selected.value, ['other'])
+})
+
+test('活动可选择非末级客户空间，单独选择下级不会自动增加父级收费空间', () => {
+  const source = spaces.map((node) => ({ ...node, customerBound: node.id === 'building' || node.customerBound }))
+  const state = useActivitySpaces({ spaces: source, selectedIds: ['building'] })
+  assert.deepEqual(state.selected.value, ['building', 'room'])
+  state.check({ checked: [] }, { node: { key: 'building' }, checked: true })
+  assert.deepEqual(state.selected.value, ['building', 'room'])
+  state.check({ checked: [] }, { node: { key: 'building' }, checked: false })
+  assert.deepEqual(state.selected.value, [])
+  state.check({ checked: ['room'] }, { node: { key: 'room' }, checked: true })
+  assert.deepEqual(state.selected.value, ['room'])
+  assert.ok(state.checkedKeys.value.halfChecked.includes('building'))
+  assert.ok(!state.checkedKeys.value.checked.includes('building'))
+})
+
+test('取消活动下级范围同时取消已选客户上级，避免后台仍按上级覆盖下级', () => {
+  const source = [
+    ...spaces.map((node) => ({ ...node, customerBound: node.id === 'building' || node.customerBound })),
+    { id: 'room2', parentId: 'building', name: '102', fullName: '园区/1栋/102', rootId: 'root', customerBound: true }
+  ]
+  const state = useActivitySpaces({ spaces: source, selectedIds: ['building', 'other'] })
+  state.keyword.value = '101'
+  state.check({ checked: [] }, { node: { key: 'room' }, checked: false })
+  assert.deepEqual(new Set(state.selected.value), new Set(['room2', 'other']))
+  state.check({ checked: [] }, { node: { key: 'building' }, checked: true })
+  assert.deepEqual(new Set(state.selected.value), new Set(['building', 'room', 'room2', 'other']))
 })
 
 function mount(api = {}) {

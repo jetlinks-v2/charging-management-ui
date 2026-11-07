@@ -10,7 +10,7 @@ const nodes = computed(() => {
   const convert = (rows: typeof visibleTree.value): NonNullable<TreeProps['treeData']> =>
     rows.map((row) => ({
       key: row.id,
-      title: [row.name, row.spaceTypeName].filter(Boolean).join(' · '),
+      title: row.name,
       children: convert(row.children || [])
     }))
   return convert(visibleTree.value)

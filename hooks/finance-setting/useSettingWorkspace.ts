@@ -49,7 +49,7 @@ export function useSettingWorkspace() {
     const map = (nodes: typeof archive.tree.value): SpaceTreeNode[] =>
       nodes.map((row) => ({
         key: row.id,
-        title: row.spaceTypeName ? `${row.name} · ${row.spaceTypeName}` : row.name,
+        title: row.name,
         children: map(row.children || [])
       }))
     return map(archive.visibleTree.value)

@@ -23,7 +23,7 @@ export function settingHouseNodes(
   return spaces.map((space) => {
     const children = settingHouseNodes(space.children || [], houses, added, path + space.name + '/')
     const leaf = space.leaf && children.length === 0
-    const house = leaf ? houses.get(space.id) : undefined
+    const house = houses.get(space.id)
     return {
       key: space.id,
       title: space.name,
@@ -33,7 +33,7 @@ export function settingHouseNodes(
       leaf,
       available: !!house,
       added: added.has(space.id),
-      disabled: leaf ? !house || added.has(space.id) : !children.some((child) => !child.disabled),
+      disabled: (!house || added.has(space.id)) && !children.some((child) => !child.disabled),
       children
     }
   })
@@ -42,7 +42,7 @@ export function settingHouseNodes(
 export const flattenHouseNodes = (nodes: SettingHouseNode[]): SettingHouseNode[] =>
   nodes.flatMap((node) => [node, ...flattenHouseNodes(node.children)])
 
-/** 搜索父节点保留整个下级范围，搜索房屋保留其上级；勾选范围只包含当前可见的可用末端。 */
+/** 搜索父节点保留整个下级范围，搜索房屋保留其上级；不按来源层级限制房屋。 */
 export function filterHouseNodes(nodes: SettingHouseNode[], keyword: string): SettingHouseNode[] {
   const term = keyword.trim().toLowerCase()
   if (!term) return nodes

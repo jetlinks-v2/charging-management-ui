@@ -16,6 +16,7 @@ const {
   loading,
   failed,
   selected,
+  checkedKeys,
   visibleTree,
   visibleHouses,
   remaining,
@@ -73,9 +74,10 @@ const {
             v-else-if="visibleTree.length"
             v-model:expanded-keys="expandedKeys"
             :tree-data="visibleTree"
-            :checked-keys="selected"
+            :checked-keys="checkedKeys"
             :disabled="loading || busy"
             checkable
+            check-strictly
             block-node
             :selectable="false"
             :height="360"
@@ -84,7 +86,7 @@ const {
             <template #title="node">
               <span class="house-tree-row">
                 <AIcon
-                  :type="node.leaf ? 'HomeOutlined' : 'FolderOutlined'"
+                  :type="node.available ? 'HomeOutlined' : 'FolderOutlined'"
                   class="house-tree-icon"
                 />
                 <span class="house-tree-name">{{ node.title }}</span>

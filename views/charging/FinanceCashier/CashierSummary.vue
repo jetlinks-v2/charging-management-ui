@@ -15,11 +15,11 @@ const { selected, balances, balanceFailed, total, clear, loading } = props.state
     <div class="cashier-balances">
       <div>
         <span>{{ t('CashierDesk.advanceBalance') }}</span>
-        <strong>{{ balanceFailed || !state.archive.selected.value?.leaf || loading ? '—' : balances.advance }}</strong>
+        <strong>{{ balanceFailed || !state.archive.selected.value?.customerBound || loading ? '—' : balances.advance }}</strong>
       </div>
       <div>
         <span>{{ t('CashierDesk.depositBalance') }}</span>
-        <strong>{{ balanceFailed || !state.archive.selected.value?.leaf || loading ? '—' : balances.deposit }}</strong>
+        <strong>{{ balanceFailed || !state.archive.selected.value?.customerBound || loading ? '—' : balances.deposit }}</strong>
       </div>
     </div>
     <div class="cashier-summary-lines">
@@ -48,7 +48,7 @@ const { selected, balances, balanceFailed, total, clear, loading } = props.state
       <j-permission-button
         block
         hasPermission="charging/FinanceCashier:collect"
-        :disabled="busy || !state.archive.selected.value?.leaf"
+        :disabled="busy || !state.archive.selected.value?.customerBound"
         @click="emit('prepay')"
       >
         {{ t('Prepay.title') }}

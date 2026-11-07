@@ -35,14 +35,14 @@ export function filterActivitySpaces(nodes: ActivitySpaceNode[], keyword: string
 export const flattenActivitySpaces = (nodes: ActivitySpaceNode[]): ActivitySpaceNode[] =>
   nodes.flatMap((node) => [node, ...flattenActivitySpaces(node.children)])
 
-/** 兼容已保存的上级范围：编辑时展开为末端身份，取消某间房后不能仍携带其上级范围。 */
+/** 已保存的上级范围展开为实际客户空间，来源节点不必是末级。 */
 export function activitySelectedLeaves(nodes: ActivitySpaceNode[], ids: string[]): string[] {
   const selected = new Set(ids)
   const leaves: string[] = []
   function collect(branch: ActivitySpaceNode[], inherited = false) {
     for (const node of branch) {
       const checked = inherited || selected.has(node.id)
-      if (node.leaf && !node.children.length && checked) leaves.push(node.id)
+      if (node.customerBound && checked) leaves.push(node.id)
       collect(node.children, checked)
     }
   }

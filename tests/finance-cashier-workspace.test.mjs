@@ -101,8 +101,8 @@ function mount(api = {}) {
   globalThis.__deskMessages = []
   const selectedId = ref('101'),
     tree = ref([
-      { id: '101', leaf: true, name: '101', fullName: '5G园区/A组团/1栋/1单元/101' },
-      { id: '102', leaf: true, name: '102', fullName: '5G园区/A组团/1栋/1单元/102' }
+      { id: '101', leaf: true, customerBound: true, name: '101', fullName: '5G园区/A组团/1栋/1单元/101' },
+      { id: '102', leaf: true, customerBound: true, name: '102', fullName: '5G园区/A组团/1栋/1单元/102' }
     ])
   globalThis.__deskArchive = {
     projectId: ref('p'),
@@ -144,6 +144,25 @@ const flush = async () => {
   await new Promise((r) => setTimeout(r, 0))
   await nextTick()
 }
+
+test('非末级空间本身有客户时读取该空间余额，纯目录不读取余额', async () => {
+  const calls = []
+  const mounted = mount({ funds: async (_project, query) => {
+    calls.push(query.terms)
+    return { result: { total: 1, data: [{ id: 'fund', type: 'ADVANCE', balance: '12.00' }] } }
+  } })
+  mounted.state.archive.tree.value.unshift({ id: 'building', name: '1栋', leaf: false,
+    customerBound: true, children: [{ id: 'child', name: '101', leaf: true, customerBound: true }] })
+  mounted.state.chooseHouse('building')
+  await mounted.state.reload()
+  assert.deepEqual(calls.at(-1), [{ column: 'spaceId', termType: 'eq', value: 'building' }])
+  assert.equal(mounted.state.balances.value.advance, '12.00')
+  calls.length = 0
+  mounted.state.archive.tree.value[0].customerBound = false
+  await mounted.state.reload()
+  assert.equal(calls.length, 0)
+  mounted.unmount()
+})
 test('所有分页完整后才展示，缺页或重复身份不发布部分欠费', async () => {
   let requests = []
   const mounted = mount({

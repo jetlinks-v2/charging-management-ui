@@ -461,7 +461,7 @@ const settleTree = async () => {
   for (let i = 0; i < 8; i++) await nextTick()
 }
 
-test('树按项目楼栋级联选择，仅选择已完善末端，已添加和未完善房屋不重复加入', async () => {
+test('树按项目楼栋级联选择，已添加和不可用房屋不重复加入', async () => {
   const props = reactive({ projectId: 'a', spaces: roomTree(4), busy: false, selectedIds: ['room-0'], limit: 5 })
   const { state, unmount } = mount(() => useSettingHouseTree(props), { querySettingHouses: async () => housePage(3) })
   await settleTree()
@@ -475,6 +475,27 @@ test('树按项目楼栋级联选择，仅选择已完善末端，已添加和�
   state.selectAll()
   assert.deepEqual(state.selected.value, ['room-1', 'room-2'])
   assert.equal(state.visibleTree.value[0].children[0].children[3].disabled, true)
+  unmount()
+})
+
+test('父子空间均有客户时可分别勾选，选择楼栋覆盖下级，取消房间不取消楼栋本身', async () => {
+  const props = reactive({ projectId: 'a', spaces: roomTree(2), busy: false, selectedIds: [], limit: 5 })
+  const { state, unmount } = mount(() => useSettingHouseTree(props), {
+    querySettingHouses: async () => ({ total: 3, pageIndex: 0, pageSize: 200,
+      data: [{ spaceId: 'building', fullName: '测试园区/1栋', billingArea: '500' }, ...housePage(2).data] })
+  })
+  await settleTree()
+  assert.equal(state.failed.value, false)
+  assert.deepEqual(state.visibleHouses.value.map((row) => row.key), ['building', 'room-0', 'room-1'])
+  state.check({ checked: ['building'] }, { node: { key: 'building' }, checked: true })
+  assert.deepEqual(state.selected.value, ['building', 'room-0', 'room-1'])
+  state.check({ checked: ['building', 'room-1'] }, { node: { key: 'room-0' }, checked: false })
+  assert.deepEqual(state.selected.value, ['building', 'room-1'])
+  state.clear()
+  state.check({ checked: ['room-0'] }, { node: { key: 'room-0' }, checked: true })
+  assert.deepEqual(state.selected.value, ['room-0'])
+  assert.ok(state.checkedKeys.value.halfChecked.includes('building'))
+  assert.ok(!state.checkedKeys.value.checked.includes('building'))
   unmount()
 })
 

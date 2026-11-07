@@ -48,7 +48,8 @@ test('收费空间树只读公开资源并跟随全局项目，丢弃切换前�
   const requests = []
   globalThis.__spaceResource = (...args) => {
     assert.deepEqual(args, ['property-base-ui', 'apis', 'getSpaceTree'])
-    return (p) => {
+    return (p, customerBound) => {
+      assert.equal(customerBound, true)
       const pending = deferred()
       requests.push({ p, ...pending })
       return pending.promise

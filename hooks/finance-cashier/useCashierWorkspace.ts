@@ -51,7 +51,7 @@ export function useCashierWorkspace() {
     const map = (nodes: typeof archive.tree.value): SpaceNode[] =>
       nodes.map((node) => ({
         key: node.id,
-        title: node.spaceTypeName ? `${node.name} · ${node.spaceTypeName}` : node.name,
+        title: node.name,
         children: map(node.children || [])
       }))
     return map(archive.visibleTree.value)
@@ -154,7 +154,7 @@ export function useCashierWorkspace() {
           notify(error)
         }
       })
-    const funds = space?.leaf
+    const funds = space?.customerBound
       ? readAll(
           async (pageIndex) =>
             (

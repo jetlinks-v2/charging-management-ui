@@ -48,6 +48,7 @@ export interface ActivitySpace {
   fullName: string
   spaceTypeName?: string
   leaf: boolean
+  customerBound?: boolean
 }
 export interface ActivityDetail {
   activity: ActivitySummary['activity']
