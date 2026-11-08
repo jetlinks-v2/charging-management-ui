@@ -51,9 +51,10 @@ function selectTree(keys: (string | number)[]) {
           :aria-label="t('Archive.searchSpace')"
           allow-clear
         />
+        <!-- Spin 的 class 仅作用于加载指示器，滚动布局必须使用外层容器样式。 -->
         <a-spin
           :spinning="treeLoading"
-          class="setting-tree"
+          wrapper-class-name="setting-tree"
         >
           <a-tree
             v-if="tree.length"
