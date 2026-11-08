@@ -32,11 +32,11 @@ pnpm --filter charging-management-ui test
 ```powershell
 # 收费独立模块，产物 modules/charging-management-ui/dist。
 pnpm --filter charging-management-ui build
-# 收费与公共基础聚合宿主，产物 runtime-ui/dist。
+# 收费、公共基础及登录模块聚合宿主，产物 runtime-ui/dist。
 pnpm --filter charging-management-ui build:with-base
 ```
 
-独立部署时需同时部署并加载公共前端；聚合部署时公共模块已编入同一宿主。原有基础菜单地址与按钮编码继续由公共模块提供。
+独立部署时需同时部署并加载公共前端；聚合部署必须使用 `build:with-base` 并发布 `runtime-ui/dist`，不能用 `modules/charging-management-ui/dist` 替代，否则基础页面及登录能力不会完整加载。聚合产物须实际验证组织、用户、空间、客户、字典和登录入口，不能只校验文件下载成功。原有基础菜单地址与按钮编码继续由公共模块提供。
 
 完整接入见公共仓库 [引用文档](../property-base-ui/docs/引用文档.md)，包含子模块配置、菜单初始化、公共接口和组件引用、权限与发布说明。原基础行为测试随实现迁移到公共模块，通过 `pnpm --filter property-base-ui test` 执行。
 

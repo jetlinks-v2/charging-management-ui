@@ -19,7 +19,7 @@ test('收费不再重复提供物业基础菜单，开发与联合构建加载�
   }
   const { scripts } = read('../package.json')
   assert.match(scripts.dev, /charging-management-ui,property-base-ui,authentication-manager-ui/)
-  assert.match(scripts['build:with-base'], /charging-management-ui,property-base-ui/)
+  assert.match(scripts['build:with-base'], /charging-management-ui,property-base-ui,authentication-manager-ui/)
 })
 
 test('收费菜单在宿主中是运行端资源，不接管公共基础菜单或应用归属', async () => {
