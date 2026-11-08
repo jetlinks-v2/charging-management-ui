@@ -607,12 +607,57 @@
                 ]
               },
               {
-                "id": "calculate",
-                "name": "生成应收",
+                "id": "change-customer",
+                "name": "更换收费对象",
                 "i18nMessages": {
-                  "zh_CN": "生成应收",
-                  "en_US": "Generate bills",
-                  "en": "Generate bills"
+                  "zh_CN": "更换收费对象",
+                  "en_US": "Change payer",
+                  "en": "Change payer"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-setting",
+                    "actions": ["query", "save"]
+                  }
+                ]
+              },
+              {
+                "id": "next-version",
+                "name": "接续新版本",
+                "i18nMessages": {
+                  "zh_CN": "接续新版本",
+                  "en_US": "Create next version",
+                  "en": "Create next version"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-setting",
+                    "actions": ["query", "save"]
+                  }
+                ]
+              },
+              {
+                "id": "stop",
+                "name": "结束设置",
+                "i18nMessages": {
+                  "zh_CN": "结束设置",
+                  "en_US": "End charge setting",
+                  "en": "End charge setting"
+                },
+                "permissions": [
+                  {
+                    "permission": "property-finance-setting",
+                    "actions": ["save"]
+                  }
+                ]
+              },
+              {
+                "id": "calculate",
+                "name": "生成 / 刷新应收",
+                "i18nMessages": {
+                  "zh_CN": "生成 / 刷新应收",
+                  "en_US": "Generate / refresh bills",
+                  "en": "Generate / refresh bills"
                 },
                 "permissions": [
                   {

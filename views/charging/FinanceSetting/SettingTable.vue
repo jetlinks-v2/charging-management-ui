@@ -141,7 +141,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
                 key="customer"
               >
                 <j-permission-button
-                  :hasPermission="`${settingPermission}:save`"
+                  :hasPermission="`${settingPermission}:change-customer`"
                   type="text"
                   @click="select(row, false, 'customer')"
                 >
@@ -153,7 +153,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
                 key="next"
               >
                 <j-permission-button
-                  :hasPermission="`${settingPermission}:save`"
+                  :hasPermission="`${settingPermission}:next-version`"
                   type="text"
                   @click="select(row, false, 'next')"
                 >
@@ -165,7 +165,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
                 key="stop"
               >
                 <j-permission-button
-                  :hasPermission="`${settingPermission}:save`"
+                  :hasPermission="`${settingPermission}:stop`"
                   type="text"
                   @click="stopTarget = row"
                 >

@@ -38,7 +38,7 @@ function selectTree(keys: (string | number)[]) {
 }
 </script>
 <template>
-  <FinancePage>
+  <FinancePage fixed>
     <ProjectScopeBar />
     <div class="subject-workspace">
       <aside class="subject-categories">
@@ -149,6 +149,21 @@ function selectTree(keys: (string | number)[]) {
 </template>
 <style scoped src="../FinanceSubject/subject.css"></style>
 <style scoped>
+.subject-workspace,
+.subject-content {
+  min-height: 0;
+  overflow: hidden;
+}
+.subject-categories {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.subject-categories > :not(.setting-tree),
+.subject-content > :not(.jtable-body-spin) {
+  flex-shrink: 0;
+}
 .setting-heading {
   flex-wrap: wrap;
   align-items: center;
@@ -161,12 +176,26 @@ function selectTree(keys: (string | number)[]) {
   margin-bottom: 0;
 }
 .subject-content :deep(.jtable-body-spin) {
-  flex: 0 1 auto;
+  flex: 1;
 }
 .setting-tree {
+  flex: 1;
+  min-height: 0;
   margin-top: 12px;
+  overflow: auto;
 }
 .subject-categories :deep(.ant-spin-container) {
-  min-height: 260px;
+  min-height: 0;
+}
+@container (max-width: 650px) {
+  .subject-workspace {
+    overflow: auto;
+  }
+  .subject-categories {
+    min-height: 180px;
+  }
+  .subject-content {
+    min-height: 400px;
+  }
 }
 </style>

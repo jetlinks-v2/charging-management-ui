@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { build } from 'esbuild'
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
@@ -40,5 +40,35 @@ test('收费菜单在宿主中是运行端资源，不接管公共基础菜单�
     assert.equal(node.runtime, true)
     assert.equal(node.options?.appName, undefined)
     assert.notEqual(node.id, 'charging-basic')
+  }
+})
+
+test('收费设置每个按钮权限都能在菜单中独立配置并映射到已有接口权限', () => {
+  const menus = JSON.parse(readFileSync(new URL('../baseMenu.json', import.meta.url), 'utf8'))
+  const visit = (nodes) => nodes.flatMap((node) => [node, ...visit(node.children || [])])
+  const menu = visit(menus).find((node) => node.code === 'charging/FinanceSetting')
+  const buttons = new Map(menu.buttons.map((button) => [button.id, button]))
+  assert.equal(buttons.size, menu.buttons.length)
+  for (const [id, action] of [
+    ['change-customer', 'save'],
+    ['next-version', 'save'],
+    ['stop', 'save'],
+    ['calculate', 'calculate']
+  ]) {
+    assert.ok(buttons.has(id), `缺少独立按钮权限 ${id}`)
+    assert.ok(buttons.get(id).permissions.some(
+      (permission) => permission.permission === 'property-finance-setting' && permission.actions.includes(action)
+    ))
+  }
+  const directory = new URL('../views/charging/FinanceSetting/', import.meta.url)
+  for (const file of readdirSync(directory).filter((file) => file.endsWith('.vue'))) {
+    const source = readFileSync(new URL(file, directory), 'utf8')
+    for (const [, id] of source.matchAll(/\$\{settingPermission\}:([\w-]+)/g)) {
+      assert.ok(buttons.has(id), `${file} 引用了未配置的按钮权限 ${id}`)
+    }
+  }
+  const table = readFileSync(new URL('SettingTable.vue', directory), 'utf8')
+  for (const id of ['change-customer', 'next-version', 'stop']) {
+    assert.ok(table.includes('${settingPermission}:' + id), `操作未使用独立权限 ${id}`)
   }
 })
