@@ -6,10 +6,20 @@ import { overviewMoney } from '../../../utils/overviewCharts'
 const props = defineProps<{ houses: OverviewResult['houses'] }>()
 const { t } = useI18n()
 const fixed = computed(() => [
-  { key: 'houses', value: props.houses.houseCount.toLocaleString(), unit: t('Overview.rooms') },
-  { key: 'buildingArea', value: overviewMoney(props.houses.buildingArea, false), unit: '㎡' },
-  { key: 'billingArea', value: overviewMoney(props.houses.billingArea, false), unit: '㎡' },
-  { key: 'incomplete', value: props.houses.incompleteCount.toLocaleString(), unit: t('Overview.rooms') }
+  { key: 'houses', icon: 'HomeOutlined', value: props.houses.houseCount.toLocaleString(), unit: t('Overview.rooms') },
+  {
+    key: 'buildingArea',
+    icon: 'BorderOuterOutlined',
+    value: overviewMoney(props.houses.buildingArea, false),
+    unit: '㎡'
+  },
+  { key: 'billingArea', icon: 'CalculatorOutlined', value: overviewMoney(props.houses.billingArea, false), unit: '㎡' },
+  {
+    key: 'incomplete',
+    icon: 'FormOutlined',
+    value: props.houses.incompleteCount.toLocaleString(),
+    unit: t('Overview.rooms')
+  }
 ])
 </script>
 <template>
@@ -17,18 +27,25 @@ const fixed = computed(() => [
     class="overview-panel overview-assets"
     :aria-label="t('Overview.assets')"
   >
-    <dl class="overview-fixed">
+    <div class="overview-fixed">
       <div
         v-for="item in fixed"
         :key="item.key"
       >
-        <dt>{{ t('Overview.' + item.key) }}</dt>
-        <dd>
-          {{ item.value }}
-          <small>{{ item.unit }}</small>
-        </dd>
+        <AIcon
+          :type="item.icon"
+          class="overview-asset-icon"
+          aria-hidden="true"
+        />
+        <dl>
+          <dt>{{ t('Overview.' + item.key) }}</dt>
+          <dd>
+            {{ item.value }}
+            <small>{{ item.unit }}</small>
+          </dd>
+        </dl>
       </div>
-    </dl>
+    </div>
     <dl class="overview-states">
       <div
         v-for="item in houses.states"

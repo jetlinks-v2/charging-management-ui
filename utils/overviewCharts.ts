@@ -42,6 +42,22 @@ function horizontal(rows: BarRow[], t: Translator, stacked = false, color = blue
     : [{ key: 'amount', name: t('Overview.amount'), color }]
   return {
     ...base(),
+    aria: {
+      enabled: true,
+      label: {
+        description:
+          rows
+            .map((row) =>
+              [
+                row.name,
+                ...series.map(
+                  (s) => `${s.name} ${overviewMoney(row[s.key as keyof BarRow] || '0.00')} ${t('Overview.wan')}`
+                )
+              ].join('，')
+            )
+            .join('；') || t('Overview.noRecords')
+      }
+    },
     legend: stacked ? { top: 0, left: 8, itemWidth: 9, itemHeight: 9 } : undefined,
     grid: { top: stacked ? 35 : 12, right: 32, bottom: 12, left: 8, containLabel: true },
     xAxis: {
@@ -137,6 +153,19 @@ export function trendOption(result: OverviewResult, start: string, end: string, 
   ]
   return {
     ...base(),
+    aria: {
+      enabled: true,
+      label: {
+        description: points
+          .map((point) =>
+            [
+              point.period,
+              ...series.map((s) => `${s.name} ${overviewMoney(point[s.key as 'incomeAmount'])} ${t('Overview.wan')}`)
+            ].join('，')
+          )
+          .join('；')
+      }
+    },
     legend: { top: 0, left: 8, itemWidth: 9, itemHeight: 9 },
     grid: { top: 40, left: 8, right: 16, bottom: 12, containLabel: true },
     xAxis: {

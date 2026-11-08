@@ -138,6 +138,18 @@ function filter({ filter }: ConditionFilterChangePayload) {
             <a-menu>
               <a-menu-item
                 v-if="row.status === 'ACTIVE' && row.reviewState === 'APPROVED'"
+                key="customer"
+              >
+                <j-permission-button
+                  :hasPermission="`${settingPermission}:save`"
+                  type="text"
+                  @click="select(row, false, 'customer')"
+                >
+                  {{ t('Setting.changeCustomer') }}
+                </j-permission-button>
+              </a-menu-item>
+              <a-menu-item
+                v-if="row.status === 'ACTIVE' && row.reviewState === 'APPROVED'"
                 key="next"
               >
                 <j-permission-button
@@ -173,7 +185,7 @@ function filter({ filter }: ConditionFilterChangePayload) {
                 </j-permission-button>
               </a-menu-item>
               <a-menu-item
-                v-if="!row.billed"
+                v-if="!row.billed && row.reviewState !== 'APPROVED'"
                 key="delete"
               >
                 <a-popconfirm

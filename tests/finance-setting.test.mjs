@@ -658,3 +658,52 @@ test('审批无原因和非待审批记录不提交，项目改变丢弃迟到�
   assert.equal(state.decision.value, undefined)
   unmount()
 })
+
+
+test('更换收费对象复用接续审批提交，保留设置身份与版本；失败可重试', async () => {
+  const calls = []
+  const { state, unmount } = mount(useSettingWorkspace, {
+    saveSetting: async (...args) => {
+      calls.push(args)
+      if (calls.length === 1) throw new Error('生效日期影响已有应收')
+      return { generated: 0, retained: 0 }
+    }
+  })
+  await state.select(row('original'), false, 'customer')
+  const input = { ...row('original'), effectiveStartDate: '2024-03-01', customerRelationshipIds: ['room-1', 'room-2'] }
+  await state.save([input])
+  assert.equal(state.open.value, true)
+  assert.equal(state.detail.value.id, 'original')
+  assert.equal(calls[0][0], 'a')
+  assert.equal(calls[0][1], 'original')
+  assert.equal(calls[0][2].version, 4)
+  assert.equal(calls[0][3], true, 'must create a replacement, never overwrite the existing setting')
+  assert.deepEqual(calls[0][2].customerRelationshipIds, ['room-1', 'room-2'])
+  await state.save([input])
+  assert.equal(state.open.value, false)
+  assert.equal(calls.length, 2)
+  unmount()
+})
+
+test('下月接续表单保留收费规则，清除已结束关系并提交新对象，不分摊', async () => {
+  const emitted = []
+  const detail = { ...row('old'), effectiveStartDate: '2024-02-01', effectiveEndDate: '2024-12-31', customerRelationshipIds: ['ended'] }
+  const props = reactive({ projectId: 'a', options, mode: 'next', readOnly: false, detail })
+  const { state, unmount } = mount(() => useSettingForm(props, (input) => emitted.push(input)), {
+    getSettingHouse: async () => context('room', 2)
+  })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.deepEqual(state.targets.value[0].relationshipIds, [])
+  state.targets.value[0].relationshipIds = ['room-1']
+  state.rules.value[0].effectiveStartDate = '2024-03-01'
+  await state.submit()
+  assert.equal(emitted.length, 1)
+  assert.equal(emitted[0][0].standardId, detail.standardId)
+  assert.equal(emitted[0][0].projectSubjectId, detail.projectSubjectId)
+  assert.equal(emitted[0][0].effectiveStartDate, '2024-03-01')
+  assert.equal(emitted[0][0].effectiveEndDate, detail.effectiveEndDate)
+  assert.deepEqual(emitted[0][0].variableValues, { BILLING_PERSON: '3' })
+  assert.deepEqual(emitted[0][0].customerRelationshipIds, ['room-1'])
+  assert.equal('shareRatio' in emitted[0][0], false)
+  unmount()
+})

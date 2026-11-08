@@ -35,7 +35,7 @@ export function useSettingWorkspace() {
     failed = ref(false),
     saving = ref(false),
     readOnly = ref(true)
-  const mode = ref<'single' | 'batch' | 'next'>('single')
+  const mode = ref<'single' | 'batch' | 'next' | 'customer'>('single')
   const detail = ref<ChargeSetting>()
   const metadataLoading = ref(false),
     metadataFailed = ref(false)
@@ -127,7 +127,7 @@ export function useSettingWorkspace() {
                 project,
                 detail.value?.id,
                 { ...inputs[0], version: detail.value?.version },
-                mode.value === 'next'
+                mode.value === 'next' || mode.value === 'customer'
               )
             ]
       onlyMessage(

@@ -215,6 +215,8 @@ test('大额十进制展示和负数舍入保留精度，图表缺日补零且�
     ['0.00', '-20.00', '0.00']
   )
   assert.equal(option.series[2].data[1].value, -0.002)
+  assert.ok(option.aria.label.description.includes('2024-02-02，Overview.income 0.00 Overview.wan，Overview.refund 0.00 Overview.wan，Overview.netCash 0.00 Overview.wan'))
+  assert.ok(!option.aria.label.description.includes('NaN'))
 })
 
 test('房态编号未返回时仍显示实际名称，只有空名称显示未设置', async () => {
@@ -283,6 +285,7 @@ test('四类图表以真实ECharts渲染SVG，长科目可滚动且窄宽度不�
     charts.exports.trendOption(result, '2024-02-01', '2024-02-03', t)
   ]
   assert.equal(options[0].dataZoom[0].endValue, 7)
+  assert.ok(options[0].aria.label.description.includes('较长的收费科目名称0，paid 1.00 wan，unpaid 2.00 wan'))
   for (const width of [430, 700])
     for (const option of options) {
       const chart = echarts.init(null, null, { renderer: 'svg', ssr: true, width, height: 280 })

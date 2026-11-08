@@ -9,6 +9,7 @@ import SettingDrawer from './SettingDrawer.vue'
 import SettingStop from './SettingStop.vue'
 import SettingTasks from './SettingTasks.vue'
 import SettingReview from './SettingReview.vue'
+import SettingCustomerChange from './SettingCustomerChange.vue'
 const { t } = useI18n()
 const state = useSettingWorkspace()
 const tasksOpen = ref(false)
@@ -107,7 +108,7 @@ function selectTree(keys: (string | number)[]) {
       </main>
     </div>
     <SettingDrawer
-      v-if="open"
+      v-if="open && mode !== 'customer'"
       :project-id="projectId"
       :spaces="archive.tree.value"
       :detail="detail"
@@ -115,6 +116,17 @@ function selectTree(keys: (string | number)[]) {
       :initial-space="selected?.customerBound ? selected.id : undefined"
       :mode="mode"
       :read-only="readOnly"
+      :loading="loading"
+      :failed="failed"
+      :saving="saving"
+      @close="close"
+      @save="save"
+    />
+    <SettingCustomerChange
+      v-if="open && mode === 'customer'"
+      :project-id="projectId"
+      :detail="detail"
+      :options="options"
       :loading="loading"
       :failed="failed"
       :saving="saving"
