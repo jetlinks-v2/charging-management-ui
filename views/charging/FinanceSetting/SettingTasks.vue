@@ -84,7 +84,7 @@ const columns = computed(() => [
       <template #actions="row">
         <j-permission-button
           v-if="row.status === 'FAILED'"
-          :hasPermission="`${settingPermission}:calculate`"
+          :hasPermission="`${settingPermission}:retry-task`"
           type="link"
           size="small"
           :loading="retrying === row.id"

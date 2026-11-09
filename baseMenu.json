@@ -652,12 +652,12 @@
                 ]
               },
               {
-                "id": "calculate",
-                "name": "生成 / 刷新应收",
+                "id": "retry-task",
+                "name": "重试失败算费任务",
                 "i18nMessages": {
-                  "zh_CN": "生成 / 刷新应收",
-                  "en_US": "Generate / refresh bills",
-                  "en": "Generate / refresh bills"
+                  "zh_CN": "重试失败算费任务",
+                  "en_US": "Retry failed billing task",
+                  "en": "Retry failed billing task"
                 },
                 "permissions": [
                   {

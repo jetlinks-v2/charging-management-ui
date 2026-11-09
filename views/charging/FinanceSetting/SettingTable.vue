@@ -8,7 +8,7 @@ import type { Query } from '../../../api/archive'
 import { settingPermission, type useSettingWorkspace } from '../../../hooks/finance-setting/useSettingWorkspace'
 const props = defineProps<{ state: ReturnType<typeof useSettingWorkspace> }>()
 const { t } = useI18n()
-const { archive, table, terms, params, request, select, remove, generate, stopTarget, notify } = props.state
+const { archive, table, terms, params, request, select, remove, stopTarget, notify } = props.state
 const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'fullName', width: 220, scopedSlots: true },
   { title: t('Setting.subject'), dataIndex: 'subjectName', width: 120 },
@@ -170,18 +170,6 @@ function filter({ filter }: ConditionFilterChangePayload) {
                   @click="stopTarget = row"
                 >
                   {{ t('Setting.stop') }}
-                </j-permission-button>
-              </a-menu-item>
-              <a-menu-item
-                v-if="row.reviewState === 'APPROVED'"
-                key="generate"
-              >
-                <j-permission-button
-                  :hasPermission="`${settingPermission}:calculate`"
-                  type="text"
-                  @click="generate(row)"
-                >
-                  {{ t('Setting.calculate') }}
                 </j-permission-button>
               </a-menu-item>
               <a-menu-item
