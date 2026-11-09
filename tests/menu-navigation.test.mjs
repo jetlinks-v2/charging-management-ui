@@ -20,7 +20,7 @@ const definitions = JSON.parse(readFileSync(new URL('baseMenu.json', root), 'utf
 const system = definitions[0]
 const other = { id: 'charging-basic', code: 'charging/basic', name: '物业基础管理', url: '/basic' }
 
-test('收费系统分组包含概览与原五个业务分组，公共基础菜单保持独立', () => {
+test('收费系统分组包含概览、业务分组及末尾收费配置，公共基础菜单保持独立', () => {
   assert.equal(definitions.length, 1)
   assert.equal(system.code, 'charging-management')
   assert.equal(system.name, '收费管理')
@@ -32,7 +32,8 @@ test('收费系统分组包含概览与原五个业务分组，公共基础菜�
       'charging/payment',
       'charging/FinanceActivity',
       'charging/documents',
-      'charging/reports'
+      'charging/reports',
+      'charging/configuration'
     ]
   )
   assert.match(readFileSync(new URL('index.ts', root), 'utf8'), /getMenuFilters/)
