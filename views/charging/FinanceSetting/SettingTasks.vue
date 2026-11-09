@@ -2,19 +2,17 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBillingTasks } from '../../../hooks/finance-setting/useBillingTasks'
-import { settingPermission } from '../../../hooks/finance-setting/useSettingWorkspace'
 const props = defineProps<{ projectId: string }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
-const { table, status, params, retrying, notify, reload, request, retry } = useBillingTasks(props.projectId)
+const { table, status, params, notify, reload, request } = useBillingTasks(props.projectId)
 const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'fullName', width: 230 },
   { title: t('Setting.taskKind'), dataIndex: 'kind', width: 110, scopedSlots: true },
   { title: t('Setting.businessDate'), dataIndex: 'businessDate', width: 120 },
   { title: t('Setting.state'), dataIndex: 'status', width: 110, scopedSlots: true },
   { title: t('Setting.taskResult'), dataIndex: 'result', width: 220, scopedSlots: true },
-  { title: t('Setting.attempts'), dataIndex: 'attempts', width: 85 },
-  { title: t('Finance.actions'), dataIndex: 'actions', width: 100, fixed: 'right', scopedSlots: true }
+  { title: t('Setting.attempts'), dataIndex: 'attempts', width: 85 }
 ])
 </script>
 <template>
@@ -79,20 +77,6 @@ const columns = computed(() => [
         <span v-else-if="row.status === 'SUCCEEDED'">
           {{ t('Setting.generated', { generated: row.generated || 0, retained: row.retained || 0 }) }}
         </span>
-        <span v-else>—</span>
-      </template>
-      <template #actions="row">
-        <j-permission-button
-          v-if="row.status === 'FAILED'"
-          :hasPermission="`${settingPermission}:retry-task`"
-          type="link"
-          size="small"
-          :loading="retrying === row.id"
-          :disabled="!!retrying"
-          @click="retry(row)"
-        >
-          {{ t('Setting.retryTask') }}
-        </j-permission-button>
         <span v-else>—</span>
       </template>
       <template #emptyText><CloudEmpty :description="t('Setting.noTasks')" /></template>

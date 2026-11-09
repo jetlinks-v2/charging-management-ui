@@ -52,8 +52,7 @@ test('收费设置每个按钮权限都能在菜单中独立配置并映射到�
   for (const [id, action] of [
     ['change-customer', 'save'],
     ['next-version', 'save'],
-    ['stop', 'save'],
-    ['retry-task', 'calculate']
+    ['stop', 'save']
   ]) {
     assert.ok(buttons.has(id), `缺少独立按钮权限 ${id}`)
     assert.ok(buttons.get(id).permissions.some(
@@ -69,6 +68,13 @@ test('收费设置每个按钮权限都能在菜单中独立配置并映射到�
   }
   const table = readFileSync(new URL('SettingTable.vue', directory), 'utf8')
   assert.equal(buttons.has('calculate'), false)
+  assert.equal(buttons.has('retry-task'), false)
+  assert.equal(menu.buttons.some((button) => button.permissions.some(
+    (permission) => permission.permission === 'property-finance-setting' && permission.actions.includes('calculate')
+  )), false)
+  const tasks = readFileSync(new URL('SettingTasks.vue', directory), 'utf8')
+  assert.equal(tasks.includes('retry(row)'), false)
+  assert.equal(tasks.includes('Setting.retryTask'), false)
   assert.equal(table.includes('generate(row)'), false)
   assert.equal(table.includes('Setting.calculate'), false)
   for (const id of ['change-customer', 'next-version', 'stop']) {
