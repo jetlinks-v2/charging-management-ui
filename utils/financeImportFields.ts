@@ -7,10 +7,9 @@ export interface ImportField {
   readonly?: boolean
 }
 export const historicalImportFields: ImportField[] = [
-  ...['fullName', 'customerName', 'subjectName', 'standardName', 'contractCode'].map((key) => ({
+  ...['fullName', 'customerName', 'subjectName', 'standardName'].map((key) => ({
     key,
-    label: 'ReceivableLedger.' + key,
-    optional: key === 'contractCode'
+    label: 'ReceivableLedger.' + key
   })),
   ...['calcStartDate', 'calcEndDate', 'dueDate'].map((key) => ({
     key,

@@ -72,6 +72,7 @@ export interface PaymentLine {
 export interface PaymentDetail {
   payment: {
     id: string
+    billNo: string
     companyId: string
     sourceType: 'RECEIVABLE' | 'TEMPORARY'
     amount: string
@@ -96,6 +97,7 @@ export interface PaymentDetail {
   }
 }
 export interface PaymentRecord {
+  billNo?: string
   handoverState: HandoverState
   line: PaymentLine
   paidAt: string

@@ -12,8 +12,8 @@ const state = useReceivedLedger(props.archive)
 const { input, filter, request, notify, exporting, exportRows } = state
 // 复用实收报表的平面筛选契约，不提供服务器无法执行的分组或 OR 条件。
 const fields = computed(() => [
-  ...['fullName', 'customerName', 'collectorName'].map((key) => ({
-    title: t('Received.' + key),
+  ...['paymentNo', 'fullName', 'customerName', 'collectorName'].map((key) => ({
+    title: key === 'paymentNo' ? t('Document.billNo') : t('Received.' + key),
     dataIndex: key,
     search: { type: 'string', termOptions: ['like'], defaultTermType: 'like' }
   })),
@@ -30,6 +30,7 @@ const fields = computed(() => [
 ])
 const columns = computed(() => [
   ...[
+    'sourceNo',
     'fullName',
     'customerName',
     'subjectName',
@@ -40,9 +41,9 @@ const columns = computed(() => [
     'receivedAt',
     'methodText'
   ].map((key) => ({
-    title: t('Received.' + key),
+    title: key === 'sourceNo' ? t('Document.billNo') : t('Received.' + key),
     dataIndex: key,
-    width: key === 'fullName' ? 250 : 160,
+    width: key === 'sourceNo' ? 280 : key === 'fullName' ? 250 : 160,
     scopedSlots: ['sourceType', 'handoverState', 'receivedAt'].includes(key)
   })),
   { title: t('Cashier.amount'), dataIndex: ['amounts', 'netAmount'], width: 160, align: 'right' },

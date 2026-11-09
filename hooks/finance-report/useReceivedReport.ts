@@ -170,7 +170,10 @@ export function useReceivedReport() {
     } else if (input.groupBy === 'COLLECTOR') {
       input.collectorId = rows[0].collectorId
       input.collectorName = rows[0].collectorName
-    } else return
+    } else if (input.groupBy === 'DAY' || input.groupBy === 'MONTH') {
+      input.receivedPeriods = rows.flatMap(row => row.receivedAt ? [row.receivedAt] : [])
+    } else if (input.groupBy === 'HANDOVER') input.handoverState = rows[0].handoverState
+    else return
     if (!input.projectIds.length) return
     parent.value = copy(active.value)
     input.groupBy = 'DETAIL'

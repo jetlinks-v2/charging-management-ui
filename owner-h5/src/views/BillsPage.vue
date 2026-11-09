@@ -20,7 +20,7 @@ function toggle(id:string){expanded.value=expanded.value.includes(id)?expanded.v
    <article v-for="bill in vm.rows" :key="bill.id" class="bill-card">
     <button class="bill-toggle" :aria-expanded="expanded.includes(bill.id)" @click="toggle(bill.id)">
      <span class="bill-calendar"><CalendarOutlined/></span>
-     <span class="bill-copy"><strong>{{bill.periodStart.slice(0,7).replace('-','年')}}月</strong><span>{{bill.periodStart}} 至 {{bill.periodEnd}}</span></span>
+     <span class="bill-copy"><strong>{{bill.subjectName}}</strong><span>{{bill.periodStart}} 至 {{bill.periodEnd}}</span></span>
      <span class="bill-right"><strong>¥{{money(paid?bill.paidAmount:bill.arrears)}}</strong><a-tag :color="paid?'green':'orange'">{{paid?'已缴清':Number(bill.paidAmount)>0?'部分已缴':'待缴'}}</a-tag></span>
      <DownOutlined class="expand-icon" :class="{rotated:expanded.includes(bill.id)}"/>
     </button>

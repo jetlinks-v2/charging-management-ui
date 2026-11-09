@@ -3,7 +3,7 @@ export interface RuntimeConfig {applicationId:string;title:string;allowedHostOri
 export interface Authorization {user:{id:string;name?:string;username?:string};permissions:{id:string;actions:string[]}[];dimensions?:{type:string;id:string}[]}
 export interface Room {projectId:string;projectName:string;spaceId:string;name:string;fullName:string;customerName:string;nature:string}
 export interface Pager<T> {total:number;pageIndex:number;pageSize:number;data:T[]}
-export interface Bill {id:string;periodStart:string;periodEnd:string;dueDate:string;periodStatus:string;amount:string;paidAmount:string;arrears:string;discount:string;lateFee:string}
+export interface Bill {id:string;subjectName:string;periodStart:string;periodEnd:string;dueDate:string;periodStatus:string;amount:string;paidAmount:string;arrears:string;discount:string;lateFee:string}
 export interface Account {id:string;balance:string;available:string}
 export interface Entry {id:string;action:string;occurredAt:string;amount:string;beforeBalance:string;afterBalance:string}
 export interface PaymentRecord {id:string;start:string;end:string;paidAt:string;method:string;status:string;amount:string;refunded:string}

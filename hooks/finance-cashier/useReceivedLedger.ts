@@ -20,6 +20,7 @@ export function useReceivedLedger(archive: ReturnType<typeof useFinanceSpaceScop
     try {
       // 搜索、分页和导出共用已应用条件；不把不支持的 OR 或重复字段静默压成平面条件。
       filters.value = reportConditions(filter.terms, {
+        paymentNo: 'like',
         fullName: 'like',
         customerName: 'like',
         collectorName: 'like',

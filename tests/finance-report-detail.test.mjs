@@ -28,7 +28,7 @@ test('实收详情排除内部ID和表格元数据，使用中文状态、分钟
       collectorName: '龚超',
       id: 'internal',
       sourceId: 'internal',
-      sourceNo: 'ADVANCE-internal',
+      sourceNo: 'YC20261109000001',
       method: 'cash',
       collectorId: 'internal',
       index: 1,
@@ -45,6 +45,7 @@ test('实收详情排除内部ID和表格元数据，使用中文状态、分钟
   )
   const text = JSON.stringify(detail)
   assert.ok(!/internal|UNHANDED|ADVANCE|\[object Object\]/.test(text))
+  assert.equal(detail.basic.find((x) => x.key === 'sourceNo').text, 'YC20261109000001')
   assert.equal(detail.basic.find((x) => x.key === 'handoverState').text, '已收未交账')
   assert.equal(detail.basic.find((x) => x.key === 'sourceType').text, '预收款')
   assert.equal(detail.basic.find((x) => x.key === 'receivedAt').text, '2026-11-07 12:34')

@@ -12,10 +12,23 @@ export function receivableDateValue(value: unknown): unknown {
 
 export function receivableFields(t: (key: string) => string): ConditionFieldSchema[] {
   return [
-    ...['contractCode', 'fullName', 'subjectName', 'customerName', 'standardName'].map((key) => ({
+    ...['billNo', 'fullName', 'subjectName', 'customerName', 'standardName'].map((key) => ({
       title: t('Receivable.' + key),
       dataIndex: key,
       search: { type: 'string' }
+    })),
+    ...['periodStatus', 'payStatus'].map((key) => ({
+      title: t('ReceivableLedger.' + key),
+      dataIndex: key,
+      search: {
+        type: 'select',
+        termOptions: ['eq'],
+        defaultTermType: 'eq',
+        options: (key === 'periodStatus' ? ['OPEN', 'CLOSED'] : ['UNPAID', 'PARTIAL', 'PAID']).map((value) => ({
+          value,
+          label: t('ReceivableLedger.status.' + value)
+        }))
+      }
     })),
     ...['calcStartDate', 'calcEndDate', 'dueDate'].map((key) => ({
       title: t('Receivable.' + key),

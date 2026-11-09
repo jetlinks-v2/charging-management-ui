@@ -1,9 +1,10 @@
+import { exportReportJob } from './financeReportJobs'
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Page } from './archive'
 import type { HandoverState } from '../utils/collectionDisplay'
 import { excelResponse } from '../utils/archiveFiles'
 const request: Pick<Request, 'post'> = hostRequest
-export type ReceivedGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'METHOD' | 'SOURCE' | 'COLLECTOR'
+export type ReceivedGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'METHOD' | 'SOURCE' | 'COLLECTOR' | 'DAY' | 'MONTH' | 'HANDOVER'
 export type ReceivedSource =
   | 'RECEIVABLE'
   | 'TEMPORARY'
@@ -28,6 +29,9 @@ export interface ReceivedInput {
   paymentNo?: string
   handoverState?: HandoverState
   collectorName?: string
+  calcStartDate?: string
+  calcEndDate?: string
+  receivedPeriods?: string[]
   receivedDateStart?: string
   receivedDateEnd?: string
   groupBy: ReceivedGroup
@@ -35,6 +39,11 @@ export interface ReceivedInput {
   pageSize: number
 }
 export interface ReceivedAmounts {
+  olderYearAmount: string
+  olderMonthAmount: string
+  thisMonthAmount: string
+  futureAmount: string
+  unassignedAmount: string
   unhandedAmount: string
   pendingAmount: string
   approvedAmount: string
@@ -78,7 +87,4 @@ export interface ReceivedReport {
 const base = '/property/finance/reports/received'
 export const queryReceivedReport = (input: ReceivedInput, signal?: AbortSignal) =>
   request.post<ReceivedReport>(`${base}/_query`, input, { hiddenError: true, signal }).then(checked)
-export const exportReceivedReport = (input: ReceivedInput, format: 'excel' | 'pdf') =>
-  request
-    .post<Blob>(`${base}/_export/${format}`, input, { hiddenError: true, responseType: 'blob' })
-    .then(excelResponse)
+export const exportReceivedReport = (input: ReceivedInput, format: 'excel' | 'pdf') => exportReportJob('received', input, format)

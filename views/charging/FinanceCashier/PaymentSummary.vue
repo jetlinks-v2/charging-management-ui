@@ -17,7 +17,7 @@ const items = computed(() => [
   { label: t('Cashier.paidAt'), value: formatFinanceTime(props.detail.payment.paidAt) },
   { label: t('Cashier.operator'), value: props.detail.payment.modifierName || '—' },
   { label: t('Setting.remark'), value: props.detail.payment.remark || '—' },
-  { label: t('Cashier.paymentId'), value: props.detail.payment.id }
+  { label: t('Document.billNo'), value: props.detail.payment.billNo }
 ])
 const columns = computed(() => [
   { title: t('Setting.house'), dataIndex: 'fullName', width: 240 },

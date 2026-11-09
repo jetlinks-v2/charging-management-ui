@@ -62,9 +62,9 @@ export function useReceivableColumns() {
         fixed:
           option.key === 'actions'
             ? ('right' as const)
-            : ['contractCode', 'rowNumber'].includes(option.key)
-              ? ('left' as const)
-              : undefined
+            : ['billNo', 'rowNumber'].includes(option.key)
+            ? ('left' as const)
+            : undefined
       }))
   )
   const scrollWidth = computed(() => columns.value.reduce((sum, column) => sum + column.width, 48))

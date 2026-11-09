@@ -70,6 +70,25 @@ const dateEnd = computed(() => dates.value[1].format('YYYY-MM-DD'))
               </dd>
             </div>
           </dl>
+          <dl class="overview-business-summary">
+            <div
+              v-for="key in ['billingHouseCount', 'owingHouseCount', 'overdueHouseCount'] as const"
+              :key="key"
+            >
+              <dt>{{ t('Overview.' + key) }}</dt>
+              <dd>
+                {{ data.receivables[key]?.toLocaleString() ?? '—' }}
+                <small>{{ t('Overview.rooms') }}</small>
+              </dd>
+            </div>
+            <div>
+              <dt>{{ t('Report.remissionAmount') }}</dt>
+              <dd>
+                {{ overviewMoney(data.receivables.summary.remissionAmount) }}
+                <small>{{ t('Overview.wan') }}</small>
+              </dd>
+            </div>
+          </dl>
           <OverviewCharts
             :data="data"
             :start="dateStart"

@@ -27,6 +27,7 @@ export function usePaymentColumns(temporary = false) {
       : [])
   ])
   const columns = computed(() => [
+    { title: t('Document.billNo'), dataIndex: 'billNo', width: 280 },
     { title: t('Setting.house'), dataIndex: 'house', scopedSlots: true, width: 230 },
     { title: t('Receivable.subjectName'), dataIndex: 'subject', scopedSlots: true, width: 160 },
     { title: t('Cashier.payer'), dataIndex: 'payerName', width: 130 },

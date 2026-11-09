@@ -109,7 +109,6 @@ export function useImportLineEditor(
           customerName: model.customerName,
           subjectName: model.subjectName,
           standardName: model.standardName,
-          contractCode: model.contractCode,
           calcStartDate: model.calcStartDate,
           calcEndDate: model.calcEndDate,
           accountPeriod: model.accountPeriod,

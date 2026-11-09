@@ -18,6 +18,7 @@ const names = [
   'submitSplit',
   'historicalTemplate',
   'importHistorical',
+  'retryHistoricalImport',
   'queryHistoricalImports',
   'queryHistoricalImportLines',
   'decideHistoricalImports',
@@ -51,12 +52,12 @@ async function load(path) {
             contents: args.path.includes('api/')
               ? names.map((n) => `export const ${n}=(...a)=>globalThis.__receivableApi.${n}(...a)`).join('\n')
               : args.path.includes('useFinanceSpaceScope')
-                ? 'export const useFinanceSpaceScope=()=>globalThis.__receivableScope;export const flattenSpaces=nodes=>nodes.flatMap(n=>[n,...flattenSpaces(n.children||[])])'
-                : args.path.includes('useProjectContext')
-                  ? 'export const useProjectSwitchGuard=g=>globalThis.__receivableGuards.push(g)'
-                  : args.path === 'vue-i18n'
-                    ? 'export const useI18n=()=>({t:key=>key})'
-                    : 'export const onlyMessage=(...a)=>globalThis.__receivableMessages.push(a);export const downloadFileByUrl=()=>{}'
+              ? 'export const useFinanceSpaceScope=()=>globalThis.__receivableScope;export const flattenSpaces=nodes=>nodes.flatMap(n=>[n,...flattenSpaces(n.children||[])])'
+              : args.path.includes('useProjectContext')
+              ? 'export const useProjectSwitchGuard=g=>globalThis.__receivableGuards.push(g)'
+              : args.path === 'vue-i18n'
+              ? 'export const useI18n=()=>({t:key=>key})'
+              : 'export const onlyMessage=(...a)=>globalThis.__receivableMessages.push(a);export const downloadFileByUrl=()=>{}'
           }))
         }
       }
@@ -434,7 +435,8 @@ test('业务日期筛选使用本地日历日期，区间和清空不以时间�
   assert.equal(receivableDateValue(undefined), undefined)
   assert.throws(() => receivableDateValue('invalid'))
   const fields = receivableFields((key) => key)
-  assert.ok(fields.some((field) => field.dataIndex === 'contractCode'))
+  assert.ok(!fields.some((field) => field.dataIndex === 'contractCode'))
+  assert.ok(fields.some((field) => field.dataIndex === 'billNo'))
   assert.equal(fields.find((field) => field.dataIndex === 'dueDate').search.handleValue(to), '2024-03-01')
 })
 
@@ -462,34 +464,48 @@ const { receivableFilterTerms, useReceivableFilters } = await load(
 const { receivableCellText } = await load('../utils/receivableDisplay.ts')
 const { useHistoricalAudit } = await load('../hooks/finance-receivable/useHistoricalAudit.ts')
 
-test('台账固定筛选发送金额条件到服务端，重置及切项目清除旧条件', async () => {
+test('组件搜索保留嵌套OR，支付状态转服务端金额条件，切项目清除条件', async () => {
   const terms = ref([]),
     project = ref('a')
   const { state, unmount } = mount(() => useReceivableFilters(terms, project))
-  Object.assign(state.model, {
-    contractCode: ' HT-1 ',
-    customerName: ' 龚超 ',
-    payStatus: 'PARTIAL',
-    calcStartDate: '2024-02-01',
-    calcEndDate: '2024-02-29'
+  const condition = [
+    { column: 'billNo', termType: 'like', value: '%YS20261109%' },
+    {
+      type: 'or',
+      terms: [
+        { column: 'customerName', termType: 'like', value: '%张%' },
+        { column: 'payStatus', termType: 'eq', value: 'PARTIAL', type: 'or' }
+      ]
+    }
+  ]
+  state.filter({ filter: { terms: condition } })
+  assert.deepEqual(terms.value[1], {
+    type: 'or',
+    terms: [
+      condition[1].terms[0],
+      {
+        type: 'or',
+        terms: [
+          { column: 'arrears', termType: 'gt', value: '0' },
+          { column: 'paidAmount', termType: 'gt', value: '0' }
+        ]
+      }
+    ]
   })
-  state.search()
-  assert.deepEqual(terms.value, [
-    { column: 'contractCode', termType: 'like', value: '%HT-1%' },
-    { column: 'customerName', termType: 'like', value: '%龚超%' },
-    { column: 'calcStartDate', termType: 'gte', value: '2024-02-01' },
-    { column: 'calcEndDate', termType: 'lte', value: '2024-02-29' },
-    { column: 'arrears', termType: 'gt', value: '0' },
-    { column: 'paidAmount', termType: 'gt', value: '0' }
+  assert.equal(condition[1].terms[1].column, 'payStatus')
+  assert.deepEqual(receivableFilterTerms([{ column: 'payStatus', termType: 'eq', value: 'PAID' }])[0].terms, [
+    { column: 'arrears', termType: 'lte', value: '0' }
   ])
-  assert.deepEqual(receivableFilterTerms({ payStatus: 'PAID' }), [{ column: 'arrears', termType: 'lte', value: '0' }])
-  state.reset()
+  assert.deepEqual(receivableFilterTerms([{ column: 'payStatus', termType: 'eq', value: 'UNPAID' }])[0].terms, [
+    { column: 'arrears', termType: 'gt', value: '0' },
+    { column: 'paidAmount', termType: 'eq', value: '0' }
+  ])
+  assert.throws(() => receivableFilterTerms([{ column: 'payStatus', termType: 'not', value: 'PAID' }]))
+  state.filter({ filter: { terms: [] } })
   assert.deepEqual(terms.value, [])
-  state.model.fullName = '101'
-  state.search()
+  state.filter({ filter: { terms: condition } })
   project.value = 'b'
   await nextTick()
-  assert.equal(state.model.fullName, '')
   assert.deepEqual(terms.value, [])
   unmount()
 })

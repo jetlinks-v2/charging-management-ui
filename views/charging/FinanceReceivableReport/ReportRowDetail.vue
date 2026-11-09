@@ -27,7 +27,7 @@ const sections = computed(() => reportDetail(props.row, props.namespace, t))
         <a-descriptions-item
           v-for="field in sections.basic"
           :key="field.key"
-          :label="t(namespace + '.' + field.key)"
+          :label="['billNo', 'sourceNo'].includes(field.key) ? t('Document.billNo') : t(namespace + '.' + field.key)"
           :span="field.span"
         >
           <a-tag
@@ -48,7 +48,7 @@ const sections = computed(() => reportDetail(props.row, props.namespace, t))
         <a-descriptions-item
           v-for="field in sections.money"
           :key="field.key"
-          :label="t(namespace + '.' + field.key)"
+          :label="['billNo', 'sourceNo'].includes(field.key) ? t('Document.billNo') : t(namespace + '.' + field.key)"
         >
           <span class="report-detail-money">{{ field.text }}</span>
         </a-descriptions-item>

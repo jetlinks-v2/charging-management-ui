@@ -28,7 +28,7 @@ export function receivableColumnOptions(t: (key: string) => string): ReceivableC
   ): ReceivableColumnOption => ({ key, title: t('ReceivableLedger.' + key), group, width, kind, locked })
   return [
     column('rowNumber', 'identity', 90, 'text', true),
-    column('contractCode', 'identity', 168, 'text', true),
+    column('billNo', 'identity', 280, 'text', true),
     column('chargePeriod', 'identity', 215, 'period'),
     column('projectName', 'identity', 150),
     column('fullName', 'identity', 240),

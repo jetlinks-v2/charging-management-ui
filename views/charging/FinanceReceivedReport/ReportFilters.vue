@@ -13,6 +13,7 @@ const { t } = useI18n()
 const { draft, exporting } = props.state
 const context = useProjectContext()
 const dateRanges: ReportDateRanges = {
+  feeDate: ['calcStartDate', 'calcEndDate'],
   receivedDate: ['receivedDateStart', 'receivedDateEnd']
 }
 // 主筛选回显来自草稿；返回汇总或重置后不保留隐藏的旧条件。
@@ -65,7 +66,7 @@ async function paymentMethods() {
 }
 const fields = computed(() => [
   ...Object.keys(dateRanges).map((key) => ({
-    title: t('Received.receivedDate'),
+    title: t(key === 'feeDate' ? 'Report.feeDate' : 'Received.receivedDate'),
     dataIndex: key,
     search: {
       type: 'date',

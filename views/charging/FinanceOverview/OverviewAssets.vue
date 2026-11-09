@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useElementSize } from '@vueuse/core'
+import { balancedRows } from '../../../utils/balancedRows'
 import { useI18n } from 'vue-i18n'
 import type { OverviewResult } from '../../../api/financeOverview'
 import { overviewMoney } from '../../../utils/overviewCharts'
 const props = defineProps<{ houses: OverviewResult['houses'] }>()
 const { t } = useI18n()
+const statesElement = ref<HTMLElement>()
+const { width } = useElementSize(statesElement)
+const stateRows = computed(() => balancedRows(props.houses.states, width.value))
 const fixed = computed(() => [
   { key: 'houses', icon: 'HomeOutlined', value: props.houses.houseCount.toLocaleString(), unit: t('Overview.rooms') },
   {
@@ -46,19 +51,29 @@ const fixed = computed(() => [
         </dl>
       </div>
     </div>
-    <dl class="overview-states">
-      <div
-        v-for="item in houses.states"
-        :key="item.value || item.text"
+    <div
+      ref="statesElement"
+      class="overview-states"
+    >
+      <dl
+        v-for="(row, index) in stateRows"
+        :key="index"
+        class="overview-state-row"
+        :style="{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }"
       >
-        <dt>
-          <j-ellipsis>{{ item.text || t('Overview.unset') }}</j-ellipsis>
-        </dt>
-        <dd>
-          {{ item.count.toLocaleString() }}
-          <small>{{ t('Overview.rooms') }}</small>
-        </dd>
-      </div>
-    </dl>
+        <div
+          v-for="item in row"
+          :key="item.value || item.text"
+        >
+          <dt>
+            <j-ellipsis>{{ item.text || t('Overview.unset') }}</j-ellipsis>
+          </dt>
+          <dd>
+            {{ item.count.toLocaleString() }}
+            <small>{{ t('Overview.rooms') }}</small>
+          </dd>
+        </div>
+      </dl>
+    </div>
   </section>
 </template>

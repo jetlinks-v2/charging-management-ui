@@ -26,7 +26,7 @@ const {
   exportRows
 } = state
 const moneyKeys = ['netAmount', 'receivedAmount', 'unreceivedAmount', 'overdueAmount', 'collectionRate']
-const groups = ['SUBJECT', 'PROJECT', 'DETAIL', 'OVERDUE'] as const
+const groups = ['SUBJECT', 'PROJECT', 'SPACE', 'CUSTOMER', 'MONTH', 'DETAIL', 'OVERDUE'] as const
 const summaryItems = computed(() =>
   moneyKeys.map((key) => ({
     label: t('Report.' + key),

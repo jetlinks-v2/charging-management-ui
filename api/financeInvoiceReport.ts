@@ -1,3 +1,4 @@
+import { exportReportJob } from './financeReportJobs'
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Page } from './archive'
 import { excelResponse } from '../utils/archiveFiles'
@@ -78,12 +79,12 @@ export const queryInvoiceReport = (input: InvoiceReportInput, signal?: AbortSign
     .post<InvoiceReport>(`${base}${input.ledger ? '/ledger' : ''}/_query`, input, { hiddenError: true, signal })
     .then(checked)
 export const exportInvoiceReport = (input: InvoiceReportInput, format: 'excel' | 'pdf') =>
-  request
-    .post<Blob>(`${base}${input.ledger ? '/ledger' : ''}/_export/${format}`, input, {
+  input.ledger ? request
+    .post<Blob>(`${base}/ledger/_export/${format}`, input, {
       hiddenError: true,
       responseType: 'blob'
     })
-    .then(excelResponse)
+    .then(excelResponse) : exportReportJob('invoices',input,format)
 
 export interface ReportDocument {
   id: string

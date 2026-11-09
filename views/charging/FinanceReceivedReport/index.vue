@@ -33,7 +33,7 @@ const moneyKeys = computed(() => [
     ? ['currentPeriodAmount', 'otherPeriodAmount']
     : [])
 ])
-const groups = ['METHOD', 'SUBJECT', 'COLLECTOR', 'SOURCE', 'PROJECT', 'DETAIL'] as const
+const groups = ['METHOD', 'SUBJECT', 'COLLECTOR', 'SOURCE', 'PROJECT', 'DAY', 'MONTH', 'HANDOVER', 'DETAIL'] as const
 const summaryItems = computed(() =>
   moneyKeys.value.map((key) => ({
     label: t('Received.' + key),

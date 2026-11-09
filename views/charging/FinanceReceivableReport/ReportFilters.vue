@@ -11,6 +11,7 @@ const { t } = useI18n()
 const { draft, exporting } = props.state
 const context = useProjectContext()
 const dateRanges: ReportDateRanges = {
+  feeDate: ['calcStartDate', 'calcEndDate'],
   receivableDate: ['receivableDateStart', 'receivableDateEnd'],
   dueDate: ['dueDateStart', 'dueDateEnd']
 }
@@ -32,7 +33,7 @@ const terms = computed(() =>
 )
 const fields = computed(() => [
   ...Object.keys(dateRanges).map((key) => ({
-    title: t(key === 'dueDate' ? 'Report.dueDate' : 'Report.receivableDate'),
+    title: t(key === 'feeDate' ? 'Report.feeDate' : key === 'dueDate' ? 'Report.dueDate' : 'Report.receivableDate'),
     dataIndex: key,
     search: {
       type: 'date',

@@ -53,7 +53,7 @@ export interface Receivable {
   sourceType?: string
   importId?: string
   accountPeriod?: string
-  contractCode?: string
+  billNo?: string
   remark?: string
   customerName: string
   customerNames: string[]
@@ -365,7 +365,6 @@ export type HistoricalLineInput = Pick<
   | 'contractReceivableAmount'
   | 'feeReductionAmount'
   | 'actualReceivableAmount'
-  | 'contractCode'
   | 'remark'
 >
 /** 待审明细修改同时校验批次与行版本，服务器重新解析引用并更新快照。 */

@@ -26,8 +26,11 @@ const groupField = computed(
       METHOD: 'methodText',
       SOURCE: 'sourceType',
       COLLECTOR: 'collectorName',
+      DAY: 'receivedAt',
+      MONTH: 'receivedAt',
+      HANDOVER: 'handoverState',
       DETAIL: ''
-    }[active.value.groupBy])
+    })[active.value.groupBy]
 )
 const rowKey = (row: ReceivedRow) =>
   JSON.stringify([
@@ -39,12 +42,15 @@ const rowKey = (row: ReceivedRow) =>
     row.methodText,
     row.sourceType,
     row.collectorId,
-    row.collectorName
+    row.collectorName,
+    row.receivedAt,
+    row.handoverState
   ])
 const columns = computed(() => {
   const fields =
     active.value.groupBy === 'DETAIL'
       ? [
+          'sourceNo',
           'projectName',
           'fullName',
           'customerName',
@@ -59,8 +65,17 @@ const columns = computed(() => {
     active.value.groupBy === 'DETAIL'
       ? ['netAmount']
       : active.value.receivedDateStart || active.value.receivedDateEnd
-      ? ['incomeAmount', 'refundAmount', 'netAmount', 'currentPeriodAmount', 'otherPeriodAmount']
-      : ['incomeAmount', 'refundAmount', 'netAmount']
+        ? [
+            'incomeAmount',
+            'refundAmount',
+            'netAmount',
+            'olderYearAmount',
+            'olderMonthAmount',
+            'thisMonthAmount',
+            'futureAmount',
+            'unassignedAmount'
+          ]
+        : ['incomeAmount', 'refundAmount', 'netAmount']
   if (active.value.groupBy === 'COLLECTOR') amounts.push('unhandedAmount', 'pendingAmount', 'approvedAmount')
   return [
     ...fields.map((key) => ({
@@ -129,11 +144,30 @@ const columns = computed(() => {
       <span v-else>{{ row[key] }}</span>
     </template>
     <template #handoverState="row">
-      <a-tag :color="handoverStateColors[row.handoverState || 'UNHANDED']">
+      <a-button
+        v-if="groupField === 'handoverState'"
+        type="link"
+        @click="state.drill([row])"
+      >
+        {{ t('Received.' + row.handoverState) }}
+      </a-button>
+      <a-tag
+        v-else
+        :color="handoverStateColors[row.handoverState || 'UNHANDED']"
+      >
         {{ t('Received.' + (row.handoverState || 'UNHANDED')) }}
       </a-tag>
     </template>
-    <template #receivedAt="row">{{ formatFinanceTime(row.receivedAt) }}</template>
+    <template #receivedAt="row">
+      <a-button
+        v-if="groupField === 'receivedAt'"
+        type="link"
+        @click="state.drill([row])"
+      >
+        {{ row.receivedAt }}
+      </a-button>
+      <span v-else>{{ formatFinanceTime(row.receivedAt) }}</span>
+    </template>
     <template #actions="row">
       <a-button
         type="link"

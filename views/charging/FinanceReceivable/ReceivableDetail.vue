@@ -32,7 +32,7 @@ const identity = computed(() => [
   { label: t('Setting.telephone'), value: props.detail?.snapshot?.customer.telephone || '—' },
   { label: t('Setting.subject'), value: props.detail?.subjectName },
   { label: t('Setting.standard'), value: props.detail?.standardName },
-  { label: t('Historical.contractCode'), value: props.detail?.contractCode || '—' },
+  { label: t('Receivable.billNo'), value: props.detail?.billNo || '—' },
   { label: t('Setting.remark'), value: props.detail?.remark || '—' }
 ])
 const variables = computed(

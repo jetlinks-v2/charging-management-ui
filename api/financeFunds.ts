@@ -53,6 +53,7 @@ export interface FundInput {
   items?: { id: string; version: number; amount: string }[]
 }
 export interface FundEntry {
+  billNo: string
   id: string
   transactionId: string
   action: string

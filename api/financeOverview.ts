@@ -23,6 +23,8 @@ export interface OverviewResult {
     subjects: { subjectId: string; subjectName: string; amounts: ReportAmounts }[]
     ageBuckets: { key: string; amount: string }[]
     overdueHouseCount: number
+    billingHouseCount: number
+    owingHouseCount: number
   }
   cash: {
     summary: ReceivedAmounts

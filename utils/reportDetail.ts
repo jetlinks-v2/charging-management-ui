@@ -17,6 +17,7 @@ export function reportDetail(row: ReportRow | ReceivedRow, namespace: 'Report' |
   const source = row as unknown as Record<string, unknown>
   const fields = received
     ? [
+        'sourceNo',
         'projectName',
         'customerName',
         'fullName',
@@ -31,6 +32,7 @@ export function reportDetail(row: ReportRow | ReceivedRow, namespace: 'Report' |
         'remark'
       ]
     : [
+        'billNo',
         'projectName',
         'customerName',
         'fullName',

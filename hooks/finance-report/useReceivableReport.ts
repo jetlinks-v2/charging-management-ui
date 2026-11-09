@@ -167,6 +167,13 @@ export function useReceivableReport() {
       input.subjectIds = [...new Set(rows.flatMap((row) => (row.subjectId ? [row.subjectId] : [])))]
       input.subjectGroups = rows.map((row) => ({ value: row.subjectId, label: row.subjectName }))
       subjectLabel.value = [...new Set(rows.map((row) => row.subjectName))].join('、')
+    } else if (input.groupBy === 'SPACE' || input.groupBy === 'CUSTOMER' || input.groupBy === 'MONTH') {
+      // 单行下钻保留项目身份，避免同名客户或跨项目空间混入明细。
+      if (rows.length !== 1) return
+      if (rows[0].projectId) input.projectIds = [rows[0].projectId]
+      if (input.groupBy === 'SPACE') input.spaceIds = rows[0].spaceId ? [rows[0].spaceId] : []
+      if (input.groupBy === 'CUSTOMER') input.customerIds = rows[0].customerId ? [rows[0].customerId] : []
+      if (input.groupBy === 'MONTH') input.months = rows[0].receivableDate ? [rows[0].receivableDate] : []
     } else return
     if (!input.projectIds.length) return
     parent.value = copy(active.value)

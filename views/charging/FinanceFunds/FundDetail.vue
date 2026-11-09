@@ -12,6 +12,7 @@ const { t } = useI18n(),
   { selected, params, request } = useFundHistory(props)
 const notify = (e: unknown) => onlyMessage(requestErrorMessage(e, t('Finance.failed')), 'error')
 const columns = computed(() => [
+  { title: t('Document.billNo'), dataIndex: 'billNo', width: 280 },
   { title: t('Funds.occurredAt'), dataIndex: 'occurredAt', scopedSlots: true, width: 190 },
   { title: t('Funds.action'), dataIndex: 'action', scopedSlots: true, width: 110 },
   { title: t('Funds.change'), dataIndex: 'amount', width: 130, align: 'right' },
@@ -101,7 +102,7 @@ const summary = computed(() => [
       <KvGrid
         :cols="2"
         :items="[
-          { label: t('Funds.transactionId'), value: selected.transactionId },
+          { label: t('Document.billNo'), value: selected.billNo },
           { label: t('Funds.action'), value: t('Funds.' + selected.action) },
           { label: t('Funds.change'), value: selected.amount },
           { label: t('Funds.cashAmount'), value: selected.cashAmount },

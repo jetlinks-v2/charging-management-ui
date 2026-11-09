@@ -2431,8 +2431,268 @@
                 ]
               }
             ]
-          }
-        ]
+          },
+        {
+          "id": "charging-FinanceArrearsReport",
+          "code": "charging/FinanceArrearsReport",
+          "name": "欠费分析",
+          "url": "/charging/reports/FinanceArrearsReport",
+          "owner": "app",
+          "sortIndex": 4,
+          "icon": "AreaChartOutlined",
+          "i18nMessages": {
+            "name": {
+              "zh_CN": "欠费分析",
+              "en_US": "Finance arrears",
+              "en": "Finance arrears"
+            }
+          },
+          "assetType": "organization",
+          "accessSupport": {
+            "text": "支持",
+            "value": "support"
+          },
+          "supportDataAccess": true,
+          "showPage": [
+            "property-finance-report-arrears"
+          ],
+          "permissions": [
+            {
+              "permission": "property-finance-report-arrears",
+              "actions": [
+                "query"
+              ]
+            }
+          ],
+          "buttons": [
+            {
+              "id": "export",
+              "name": "导出 / 打印",
+              "i18nMessages": {
+                "zh_CN": "导出 / 打印",
+                "en_US": "Export / print",
+                "en": "Export / print"
+              },
+              "permissions": [
+                {
+                  "permission": "property-finance-report-arrears",
+                  "actions": [
+                    "export"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "charging-FinanceMonthlyReport",
+          "code": "charging/FinanceMonthlyReport",
+          "name": "财务月报",
+          "url": "/charging/reports/FinanceMonthlyReport",
+          "owner": "app",
+          "sortIndex": 5,
+          "icon": "AreaChartOutlined",
+          "i18nMessages": {
+            "name": {
+              "zh_CN": "财务月报",
+              "en_US": "Finance monthly",
+              "en": "Finance monthly"
+            }
+          },
+          "assetType": "organization",
+          "accessSupport": {
+            "text": "支持",
+            "value": "support"
+          },
+          "supportDataAccess": true,
+          "showPage": [
+            "property-finance-report-monthly"
+          ],
+          "permissions": [
+            {
+              "permission": "property-finance-report-monthly",
+              "actions": [
+                "query"
+              ]
+            }
+          ],
+          "buttons": [
+            {
+              "id": "export",
+              "name": "导出 / 打印",
+              "i18nMessages": {
+                "zh_CN": "导出 / 打印",
+                "en_US": "Export / print",
+                "en": "Export / print"
+              },
+              "permissions": [
+                {
+                  "permission": "property-finance-report-monthly",
+                  "actions": [
+                    "export"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "charging-FinanceFundsReport",
+          "code": "charging/FinanceFundsReport",
+          "name": "资金统计",
+          "url": "/charging/reports/FinanceFundsReport",
+          "owner": "app",
+          "sortIndex": 6,
+          "icon": "AreaChartOutlined",
+          "i18nMessages": {
+            "name": {
+              "zh_CN": "资金统计",
+              "en_US": "Finance funds",
+              "en": "Finance funds"
+            }
+          },
+          "assetType": "organization",
+          "accessSupport": {
+            "text": "支持",
+            "value": "support"
+          },
+          "supportDataAccess": true,
+          "showPage": [
+            "property-finance-report-funds"
+          ],
+          "permissions": [
+            {
+              "permission": "property-finance-report-funds",
+              "actions": [
+                "query"
+              ]
+            }
+          ],
+          "buttons": [
+            {
+              "id": "export",
+              "name": "导出 / 打印",
+              "i18nMessages": {
+                "zh_CN": "导出 / 打印",
+                "en_US": "Export / print",
+                "en": "Export / print"
+              },
+              "permissions": [
+                {
+                  "permission": "property-finance-report-funds",
+                  "actions": [
+                    "export"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "charging-FinanceActivityReport",
+          "code": "charging/FinanceActivityReport",
+          "name": "活动优惠统计",
+          "url": "/charging/reports/FinanceActivityReport",
+          "owner": "app",
+          "sortIndex": 7,
+          "icon": "AreaChartOutlined",
+          "i18nMessages": {
+            "name": {
+              "zh_CN": "活动优惠统计",
+              "en_US": "Finance activity",
+              "en": "Finance activity"
+            }
+          },
+          "assetType": "organization",
+          "accessSupport": {
+            "text": "支持",
+            "value": "support"
+          },
+          "supportDataAccess": true,
+          "showPage": [
+            "property-finance-report-activity"
+          ],
+          "permissions": [
+            {
+              "permission": "property-finance-report-activity",
+              "actions": [
+                "query"
+              ]
+            }
+          ],
+          "buttons": [
+            {
+              "id": "export",
+              "name": "导出 / 打印",
+              "i18nMessages": {
+                "zh_CN": "导出 / 打印",
+                "en_US": "Export / print",
+                "en": "Export / print"
+              },
+              "permissions": [
+                {
+                  "permission": "property-finance-report-activity",
+                  "actions": [
+                    "export"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "charging-FinanceChangesReport",
+          "code": "charging/FinanceChangesReport",
+          "name": "账务变动统计",
+          "url": "/charging/reports/FinanceChangesReport",
+          "owner": "app",
+          "sortIndex": 8,
+          "icon": "AreaChartOutlined",
+          "i18nMessages": {
+            "name": {
+              "zh_CN": "账务变动统计",
+              "en_US": "Finance changes",
+              "en": "Finance changes"
+            }
+          },
+          "assetType": "organization",
+          "accessSupport": {
+            "text": "支持",
+            "value": "support"
+          },
+          "supportDataAccess": true,
+          "showPage": [
+            "property-finance-report-changes"
+          ],
+          "permissions": [
+            {
+              "permission": "property-finance-report-changes",
+              "actions": [
+                "query"
+              ]
+            }
+          ],
+          "buttons": [
+            {
+              "id": "export",
+              "name": "导出 / 打印",
+              "i18nMessages": {
+                "zh_CN": "导出 / 打印",
+                "en_US": "Export / print",
+                "en": "Export / print"
+              },
+              "permissions": [
+                {
+                  "permission": "property-finance-report-changes",
+                  "actions": [
+                    "export"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
       },
       {
         "id": "charging-configuration",

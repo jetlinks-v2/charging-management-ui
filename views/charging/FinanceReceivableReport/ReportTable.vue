@@ -16,7 +16,7 @@ watch(
   { deep: true }
 )
 const { active, ready, revision, selected, request } = props.state
-const rowKey = (row: ReportRow) => JSON.stringify([row.id, row.projectId, row.subjectId, row.subjectName])
+const rowKey = (row: ReportRow) => JSON.stringify([row.id, row.projectId, row.subjectId, row.subjectName, row.spaceId, row.customerId, row.receivableDate])
 const selection = computed(() =>
   active.value.groupBy === 'DETAIL'
     ? undefined
@@ -29,6 +29,7 @@ const columns = computed(() => {
   const fields =
     active.value.groupBy === 'DETAIL'
       ? [
+          'billNo',
           'projectName',
           'fullName',
           'customerName',
@@ -38,14 +39,14 @@ const columns = computed(() => {
           'overdueDays',
           'collectionStatus'
         ]
-      : [active.value.groupBy === 'PROJECT' ? 'projectName' : 'subjectName', 'billCount']
+      : [({PROJECT:'projectName',SUBJECT:'subjectName',SPACE:'fullName',CUSTOMER:'customerName',MONTH:'receivableDate'}[active.value.groupBy]), 'billCount']
   return [
     ...fields.map((key) => ({
-      title: t('Report.' + key),
+      title: key === 'billNo' ? t('Document.billNo') : t('Report.' + key),
       dataIndex: key,
       ellipsis: true,
-      width: key === 'fullName' ? 230 : key === 'id' ? 280 : 140,
-      scopedSlots: ['projectName', 'subjectName', 'collectionStatus'].includes(key)
+      width: key === 'fullName' ? 230 : key === 'billNo' ? 280 : 140,
+      scopedSlots: ['projectName', 'subjectName', 'fullName', 'customerName', 'receivableDate', 'collectionStatus'].includes(key)
     })),
     ...(active.value.groupBy === 'DETAIL'
       ? ['netAmount', 'receivedAmount', 'unreceivedAmount']
@@ -58,7 +59,13 @@ const columns = computed(() => {
           'overdueAmount',
           'collectionRate'
         ]
-    ).map((key) => ({ title: t('Report.' + key), dataIndex: ['amounts', key], key, width: 170, align: 'right' })),
+    ).map((key) => ({
+      title: key === 'billNo' ? t('Document.billNo') : t('Report.' + key),
+      dataIndex: ['amounts', key],
+      key,
+      width: 170,
+      align: 'right'
+    })),
     ...(active.value.groupBy === 'DETAIL'
       ? [{ title: t('Finance.actions'), dataIndex: 'actions', scopedSlots: true, width: 90, fixed: 'right' }]
       : [])
@@ -110,6 +117,10 @@ const badge = (key?: string) => (key === 'PAID' ? 'green' : key === 'PARTIAL' ? 
         {{ row.subjectName }}
       </a-button>
       <span v-else>{{ row.subjectName }}</span>
+    </template>
+    <template v-for="[key, group] in [['fullName','SPACE'],['customerName','CUSTOMER'],['receivableDate','MONTH']]" :key="key" #[key]="row">
+      <a-button v-if="active.groupBy === group" type="link" @click="state.drill([row])">{{ row[key] }}</a-button>
+      <span v-else>{{ row[key] }}</span>
     </template>
     <template #collectionStatus="row">
       <a-tag :color="badge(row.collectionStatus)">{{ t('Report.' + row.collectionStatus) }}</a-tag>

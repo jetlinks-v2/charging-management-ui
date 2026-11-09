@@ -1,8 +1,9 @@
+import { exportReportJob } from './financeReportJobs'
 import { request as hostRequest, type Request } from '@jetlinks-web/core'
 import { checked, type Page } from './archive'
 import { excelResponse } from '../utils/archiveFiles'
 const request: Pick<Request, 'post'> = hostRequest
-export type ReportGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT'
+export type ReportGroup = 'DETAIL' | 'PROJECT' | 'SUBJECT' | 'SPACE' | 'CUSTOMER' | 'MONTH'
 export type ReportExportMode = 'CURRENT' | 'DETAIL' | 'BOTH'
 export interface ReportInput {
   exportMode?: ReportExportMode
@@ -11,6 +12,10 @@ export interface ReportInput {
   spaceIds: string[]
   subjectIds: string[]
   subjectGroups?: { value?: string; label?: string }[]
+  customerIds?: string[]
+  months?: string[]
+  calcStartDate?: string
+  calcEndDate?: string
   customerName?: string
   fullName?: string
   receivableNo?: string
@@ -34,6 +39,8 @@ export interface ReportAmounts {
   collectionRate: string
 }
 export interface ReportRow {
+  customerId?: string
+  billNo?: string
   id?: string
   projectId?: string
   projectName?: string
@@ -61,7 +68,4 @@ export interface ReceivableReport {
 const base = '/property/finance/reports/receivables'
 export const queryReceivableReport = (input: ReportInput, signal?: AbortSignal) =>
   request.post<ReceivableReport>(`${base}/_query`, input, { hiddenError: true, signal }).then(checked)
-export const exportReceivableReport = (input: ReportInput, format: 'excel' | 'pdf') =>
-  request
-    .post<Blob>(`${base}/_export/${format}`, input, { hiddenError: true, responseType: 'blob' })
-    .then(excelResponse)
+export const exportReceivableReport = (input: ReportInput, format: 'excel' | 'pdf') => exportReportJob('receivables', input, format)

@@ -84,11 +84,14 @@
 }
 .overview-states {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 20px 24px;
   padding-top: 18px;
 }
-.overview-states > div {
+.overview-state-row {
+  display: grid;
+  gap: 24px;
+}
+.overview-state-row > div {
   min-width: 0;
   text-align: center;
 }
@@ -248,10 +251,35 @@
   .overview-charts {
     grid-template-columns: minmax(0, 1fr);
   }
-  .overview-states {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  }
   .overview-chart {
     height: 280px;
+  }
+}
+
+.overview-business-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px !important;
+  padding: 16px 20px;
+  background: var(--overview-surface);
+  border: 1px solid var(--overview-line);
+  border-radius: 6px;
+}
+.overview-business-summary > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.overview-business-summary dd {
+  font-size: 18px;
+  margin: 0;
+  white-space: nowrap;
+}
+@container (max-width:1050px) {
+  .overview-business-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
