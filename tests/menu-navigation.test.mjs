@@ -71,3 +71,41 @@ test('部分授权仅展开服务端已有菜单，不补未授权节点或按�
   const flat = [other, page]
   assert.deepEqual(filter(flat, { applicationScope: 'charging-app' }), flat)
 })
+
+test('收费配置的初始化地址位于自己的分组下', () => {
+  const configuration = system.children.find(item => item.code === 'charging/configuration')
+  assert.deepEqual(configuration.children.map(item => [item.code, item.url]), [
+    ['charging/FinanceCompany', '/charging/configuration/companies'],
+    ['charging/FinanceTax', '/charging/configuration/taxes'],
+    ['charging/FinanceArrears', '/charging/configuration/arrears']
+  ])
+})
+
+test('旧授权树在生成路由前修正配置地址，保留原数据、授权和项目分组', () => {
+  const legacy = structuredClone(system)
+  const configuration = legacy.children.find(item => item.code === 'charging/configuration')
+  for (const item of configuration.children) item.url = item.url.replace('/configuration/', '/finance/')
+  const before = structuredClone(legacy)
+  for (const applicationScope of [undefined, '__jetlinks_project__', 'charging-app']) {
+    const result = filter([legacy], { applicationScope })
+    const groups = applicationScope === 'charging-app' ? result : result[0].children
+    const config = groups.find(item => item.code === 'charging/configuration')
+    assert.deepEqual(config, system.children.find(item => item.code === 'charging/configuration'))
+    assert.strictEqual(groups.find(item => item.code === 'charging/finance'), legacy.children.find(item => item.code === 'charging/finance'))
+    assert.deepEqual(filter(result, { applicationScope }), result)
+  }
+  assert.deepEqual(legacy, before)
+})
+
+test('兼容部分授权且不覆盖自定义地址或其他菜单，配置分组仍可被任意上级包裹', () => {
+  const config = structuredClone(system.children.find(item => item.code === 'charging/configuration'))
+  const allowed = { ...config.children[0], url: '/charging/finance/companies', buttons: [{ id: 'query' }] }
+  config.children = [allowed]
+  const outside = { ...allowed, code: 'another/Company', url: '/charging/finance/companies' }
+  const result = filter([{ ...other, children: [config] }, outside], { applicationScope: 'charging-app' })
+  assert.deepEqual(result[0].children[0].children, [{ ...allowed, url: '/charging/configuration/companies' }])
+  assert.strictEqual(result[1], outside)
+  const custom = { ...allowed, url: '/custom/tax-accounts' }
+  const menus = [{ ...config, children: [custom] }]
+  assert.strictEqual(filter(menus, { applicationScope: '__jetlinks_project__' }), menus)
+})
