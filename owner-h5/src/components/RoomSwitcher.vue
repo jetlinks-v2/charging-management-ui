@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {computed} from 'vue'
-import {DownOutlined} from '@ant-design/icons-vue'
 import {roomsState} from '../services/rooms'
 const location=computed(()=>{
  const room=roomsState.selected
@@ -13,5 +12,5 @@ const location=computed(()=>{
 </script>
 <template><button class="room-switch" @click="roomsState.choosing=true">
  <span class="room-name"><strong>{{roomsState.selected?roomsState.selected.projectName+' · '+roomsState.selected.name:'选择我的房屋'}}</strong><span v-if="location" class="room-location">{{location}}</span></span>
- <span class="switch-label">切换 <DownOutlined/></span>
+ <span class="switch-label">切换 <van-icon name="arrow-down"/></span>
 </button></template>

@@ -8,7 +8,7 @@ export interface ProposalPart {input:QuoteInput;quote:Quote}
 export interface Proposal {quote:Quote;parts:ProposalPart[];paidMonths:number;giftMonths:number;activityName?:string;spaceId:string;projectId:string}
 export const proposal=shallowRef<Proposal>()
 export const proposalCurrent=computed(()=>proposal.value&&proposal.value.spaceId===currentRoom.value?.spaceId&&proposal.value.projectId===currentRoom.value?.projectId?proposal.value:undefined)
-watch([currentRoom,()=>state.session],()=>{proposal.value=undefined})
+watch([currentRoom,()=>state.session],()=>{proposal.value=undefined},{flush:'sync'})
 
 export function amount(value:bigint){return `${value/100n}.${String(value%100n).padStart(2,'0')}`}
 export function total(values:string[]){return amount(values.reduce((sum,value)=>sum+cents(value),0n))}

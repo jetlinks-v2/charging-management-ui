@@ -1,6 +1,5 @@
 import {request} from './http'
-import type {Authorization,Room,Pager,Bill,Account,Entry,PaymentRecord,Setting,Quote,QuoteInput} from '../types'
-export const authorize=()=>request<Authorization>('/authorize/me')
+import type {Room,Pager,Bill,Account,Entry,PaymentRecord,Setting,Quote,QuoteInput} from '../types'
 const base='/property/finance/owner'
 const roomPath=(room:Room)=>`${base}/projects/${encodeURIComponent(room.projectId)}/spaces/${encodeURIComponent(room.spaceId)}`
 export const getRooms=()=>request<Room[]>(base+'/rooms')

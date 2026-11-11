@@ -4,7 +4,7 @@ import {state} from './session'
 import type {Room} from '../types'
 export const roomsState=reactive<{rooms:Room[];selected?:Room;loading:boolean;error:string;choosing:boolean}>({rooms:[],loading:false,error:'',choosing:false})
 let generation=0
-const storageKey=()=>`finance-owner:room:${state.session?.applicationId}:${state.authorization?.user.id}`
+const storageKey=()=>`finance-owner:room:${state.session?.tenantDomain}:${state.session?.applicationId}:${state.authorization?.user.id}`
 export function resetRooms(){generation++;roomsState.rooms=[];roomsState.selected=undefined;roomsState.error='';roomsState.choosing=false;roomsState.loading=false}
 export async function loadRooms(){
  const version=++generation;roomsState.loading=true;roomsState.error=''

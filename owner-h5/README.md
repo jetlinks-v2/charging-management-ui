@@ -1,6 +1,6 @@
 # 收费业主 H5
 
-独立 Vue 3 + TypeScript + Ant Design Vue 应用，参考报事 `employee-h5` 的认证、验证码、配置和部署方式。与 PC 收费模块分开构建，不修改 SaaS 底座。
+独立 Vue 3 + TypeScript + Vant 4 应用，与 PC 收费模块分开构建，不修改 SaaS 底座。登录表单、按钮、标签、搜索、标签页和底部弹层使用移动端组件。
 
 ```powershell
 cd owner-h5
@@ -11,9 +11,17 @@ npm test
 npm run build
 ```
 
-`public/config.json`：`applicationId` 为收费业务应用 ID，`apiBase` 为同源 `/api`，`allowedHostOrigins` 为允许宿主交接会话的来源（不需要嵌入时可设空数组）。当前应用 ID 是本地开发配置，部署前替换成目标环境收费应用 ID。开发代理通过 `FINANCE_API_PROXY` 配置，默认网关 `http://localhost:8800`，移除 `/api` 前缀；不要代理到物业服务绕过网关认证。
+`public/config.json` 只配置 `title`、同源 `apiBase` 和允许宿主交接会话的 `allowedHostOrigins`（不需要嵌入时可设空数组），不配置应用 ID。同一份构建可用于测试、UAT 和生产，也支持同一环境的多个收费应用。开发代理通过 `FINANCE_API_PROXY` 配置，默认网关 `http://localhost:8800`，移除 `/api` 前缀；不要代理到物业服务绕过网关认证。
 
 登录填写 SaaS 项目编码、应用账号及密码。项目编码不同于物业项目 ID、空间 ID、业务应用 ID。支持平台密码加密及登录页内嵌的图片/Altcha 验证码。账号和密码不写入配置，令牌仅保存在当前标签页 sessionStorage，重新进入会验证应用授权；401 清理登录。后端需要当前租户及有效应用认证。
+
+## 应用入口与切换
+
+- 从应用进入：使用 `/#/?applicationId=<业务应用ID>`，也支持 URL 普通查询参数和 `applicationScope=business_application:<ID>`。参数只指定目标，不能授权；冲突、非法 ID 或无权应用会明确提示，不能自动进入另一个应用。
+- 直接访问：登录后由 `/business-application/me` 查询本人可访问应用，再用当前应用的 `/authorize/context` 及收费 `/owner/context` 校验；仅一个收费应用自动进入，多个显示选择列表，没有应用显示空状态。
+- 身份查询只带令牌和租户；收费业务请求携带 `X-Asset-Scope: business_application:<ID>`。后端核验平台激活范围、真实成员和当前应用内有效的收费查询权限；其他业务应用的权限不能用于进入收费。
+- 应用选择页支持选择不同应用，个人页不额外放置应用卡片；也可从其他应用入口重新进入。切换立即清空房屋、金额、报价与未提交表单；旧请求即使迟到或返回401，也不能覆盖新应用或清除新会话。保存的房屋按租户、应用和用户隔离，刷新后重新校验应用和房屋关系。
+- 不保存业务离线队列；当前没有离线支付或待同步账单。
 
 ## 功能及权限
 
@@ -33,6 +41,7 @@ npm run build
 
 | 方法 | 路径 | 含义 |
 | --- | --- | --- |
+| GET | `/context` | 核验当前应用并返回 `{applicationId}` |
 | GET | `/rooms` | 本人有效客户空间最小信息 |
 | GET | `/projects/{project}/spaces/{space}/bills?paid=false&pageIndex=0&pageSize=20` | 被指定账单，待缴/已缴及完整筛选总额 |
 | GET | 同空间 `/accounts` | 本人预收账户 |
@@ -43,13 +52,13 @@ npm run build
 | POST | 同空间 `/prepay/quote` | `{settingId, activityId?, paidMonths, giftMonths}`；不接受付款人或金额 |
 | POST | 同空间 `/prepay/revalidate` | `{quoteId}`；复核，不能收款 |
 
-每次都由基础 `propertyService:ownerHouse` 本人只读命令重新核验：认证用户 → 有效客户 → 当前关联 → 已完善房屋及有效空间/项目绑定，并使用 TenantAssetsHolder 限定当前租户。不会授予员工组织/空间维护权限，不使用手机号匹配授权。所有私有字段由 DTO 限制，项目/空间 ID 不能扩大访问范围。基础命令不可用时直接失败。
+每次都由基础 `propertyService:ownerHouse` 本人只读命令重新核验：认证用户 → 有效客户 → 当前关联 → 已完善房屋及有效空间/项目绑定，并使用 TenantAssetsHolder 限定当前租户。收费侧进一步通过当前 AssetsHolder 的 `organization/read` 过滤项目，仅返回当前应用授权范围内的本人房屋。不会授予员工组织/空间维护权限，不使用手机号匹配授权。应用沿用平台配置的数据范围；若两个应用均授权同一项目，可看到该项目内相同的本人业务数据，未新增按应用复制的账务存储。所有私有字段由 DTO 限制，项目/空间 ID 不能扩大访问范围。基础命令不可用时直接失败。
 
 分页最大 50；单房账单及本人收款候选查询有 10000 条显式上限，超限返回可见错误而非静默漏数；账户最多500，单账号关联最多1000。未来扩大此上限需先实现保持多付款人快照语义的数据库筛选，不能只取消保护。
 
 ## 部署
 
-先部署并启动最新基础和收费服务（含新增命令与本人接口）。本功能不新增表或迁移 SQL，也不需要初始化员工按钮权限。业主账号必须在当前 SaaS 应用可登录，并在基础客户管理中有有效空间关联。
+先部署并启动最新基础和收费服务（含本人命令、接口及应用范围校验）。本功能不新增表或迁移 SQL。账号须是启用的收费应用成员，具有该应用内至少一项 `property-finance-*:query` 权限及相应项目读取范围，并在基础客户管理中有有效空间关联；不能仅凭应用登录或手机号匹配房屋。不需要组织、空间、用户的维护权限。
 
 ```powershell
 npm ci
@@ -57,6 +66,6 @@ npm run build
 docker compose -f compose.yml up -d --build
 ```
 
-Nginx 只提供此 H5 和同源网关代理，默认端口9301；`config.json` 不缓存，构建资源长期缓存。配置网络名、网关域名及端口按部署环境调整。默认配置用于本地开发，线上部署须使用目标环境的应用 ID、网关与 HTTPS 配置。
+Nginx 只提供此 H5 和同源网关代理，默认端口9301；`config.json` 不缓存，构建资源长期缓存。配置网络名、网关域名及端口按部署环境调整。线上使用目标网关与 HTTPS 配置，应用 ID 由入口或登录后的选择流程确定。
 
 业主接口只返回自动匹配所需的配置 ID、结算周期和活动，不返回内部科目及标准名称；余额按房屋合计，统一流水继续按本人客户、项目、空间及有效预收账户过滤。

@@ -1,6 +1,6 @@
 import {computed,ref,reactive,watch,onBeforeUnmount} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
-import {message} from 'ant-design-vue'
+import {showFailToast} from 'vant'
 import {useRoomData} from './useRoomData'
 import {getOptions,createQuote,revalidate} from '../api/finance'
 import {currentRoom} from '../services/rooms'
@@ -54,7 +54,7 @@ export function useConfirmation(){
    if(version!==generation||!proposal.value)return
    proposal.value={...snapshot,parts,quote:combine(parts.map(p=>p.quote))}
    // 支付渠道接入前不能将金额校验结果视为已支付。
-   message.warning('支付暂不可用，请稍后再试')
+   showFailToast('支付暂不可用，请稍后再试')
   }catch(e){if(version===generation)error.value=errorText(e)}finally{if(version===generation)loading.value=false}
  }
  watch(currentRoom,()=>{generation++;loading.value=false;error.value=''})

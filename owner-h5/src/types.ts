@@ -1,5 +1,7 @@
-export interface Session {token:string;tenantDomain:string;applicationId:string}
-export interface RuntimeConfig {applicationId:string;title:string;allowedHostOrigins:string[];apiBase:string}
+export interface LoginIdentity {token:string;tenantDomain:string}
+export interface Session extends LoginIdentity {applicationId:string}
+export interface OwnerApplication {id:string;name:string;projectId?:string;templateId?:string;state?:string|{value:string}}
+export interface RuntimeConfig {title:string;allowedHostOrigins:string[];apiBase:string}
 export interface Authorization {user:{id:string;name?:string;username?:string};permissions:{id:string;actions:string[]}[];dimensions?:{type:string;id:string}[]}
 export interface Room {projectId:string;projectName:string;spaceId:string;name:string;fullName:string;customerName:string;nature:string}
 export interface Pager<T> {total:number;pageIndex:number;pageSize:number;data:T[]}

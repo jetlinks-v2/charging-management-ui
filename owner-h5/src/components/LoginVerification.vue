@@ -63,15 +63,15 @@ onBeforeUnmount(()=>{disposed=true;controller.abort();widget.value?.removeEventL
 </script>
 <template>
  <div class="login-verification">
-  <a-alert v-if="error" :message="error" type="error" show-icon/>
-  <a-spin :spinning="loading">
+  <van-notice-bar v-if="error" :text="error" wrapable/>
+  <div :aria-busy="loading"><van-loading v-if="loading"/>
    <altcha-widget v-if="requirement.config.type==='altcha'" ref="widget" :inert="loading"/>
    <template v-else-if="image">
-    <div class="captcha-row"><a-input v-model:value="imageCode" aria-label="验证码" placeholder="请输入验证码" autocomplete="off" :maxlength="8" @press-enter.stop.prevent="confirmImage"/><a-button html-type="button" aria-label="刷新验证码" @click="load"><img :src="image" alt="图片验证码"></a-button></div>
-    <a-button type="primary" html-type="button" block size="large" :disabled="!imageCode.trim()" :loading="loading" @click="confirmImage">登录</a-button>
+    <div class="captcha-row"><van-field v-model="imageCode" aria-label="验证码" placeholder="请输入验证码" autocomplete="off" :maxlength="8" @keydown.enter.stop.prevent="confirmImage"/><van-button native-type="button" aria-label="刷新验证码" @click="load"><img :src="image" alt="图片验证码"></van-button></div>
+    <van-button type="primary" native-type="button" block size="large" :disabled="!imageCode.trim()" :loading="loading" @click="confirmImage">登录</van-button>
    </template>
-  </a-spin>
-  <a-button v-if="error" html-type="button" block @click="load">重新加载验证码</a-button>
+  </div>
+  <van-button v-if="error" native-type="button" block @click="load">重新加载验证码</van-button>
  </div>
 </template>
-<style scoped>altcha-widget{display:block;width:100%;--altcha-max-width:100%}.captcha-row{margin:0 0 16px}.captcha-row>.ant-input{min-width:0;flex:1}.captcha-row img{display:block;max-width:100%;height:44px;object-fit:contain}.captcha-row>.ant-btn{margin:0;height:44px;max-width:50%;overflow:hidden}.login-verification>.ant-btn{margin-top:12px}</style>
+<style scoped>altcha-widget{display:block;width:100%;--altcha-max-width:100%}.captcha-row{display:flex;gap:12px;margin:16px 0}.captcha-row>.van-field{min-width:0;flex:1;border-radius:10px}.captcha-row img{display:block;max-width:100%;height:44px;object-fit:contain}.captcha-row>.van-button{padding:0;max-width:46%;height:44px;overflow:hidden}.login-verification>.van-button{margin-top:12px}</style>

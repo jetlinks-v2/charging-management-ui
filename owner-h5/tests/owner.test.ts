@@ -40,7 +40,7 @@ test('加载更多失败后重试同一页，不跳页；重选房屋从第一�
 })
 test('房屋选择按账号与应用隔离保存，退出清理内存关联',()=>{
  state.session={token:'fixture',tenantDomain:'project',applicationId:'app'};state.authorization={user:{id:'owner'},permissions:[]}
- selectRoom(room('two'));assert.equal(storage.get('finance-owner:room:app:owner'),'project:two')
+ selectRoom(room('two'));assert.equal(storage.get('finance-owner:room:project:app:owner'),'project:two')
  resetRooms();assert.equal(roomsState.selected,undefined);assert.equal(roomsState.rooms.length,0)
  state.session=undefined;state.authorization=undefined
 })

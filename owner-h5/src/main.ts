@@ -1,15 +1,14 @@
 import {createApp,h,watch} from 'vue'
 import {createRouter,createWebHashHistory} from 'vue-router'
-import Antd,{ConfigProvider} from 'ant-design-vue'
-import zhCN from 'ant-design-vue/es/locale/zh_CN'
-import 'ant-design-vue/dist/reset.css'
+import {ConfigProvider,Button,Form,Field,CellGroup,Popup,Search,Tag,Loading,Empty,Icon,Tabs,Tab,NoticeBar} from 'vant'
+import 'vant/lib/index.css'
 import './style.css'
 import App from './App.vue'
 import {attachHostBridge,clearSession,initializeConfig,state} from './services/session'
-import {verifySession} from './hooks/useSession'
 import {resetRooms,loadRooms} from './services/rooms'
 const router=createRouter({history:createWebHashHistory(),routes:[
  {path:'/',component:()=>import('./views/HomePage.vue')},{path:'/login',component:()=>import('./views/LoginPage.vue')},
+ {path:'/applications',component:()=>import('./views/ApplicationsPage.vue')},
  {path:'/bills',component:()=>import('./views/BillsPage.vue')},{path:'/prepay',component:()=>import('./views/PrepayPage.vue')},
  {path:'/confirm',component:()=>import('./views/ConfirmPage.vue')},{path:'/result',redirect:'/confirm'},
  {path:'/wallet',component:()=>import('./views/WalletPage.vue')},{path:'/wallet/:id',component:()=>import('./views/EntriesPage.vue')},
@@ -18,11 +17,22 @@ const router=createRouter({history:createWebHashHistory(),routes:[
 ]})
 async function bootstrap(){
  await initializeConfig()
- router.beforeEach(async to=>{if(to.path==='/login')return true;if(!state.session)return'/login';if(!state.authorization){try{await verifySession()}catch{clearSession();return'/login'}}return true})
- watch(()=>state.session,session=>{resetRooms();if(session)void loadRooms()})
- router.afterEach((to,from)=>{if(from.path==='/login'&&to.path!==from.path&&!state.authorization)return;window.scrollTo(0,0)})
- attachHostBridge(async()=>{try{await verifySession();await loadRooms();await router.replace('/')}catch{clearSession();await router.replace('/login')}})
+ router.beforeEach(to=>{
+  if(to.path==='/login')return true
+  if(!state.identity)return'/login'
+  if(to.path==='/applications')return true
+  if(!state.session||!state.ready)return'/applications'
+  return true
+ })
+ watch(()=>state.ready?state.session:undefined,session=>{resetRooms();if(session)void loadRooms()},{flush:'sync'})
+ router.afterEach(()=>window.scrollTo(0,0))
+ attachHostBridge(async()=>{await router.replace('/applications')})
  window.addEventListener('finance-owner:session-expired',()=>void router.replace('/login'))
- createApp({render:()=>h(ConfigProvider,{locale:zhCN,theme:{token:{colorPrimary:'#0879bc',colorText:'#21394d',colorTextSecondary:'#526b7e',colorTextPlaceholder:'#526b7e',colorBorder:'#dbe7f0',borderRadius:12,fontSize:14,controlHeight:44}}},()=>h(App))}).use(Antd).use(router).mount('#app')
+ const app=createApp({render:()=>h(ConfigProvider,{theme:'light'},()=>h(App))})
+ for(const component of [Button,Form,Field,CellGroup,Popup,Search,Tag,Loading,Empty,Icon,Tabs,Tab,NoticeBar])app.use(component)
+ app.use(router)
+ // 刷新后的身份必须先经过应用列表和服务端范围验证，不能直接恢复业务页面。
+ if(state.identity)await router.replace('/applications')
+ app.mount('#app')
 }
-void bootstrap().catch(()=>{document.getElementById('app')!.textContent='应用配置加载失败，请检查 config.json 后刷新重试。'})
+void bootstrap().catch(()=>{clearSession();document.getElementById('app')!.textContent='应用加载失败，请刷新重试。'})
