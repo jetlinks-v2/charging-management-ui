@@ -3,9 +3,20 @@ import { formatFinanceTime } from '../../../utils/financeTime'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { FinanceStandard, StandardOptions } from '../../../api/financeStandard'
+import { decodeTieredFormula } from '../../../hooks/finance-standard/tieredFormula'
+import StandardTierPricing from './StandardTierPricing.vue'
+import { formulaDisplay } from '../../../hooks/finance-standard/formula'
 const props = defineProps<{ detail: FinanceStandard; options: StandardOptions }>()
 const { t } = useI18n()
 const label = (key: string) => t('Standard.' + key)
+const tiered = computed(() => decodeTieredFormula(props.detail.formulaExpression, props.detail.price))
+const isMeter = computed(() => ['WATER', 'ELECTRICITY', 'GAS'].includes(props.detail.billingMethod))
+const meterRows = computed(() => tiered.value?.tiers || [{ upper: null, price: props.detail.price }])
+const visibleFormula = computed(() =>
+  isMeter.value
+    ? formulaDisplay(tiered.value?.formula || props.detail.formulaExpression, props.detail.variablesSnapshot)
+    : props.detail.formulaDisplay
+)
 const enumText = (key: keyof StandardOptions, value: unknown) => {
   const rows = props.options[key] as { value: unknown; text: string }[]
   return rows.find((row) => row.value === value)?.text || String(value ?? '—')
@@ -14,7 +25,7 @@ const basic = computed(() => [
   { label: label('standardCode'), value: props.detail.standardCode },
   { label: label('subjectId'), value: props.detail.subjectName },
   { label: label('billingMethod'), value: enumText('billingMethods', props.detail.billingMethod) },
-  { label: label('price'), value: props.detail.price ?? '—' },
+  ...(!isMeter.value ? [{ label: label('price'), value: props.detail.price ?? '—' }] : []),
   { label: label('chargeRoundType'), value: enumText('chargeRoundTypes', props.detail.chargeRoundType) },
   { label: label('mantissa'), value: enumText('mantissas', props.detail.mantissa) },
   { label: label('settlementMethod'), value: enumText('settlementMethods', props.detail.settlementMethod) },
@@ -60,8 +71,19 @@ const delay = computed(() =>
       icon="FunctionOutlined"
       :title="t('Standard.formulaSection')"
     >
-      <p class="standard-detail-formula">{{ detail.formulaDisplay }}</p>
-      <code class="standard-expression">{{ detail.formulaExpression }}</code>
+      <StandardTierPricing
+        v-if="isMeter"
+        :rows="meterRows"
+        :unit="detail.billingMethod === 'ELECTRICITY' ? 'kW·h' : 'm³'"
+        readonly
+      />
+      <p class="standard-detail-formula">{{ visibleFormula }}</p>
+      <code
+        v-if="!isMeter"
+        class="standard-expression"
+      >
+        {{ detail.formulaExpression }}
+      </code>
       <div class="standard-variable-tags">
         <a-tag
           v-for="item in detail.variablesSnapshot"

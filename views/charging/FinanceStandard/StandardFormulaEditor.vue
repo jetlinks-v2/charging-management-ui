@@ -8,18 +8,18 @@ const props = defineProps<{
   expression: string
   variables: FormulaVariable[]
   defaultExpression: string
+  fixedExpression?: string
 }>()
 const emit = defineEmits<{ confirm: [string] }>()
 const { t } = useI18n()
-const { open, draft, display, checking, begin, cancel, confirm } = useStandardFormulaEditor(props, (value) =>
-  emit('confirm', value)
-)
+const { open, draft, editableDraft, fixedDisplay, display, checking, begin, cancel, confirm } =
+  useStandardFormulaEditor(props, (value) => emit('confirm', value))
 const input = ref<{ focus: () => void; resizableTextArea?: { textArea?: HTMLTextAreaElement } }>()
 function insert(value: string) {
   const field = input.value?.resizableTextArea?.textArea
-  const start = field?.selectionStart ?? draft.value.length
+  const start = field?.selectionStart ?? editableDraft.value.length
   const end = field?.selectionEnd ?? start
-  draft.value = draft.value.slice(0, start) + value + draft.value.slice(end)
+  editableDraft.value = editableDraft.value.slice(0, start) + value + editableDraft.value.slice(end)
   input.value?.focus()
 }
 </script>
@@ -45,7 +45,12 @@ function insert(value: string) {
         :size="[8, 8]"
       >
         <a-button
-          v-for="item in variables.filter((row) => row.enabled)"
+          v-for="item in variables.filter(
+            (row) =>
+              row.enabled &&
+              (!fixedExpression ||
+                !['STANDARD_PRICE', 'WATER_USAGE', 'ELECTRICITY_USAGE', 'GAS_USAGE', 'PERIOD_MONTHS'].includes(row.variableCode))
+          )"
           :key="item.variableCode"
           size="small"
           :disabled="checking"
@@ -66,7 +71,7 @@ function insert(value: string) {
         <a-button
           type="link"
           :disabled="checking"
-          @click="draft = defaultExpression"
+          @click="draft = fixedExpression || defaultExpression"
         >
           {{ t('Standard.resetFormula') }}
         </a-button>
@@ -77,20 +82,32 @@ function insert(value: string) {
       >
         {{ t('Standard.formulaExpression') }}
       </label>
+      <div
+        v-if="fixedExpression"
+        class="formula-fixed-base"
+      >
+        <AIcon type="LockOutlined" />
+        <span>{{ fixedDisplay }}</span>
+      </div>
       <a-textarea
         id="standard-formula-expression"
         ref="input"
-        v-model:value="draft"
+        v-model:value="editableDraft"
         :disabled="checking"
         :rows="4"
         :maxlength="2000"
-        :placeholder="t('Standard.formulaPlaceholder')"
+        :placeholder="t(fixedExpression ? 'Standard.meterFormulaPlaceholder' : 'Standard.formulaPlaceholder')"
       />
       <div class="formula-preview">
         <span>{{ t('Standard.formulaPreview') }}</span>
         <p>{{ display }}</p>
       </div>
-      <div class="formula-hint">{{ t('Standard.formulaHint') }}</div>
+      <div
+        v-if="!fixedExpression"
+        class="formula-hint"
+      >
+        {{ t('Standard.formulaHint') }}
+      </div>
     </div>
   </a-modal>
 </template>
@@ -118,6 +135,14 @@ function insert(value: string) {
   padding: 14px 16px;
   background: var(--bg-2, #fafafa);
   border: 1px solid var(--line, #f0f0f0);
+  border-radius: 6px;
+}
+.formula-fixed-base {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-2, #fafafa);
   border-radius: 6px;
 }
 .formula-preview span,

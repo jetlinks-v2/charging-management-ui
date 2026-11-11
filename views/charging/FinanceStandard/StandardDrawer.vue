@@ -21,7 +21,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ close: []; retry: []; save: [StandardInput] }>()
 const { t } = useI18n()
-const { form, model, tax, variables, display, changeMethod, selectTax, submit } = useStandardForm(props, (input) =>
+const { form, model, tax, variables, display, pricing, changeMethod, selectTax, submit } = useStandardForm(props, (input) =>
   emit('save', input)
 )
 const taxOpen = ref(false)
@@ -116,6 +116,7 @@ const notify = (cause: unknown) => onlyMessage(requestErrorMessage(cause, t('Fin
           :variables="variables"
           :display="display"
           :project-id="projectId"
+          :pricing="pricing"
           @method="changeMethod"
         />
       </SectionCard>

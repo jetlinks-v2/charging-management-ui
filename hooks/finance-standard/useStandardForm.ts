@@ -5,6 +5,7 @@ import type { FormInstance } from 'ant-design-vue'
 import type { StandardInput, FinanceStandard, StandardOptions } from '../../api/financeStandard'
 import type { TaxItem } from '../../api/financeTax'
 import { formulaDisplay } from './formula'
+import { useStandardPricing } from './useStandardPricing'
 export function useStandardForm(
   props: { open: boolean; detail?: FinanceStandard; options: StandardOptions; selectedSubjectId?: string },
   save: (input: StandardInput) => void
@@ -32,6 +33,7 @@ export function useStandardForm(
   })
   const model = reactive<StandardInput>(defaults()),
     tax = ref<TaxItem>()
+  const pricing = useStandardPricing(model)
   const variables = computed(() => {
     const current = new Map(props.options.variables.map((row) => [row.variableCode, row]))
     // 停用的历史定义只用于解释旧公式，不混入新增可选变量。
@@ -39,7 +41,7 @@ export function useStandardForm(
       if (!current.has(row.variableCode)) current.set(row.variableCode, row)
     return [...current.values()]
   })
-  const display = computed(() => formulaDisplay(model.formulaExpression, variables.value))
+  const display = computed(() => formulaDisplay(pricing.isMeter ? pricing.state.formula : model.formulaExpression, variables.value))
   watch(
     () => [props.open, props.detail] as const,
     () => {
@@ -59,6 +61,7 @@ export function useStandardForm(
             taxRate: Number(props.detail.taxSnapshot.taxRate)
           }
         : undefined
+      pricing.restore()
       form.value?.clearValidate()
     },
     { immediate: true }
@@ -66,6 +69,8 @@ export function useStandardForm(
   function changeMethod(value: string) {
     const method = props.options.billingMethods.find((row) => row.value === value)
     model.formulaExpression = method?.defaultExpression || ''
+    if (pricing.isMeter) model.settlementMethod = 'MONTHLY'
+    pricing.restore()
   }
   function selectTax(row: TaxItem) {
     model.taxItemId = row.id
@@ -73,6 +78,10 @@ export function useStandardForm(
     tax.value = row
   }
   async function submit() {
+    if (!pricing.validate()) {
+      onlyMessage(t('Standard.tierInvalid'), 'warning')
+      return
+    }
     try {
       await form.value?.validate()
     } catch {
@@ -110,7 +119,7 @@ export function useStandardForm(
       subjectId,
       billingMethod,
       formulaExpression,
-      formulaDisplay: display.value,
+      formulaDisplay: formulaDisplay(formulaExpression, variables.value),
       price,
       chargeRoundType,
       mantissa,
@@ -127,5 +136,5 @@ export function useStandardForm(
       remark
     })
   }
-  return { form, model, tax, variables, display, changeMethod, selectTax, submit }
+  return { form, model, tax, variables, display, pricing, changeMethod, selectTax, submit }
 }

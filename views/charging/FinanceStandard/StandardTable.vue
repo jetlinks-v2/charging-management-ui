@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConditionFilter, { type ConditionFilterChangePayload } from '@jetlinks-web-core/components/ConditionFilter'
 import type { Query } from '../../../api/archive'
+import { decodeTieredFormula } from '../../../hooks/finance-standard/tieredFormula'
 import { standardPermission, type useStandardWorkspace } from '../../../hooks/finance-standard/useStandardWorkspace'
 const props = defineProps<{ state: ReturnType<typeof useStandardWorkspace> }>()
 const { t } = useI18n()
@@ -86,7 +87,7 @@ const statusColor = (status: string) =>
       {{ options.settlementMethods.find((item) => item.value === row.settlementMethod)?.text || row.settlementMethod }}
     </template>
     <template #price="row">
-      <span class="standard-amount">{{ row.price }}</span>
+      <span class="standard-amount">{{ decodeTieredFormula(row.formulaExpression, row.price) ? t('Standard.tieredPrice') : row.price }}</span>
     </template>
     <template #validity="row">
       {{ row.executeDate || t('Standard.unlimitedStart') }} ～ {{ row.cancelDate || t('Standard.unlimitedEnd') }}

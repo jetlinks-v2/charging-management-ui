@@ -7,7 +7,7 @@ export function formulaDisplay(
   const names = new Map(variables.map((row) => [row.variableCode, row.variableName]))
   return (
     '[费用_金额]=' +
-    expression.replace(/\$\{([A-Z][A-Z0-9_]*)\}/g, (token, code: string) =>
+    expression.replace('TIERED(', '阶梯累加(').replace(/\$\{([A-Z][A-Z0-9_]*)\}/g, (token, code: string) =>
       names.has(code) ? '[' + names.get(code) + ']' : token
     )
   )

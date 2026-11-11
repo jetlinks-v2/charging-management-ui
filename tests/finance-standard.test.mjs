@@ -410,3 +410,35 @@ test('create and edit submit without standard code so the server owns its identi
   assert.equal(submitted[1].version, 7)
   unmount()
 })
+
+test('clearing the editable part of a meter formula retains its locked base product', async () => {
+  const base = '${STANDARD_PRICE}*${WATER_USAGE}'
+  const applied = []
+  const { state, unmount } = mount(() => useStandardFormulaEditor({
+    projectId: 'a', expression: base + '*0.9+2', fixedExpression: base,
+    variables: [{ variableCode: 'STANDARD_PRICE', variableName: '单价' }, { variableCode: 'WATER_USAGE', variableName: '用水量' }]
+  }, value => applied.push(value)))
+  state.begin()
+  assert.equal(state.editableDraft.value, '*0.9+2')
+  assert.equal(state.fixedDisplay.value, '[单价]*[用水量]')
+  state.editableDraft.value = ''
+  assert.equal(state.draft.value, base)
+  state.editableDraft.value = '+2'
+  await state.confirm()
+  assert.deepEqual(applied, [base + '+2'])
+  unmount()
+})
+
+test('meter form shows the protected formula and submits the tier execution formula with matching display', async () => {
+  const data = options()
+  data.variables = [{ variableCode: 'STANDARD_PRICE', variableName: '收费标准_单价' }, { variableCode: 'WATER_USAGE', variableName: '用水量' }]
+  const detail = { ...row('water'), billingMethod: 'WATER', price: '3.00', formulaExpression: 'TIERED(${WATER_USAGE},${STANDARD_PRICE},10,4)' }
+  const submitted = []
+  const { state, unmount } = mount(() => useStandardForm(reactive({ open: true, options: data, detail }), input => submitted.push(input)))
+  state.pricing.setFormula('${STANDARD_PRICE}*${WATER_USAGE}*0.9+2')
+  assert.equal(state.display.value, '[费用_金额]=[收费标准_单价]*[用水量]*0.9+2')
+  await state.submit()
+  assert.equal(submitted[0].formulaExpression, 'TIERED(${STANDARD_PRICE}*${WATER_USAGE},10,4)*0.9+2')
+  assert.equal(submitted[0].formulaDisplay, '[费用_金额]=阶梯累加([收费标准_单价]*[用水量],10,4)*0.9+2')
+  unmount()
+})

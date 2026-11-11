@@ -2,12 +2,15 @@
 import { useI18n } from 'vue-i18n'
 import type { StandardInput, StandardOptions, FormulaVariable } from '../../../api/financeStandard'
 import StandardFormulaEditor from './StandardFormulaEditor.vue'
+import StandardTierPricing from './StandardTierPricing.vue'
+import type { StandardPricing } from '../../../hooks/finance-standard/useStandardPricing'
 const props = defineProps<{
   model: StandardInput
   options: StandardOptions
   variables: FormulaVariable[]
   display: string
   projectId: string
+  pricing: StandardPricing
 }>()
 const emit = defineEmits<{ method: [string] }>()
 const { t } = useI18n()
@@ -38,6 +41,25 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
       </a-radio-button>
     </a-radio-group>
   </a-form-item>
+  <div
+    v-if="pricing.isMeter"
+    class="standard-tier-editor"
+  >
+    <StandardTierPricing
+      v-model:rows="pricing.state.tiers"
+      :unit="pricing.unit"
+      @remove="pricing.removeTier"
+    />
+    <a-button
+      type="dashed"
+      block
+      :disabled="pricing.state.tiers.length >= 10"
+      @click="pricing.addTier"
+    >
+      <AIcon type="PlusOutlined" />
+      {{ t('Standard.addTier') }}
+    </a-button>
+  </div>
   <a-form-item
     name="formulaExpression"
     :label="t('Standard.formulaExpression')"
@@ -51,18 +73,23 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
         :aria-label="t('Standard.formulaExpression')"
       />
       <StandardFormulaEditor
-        :expression="model.formulaExpression"
+        :expression="pricing.isMeter ? pricing.state.formula : model.formulaExpression"
+        :fixed-expression="pricing.isMeter ? pricing.base : undefined"
         :project-id="projectId"
         :variables="variables"
         :default-expression="
           options.billingMethods.find((row) => row.value === model.billingMethod)?.defaultExpression || ''
         "
-        @confirm="model.formulaExpression = $event"
+        @confirm="pricing.isMeter ? pricing.setFormula($event) : (model.formulaExpression = $event)"
       />
     </div>
   </a-form-item>
-  <div class="finance-form-grid standard-precision-grid">
+  <div
+    class="finance-form-grid standard-precision-grid"
+    :class="{ 'standard-precision-grid--tiered': pricing.isMeter }"
+  >
     <a-form-item
+      v-if="!pricing.isMeter"
       name="price"
       :label="t('Standard.price')"
       :rules="required('price')"
@@ -105,6 +132,7 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
   >
     <a-radio-group
       v-model:value="model.settlementMethod"
+      :disabled="pricing.isMeter"
       :options="options.settlementMethods.map((row) => ({ value: row.value, label: row.text }))"
     />
   </a-form-item>
@@ -112,6 +140,12 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
 <style scoped>
 .standard-full {
   width: 100%;
+}
+.standard-tier-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 .standard-formula-control {
   display: flex;
@@ -123,6 +157,9 @@ const required = (key: string) => [{ required: true, message: t('Finance.require
 }
 .standard-precision-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.standard-precision-grid--tiered {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 @media (max-width: 600px) {
   .standard-precision-grid {
