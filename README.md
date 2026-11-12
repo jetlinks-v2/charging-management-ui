@@ -45,3 +45,7 @@ pnpm --filter charging-management-ui build:with-base
 ## 收费标准
 
 左侧科目目录支持搜索目录与科目并保留父路径，选择已下发科目后新增；新增自动带入当前项目、科目，归属只读。计费方式切换使用服务端默认公式，公式通过独立编辑弹窗校验后确认，取消不影响原公式。税目选择保留分页检索，选中后展示公司、税号、分类、税率及含税信息；逾期金额/比例显示对应单位，日期可留空表示不限制。页面不提供刷新按钮，不接入流程审批。
+
+## 业主 H5
+
+业主手机端已迁至 [charging-management-wx-ui](https://github.com/jetlinks-v2/charging-management-wx-ui)，使用 Vant 4 并保留自建登录。正式交付由 `cloud.jetlinks.mobile` 组合外壳构建：`pnpm build:app charging-app`，真实模板编码为 `sfgl`。PC 仓库仅维护收费业务桌面模块。

@@ -8,5 +8,5 @@
       "@charging-management-ui/*": ["./*"]
     }
   },
-  "exclude": ["node_modules", "dist", "owner-h5"]
+  "exclude": ["node_modules", "dist"]
 }

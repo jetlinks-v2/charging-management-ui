@@ -1,11 +1,12 @@
 import { build } from 'esbuild'
+import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 const require = createRequire(import.meta.url)
 const compiled = await build({
   entryPoints: [
-    new URL('../hooks/project/createProjectContext.ts', import.meta.url).pathname.replace(/^\/(\w:)/, '$1')
+    fileURLToPath(new URL('../hooks/project/createProjectContext.ts', import.meta.url))
   ],
   bundle: true,
   write: false,

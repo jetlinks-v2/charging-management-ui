@@ -1,6 +1,7 @@
 import { build } from 'esbuild'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import {resolve} from 'node:path'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
@@ -11,7 +12,7 @@ const built = await build({
   write: false,
   platform: 'node',
   format: 'cjs',
-  alias: { '@jetlinks-web-core': fileURLToPath(new URL('../../jetlinks-web-core/src', root)) }
+  alias: { '@jetlinks-web-core': process.env.JETLINKS_UI_HOST_ROOT ? resolve(process.env.JETLINKS_UI_HOST_ROOT,'jetlinks-web-core/src') : fileURLToPath(new URL('../../jetlinks-web-core/src', root)) }
 })
 const compiled = { exports: {} }
 new Function('module', 'exports', built.outputFiles[0].text)(compiled, compiled.exports)
